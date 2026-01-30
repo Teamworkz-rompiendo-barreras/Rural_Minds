@@ -38,12 +38,21 @@ const Login: React.FC = () => {
                 });
                 const role = userRes.data.role;
 
-                if (role === 'super_admin') {
-                    navigate('/admin');
-                } else if (role === 'enterprise') {
-                    navigate('/enterprise-dashboard');
-                } else {
-                    navigate('/talent-dashboard');
+                // Role-based redirect
+                switch (role) {
+                    case 'super_admin':
+                        navigate('/admin');
+                        break;
+                    case 'territory_admin':
+                        navigate('/municipality-dashboard');
+                        break;
+                    case 'enterprise':
+                        navigate('/enterprise-dashboard');
+                        break;
+                    case 'talent':
+                    default:
+                        navigate('/talent-dashboard');
+                        break;
                 }
             } catch {
                 navigate('/dashboard');
