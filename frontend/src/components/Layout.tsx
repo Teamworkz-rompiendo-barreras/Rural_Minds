@@ -69,9 +69,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
             <footer className="bg-white border-t border-gray-200 p-6 mt-auto">
                 <div className="container mx-auto flex flex-col md:flex-row justify-between items-center text-sm text-gray-600 gap-4">
-                    <span className="font-medium">Rural Minds © 2026</span>
-                    <span>
-                        Powered by <span className="text-primary font-bold">Rural Minds</span> | Innovación con Denominación de Origen
+                    <span className="font-medium text-n900">
+                        Rural Minds. <span className="italic">Innovación con denominación de origen</span> © 2026
+                    </span>
+                    <span className="text-gray-500">
+                        Powered by <span className="text-p2 font-bold">Teamworkz</span>
                     </span>
                 </div>
             </footer>
