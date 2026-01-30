@@ -1,7 +1,11 @@
 import os
+from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Use environment variable for database URL (Supabase PostgreSQL)
 # Fallback to SQLite for local development
