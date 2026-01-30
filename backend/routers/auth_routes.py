@@ -3,6 +3,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 import models, schemas, auth, database
 import uuid
+from utils.email_service import send_welcome_email
 
 router = APIRouter(
     prefix="/auth",
@@ -44,6 +45,9 @@ def register(
     )
     db.add(new_user)
     db.commit()
+    
+    # Send Welcome Email
+    send_welcome_email(new_user.email, new_user.full_name)
     
     # 3. Generate Token
     access_token = auth.create_access_token(data={"sub": new_user.email})
