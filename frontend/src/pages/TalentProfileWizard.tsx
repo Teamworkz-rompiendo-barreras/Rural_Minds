@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import axios from '../config/api';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
@@ -98,15 +98,13 @@ const TalentProfileWizard: React.FC = () => {
         setSaving(true);
         try {
             // Save accessibility profile
-            await axios.put('http://127.0.0.1:8000/user/profile/accessibility', {
+            await axios.put('/user/profile/accessibility', {
                 sensory_needs: sensoryPrefs,
                 prefers_reduced_motion: accessibilityPrefs.reduced_motion,
                 high_contrast_enabled: accessibilityPrefs.high_contrast
             });
             // Save talent profile
-            await axios.put('http://127.0.0.1:8000/api/profiles/me', profileData, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            await axios.put('/api/profiles/me', profileData);
             navigate('/talent-dashboard');
         } catch (err) {
             console.error(err);
@@ -156,8 +154,8 @@ const TalentProfileWizard: React.FC = () => {
                 <button
                     onClick={() => setAccessibilityPrefs(p => ({ ...p, high_contrast: !p.high_contrast }))}
                     className={`card-radius p-6 text-left border-2 transition-all ${accessibilityPrefs.high_contrast
-                            ? 'border-primary bg-primary text-white'
-                            : 'border-gray-200 bg-white hover:border-gray-300'
+                        ? 'border-primary bg-primary text-white'
+                        : 'border-gray-200 bg-white hover:border-gray-300'
                         }`}
                 >
                     <span className="text-3xl mb-2 block">🌓</span>
@@ -170,8 +168,8 @@ const TalentProfileWizard: React.FC = () => {
                 <button
                     onClick={() => setAccessibilityPrefs(p => ({ ...p, reduced_motion: !p.reduced_motion }))}
                     className={`card-radius p-6 text-left border-2 transition-all ${accessibilityPrefs.reduced_motion
-                            ? 'border-primary bg-primary text-white'
-                            : 'border-gray-200 bg-white hover:border-gray-300'
+                        ? 'border-primary bg-primary text-white'
+                        : 'border-gray-200 bg-white hover:border-gray-300'
                         }`}
                 >
                     <span className="text-3xl mb-2 block">⏸️</span>
@@ -208,8 +206,8 @@ const TalentProfileWizard: React.FC = () => {
                             key={level}
                             onClick={() => setSensoryPrefs(p => ({ ...p, light: level }))}
                             className={`card-radius flex-1 p-4 border-2 text-center transition-all ${sensoryPrefs.light === level
-                                    ? 'border-accent bg-accent/20'
-                                    : 'border-gray-200 hover:border-gray-300'
+                                ? 'border-accent bg-accent/20'
+                                : 'border-gray-200 hover:border-gray-300'
                                 }`}
                         >
                             <span className="text-2xl block mb-1">
@@ -230,8 +228,8 @@ const TalentProfileWizard: React.FC = () => {
                             key={level}
                             onClick={() => setSensoryPrefs(p => ({ ...p, sound: level }))}
                             className={`card-radius flex-1 p-4 border-2 text-center transition-all ${sensoryPrefs.sound === level
-                                    ? 'border-accent bg-accent/20'
-                                    : 'border-gray-200 hover:border-gray-300'
+                                ? 'border-accent bg-accent/20'
+                                : 'border-gray-200 hover:border-gray-300'
                                 }`}
                         >
                             <span className="text-2xl block mb-1">
@@ -256,8 +254,8 @@ const TalentProfileWizard: React.FC = () => {
                             key={opt.key}
                             onClick={() => setSensoryPrefs(p => ({ ...p, communication: opt.key as any }))}
                             className={`card-radius flex-1 min-w-[120px] p-4 border-2 text-center transition-all ${sensoryPrefs.communication === opt.key
-                                    ? 'border-accent bg-accent/20'
-                                    : 'border-gray-200 hover:border-gray-300'
+                                ? 'border-accent bg-accent/20'
+                                : 'border-gray-200 hover:border-gray-300'
                                 }`}
                         >
                             <span className="text-2xl block mb-1">{opt.icon}</span>
