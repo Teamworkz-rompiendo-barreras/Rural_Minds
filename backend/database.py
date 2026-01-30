@@ -9,7 +9,9 @@ load_dotenv()
 
 # Use environment variable for database URL (Supabase PostgreSQL)
 # Fallback to SQLite for local development
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./teamworkz.db")
+# TEMPORARY HARDCODED FOR DEBUGGING CONNECTIVITY
+DATABASE_URL = "postgresql://postgres.yfwysmurnfejowjgxdzi:kLAZdfai834!%23@aws-1-eu-west-3.pooler.supabase.com:6543/postgres?sslmode=require"
+# DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./teamworkz.db")
 
 # Handle PostgreSQL specific connection args
 # Handle PostgreSQL specific connection args
