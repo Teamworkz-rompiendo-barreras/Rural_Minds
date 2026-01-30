@@ -130,13 +130,60 @@ class Article(Base):
     image_url = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
-class Challenge(Base): # Partial update to keep referenced logic working
+class Challenge(Base):
     __tablename__ = "challenges"
     id = Column(GUID, primary_key=True, default=uuid.uuid4, index=True)
-    title = Column(String)
+    title = Column(String, index=True)
     description = Column(String)
-    tenant_id = Column(GUID, ForeignKey("organizations.id"), nullable=True) # Mapped to Organization
-    tenant = relationship("Organization") # quick fix relation
+    requirements = Column(JSON, default=list)
+    skills_needed = Column(JSON, default=list)
+    location_type = Column(String, default="remote")  # remote, hybrid, onsite
+    compensation = Column(String, nullable=True)
+    deadline = Column(DateTime, nullable=True)
+    status = Column(String, default="open")  # open, closed, in_progress
+    
+    tenant_id = Column(GUID, ForeignKey("organizations.id"), nullable=True)
+    creator_id = Column(GUID, ForeignKey("users.id"), nullable=True)
+    
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    
+    tenant = relationship("Organization")
+    creator = relationship("User", backref="challenges_created")
+    applications = relationship("Application", back_populates="challenge")
+
+class Application(Base):
+    __tablename__ = "applications"
+    
+    id = Column(GUID, primary_key=True, default=uuid.uuid4, index=True)
+    user_id = Column(GUID, ForeignKey("users.id"))
+    challenge_id = Column(GUID, ForeignKey("challenges.id"))
+    
+    cover_letter = Column(String, nullable=True)
+    status = Column(String, default="pending")  # pending, accepted, rejected
+    
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
+    
+    user = relationship("User", backref="applications")
+    challenge = relationship("Challenge", back_populates="applications")
+
+class TalentProfile(Base):
+    __tablename__ = "talent_profiles"
+    
+    id = Column(GUID, primary_key=True, default=uuid.uuid4, index=True)
+    user_id = Column(GUID, ForeignKey("users.id"), unique=True)
+    
+    bio = Column(String, nullable=True)
+    skills = Column(JSON, default=list)
+    preferences = Column(JSON, default=dict)
+    neurodivergent_traits = Column(JSON, default=list)
+    work_style = Column(String, nullable=True)
+    communication_preferences = Column(JSON, default=dict)
+    
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
+    
+    user = relationship("User", backref="talent_profile")
 
 class AuditLog(Base):
     """Tracks admin-relevant events and errors for support/auditing."""
@@ -158,3 +205,16 @@ PLAN_USER_LIMITS = {
     "growth": 250,
     "enterprise": None  # Unlimited
 }
+
+class Solution(Base):
+    __tablename__ = "solutions"
+
+    id = Column(GUID, primary_key=True, default=uuid.uuid4, index=True)
+    title = Column(String, index=True)
+    category = Column(String, index=True) # e.g., "visual", "auditory", "cognitive"
+    description = Column(String)
+    implementation_guide = Column(String) # Markdown/Text
+    impact_level = Column(String) # low, medium, high
+    cost_estimate = Column(String) # $, $$, $$$
+    
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)

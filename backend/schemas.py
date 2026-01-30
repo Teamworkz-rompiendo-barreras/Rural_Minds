@@ -101,3 +101,94 @@ class MetricResponse(BaseModel):
     active_challenges: int
     accommodations_provided: int
     roi_estimated: str
+
+# --- Talent Profile ---
+class TalentProfileBase(BaseModel):
+    bio: Optional[str] = None
+    skills: Optional[List[str]] = []
+    preferences: Optional[dict] = {}
+    neurodivergent_traits: Optional[List[str]] = []
+    work_style: Optional[str] = None
+    communication_preferences: Optional[dict] = {}
+
+class TalentProfileCreate(TalentProfileBase):
+    pass
+
+class TalentProfile(TalentProfileBase):
+    id: uuid.UUID
+    user_id: uuid.UUID
+    
+    class Config:
+        orm_mode = True
+
+# --- Challenges ---
+class ChallengeBase(BaseModel):
+    title: str
+    description: str
+    requirements: Optional[List[str]] = []
+    skills_needed: Optional[List[str]] = []
+    location_type: Optional[str] = "remote"
+    compensation: Optional[str] = None
+    deadline: Optional[datetime] = None
+
+class ChallengeCreate(ChallengeBase):
+    pass
+
+class ChallengeUpdate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    requirements: Optional[List[str]] = None
+    skills_needed: Optional[List[str]] = None
+    location_type: Optional[str] = None
+    compensation: Optional[str] = None
+    deadline: Optional[datetime] = None
+    status: Optional[str] = None
+
+class Challenge(ChallengeBase):
+    id: uuid.UUID
+    status: str = "open"
+    creator_id: Optional[uuid.UUID] = None
+    tenant_id: Optional[uuid.UUID] = None
+    created_at: datetime
+    
+    class Config:
+        orm_mode = True
+
+# --- Applications ---
+class ApplicationBase(BaseModel):
+    cover_letter: Optional[str] = None
+
+class ApplicationCreate(ApplicationBase):
+    pass
+
+class ApplicationUpdate(BaseModel):
+    status: Optional[str] = None
+
+class Application(ApplicationBase):
+    id: uuid.UUID
+    user_id: uuid.UUID
+    challenge_id: uuid.UUID
+    status: str = "pending"
+    created_at: datetime
+    
+    class Config:
+        orm_mode = True
+
+# --- Solutions (Accessibility Catalog) ---
+class SolutionBase(BaseModel):
+    title: str
+    category: str
+    description: str
+    implementation_guide: Optional[str] = None
+    impact_level: Optional[str] = "medium"
+    cost_estimate: Optional[str] = "$"
+
+class SolutionCreate(SolutionBase):
+    pass
+
+class Solution(SolutionBase):
+    id: uuid.UUID
+    created_at: datetime
+    
+    class Config:
+        orm_mode = True

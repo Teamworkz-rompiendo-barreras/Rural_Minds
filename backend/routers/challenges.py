@@ -20,7 +20,7 @@ def create_challenge(challenge: schemas.ChallengeCreate, db: Session = Depends(d
     db_challenge = models.Challenge(
         **challenge.model_dump(),
         creator_id=current_user.id,
-        tenant_id=current_user.tenant_id
+        tenant_id=current_user.organization_id
     )
     db.add(db_challenge)
     db.commit()
@@ -40,8 +40,8 @@ def read_challenges(skip: int = 0, limit: int = 100, db: Session = Depends(datab
     query = db.query(models.Challenge)
     
     # Validation: Multi-tenancy enforcement
-    if current_user.role == "enterprise" and current_user.tenant_id:
-        query = query.filter(models.Challenge.tenant_id == current_user.tenant_id)
+    if current_user.role == "enterprise" and current_user.organization_id:
+        query = query.filter(models.Challenge.tenant_id == current_user.organization_id)
     
     # Talents can see open challenges? Assuming yes for marketplace.
     # Admins see all.
@@ -76,15 +76,15 @@ def get_recommended_challenges(current_user: models.User = Depends(auth.get_curr
         score = 0
         
         # Skill Match (Weight: 2 points per skill)
-        if challenge.skills_required:
-            challenge_skills = set(s.lower() for s in challenge.skills_required)
+        if challenge.skills_needed:
+            challenge_skills = set(s.lower() for s in challenge.skills_needed)
             overlap = user_skills.intersection(challenge_skills)
             score += len(overlap) * 2
             
         # Modality Match (Weight: 5 points)
-        if user_modality_pref and challenge.modality:
+        if user_modality_pref and challenge.location_type:
             # simple string match "remote" == "remote"
-            if user_modality_pref.lower() == challenge.modality.lower():
+            if user_modality_pref.lower() == challenge.location_type.lower():
                 score += 5
 
         # Neurodivergent Trait Match (Bonus Points)
@@ -93,19 +93,19 @@ def get_recommended_challenges(current_user: models.User = Depends(auth.get_curr
             
             # 1. Written Communication Preferred -> Bonus if challenge uses Slack/Email/Written
             if "Written Communication Preferred" in traits:
-                comm_pref = str(challenge.communication_pref).lower() if challenge.communication_pref else ""
+                comm_pref = ""  # No communication_pref field yet
                 if any(x in comm_pref for x in ["slack", "email", "written", "async"]):
                     score += 5
             
             # 2. Sensory Friendly -> Bonus if Remote (controlled environment)
             if "Sensory Friendly Environment" in traits:
-                if challenge.modality and challenge.modality.lower() == "remote":
+                if challenge.location_type and challenge.location_type.lower() == "remote":
                     score += 3
             
             # 3. Structured Tasks -> Bonus if Autonomy Level is Low (1-3)
-            if "Structured Tasks" in traits:
-                if challenge.autonomy_level and challenge.autonomy_level <= 3:
-                    score += 3
+            # 3. Structured Tasks -> Bonus if Autonomy Level is Low (1-3)
+            # if "Structured Tasks" in traits:
+            #     pass # No autonomy_level field yet
         
         scored_challenges.append((score, challenge))
         
@@ -117,7 +117,7 @@ def get_recommended_challenges(current_user: models.User = Depends(auth.get_curr
 
 @router.put("/api/challenges/{challenge_id}/status", response_model=schemas.Challenge)
 def update_challenge_status(
-    challenge_id: int,
+    challenge_id: str,
     status_update: dict, # {"status": "closed"}
     current_user: models.User = Depends(auth.get_current_user),
     db: Session = Depends(database.get_db)

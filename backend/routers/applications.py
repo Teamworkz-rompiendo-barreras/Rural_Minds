@@ -10,7 +10,7 @@ router = APIRouter(
 
 @router.post("/api/challenges/{challenge_id}/apply", response_model=schemas.Application)
 def apply_to_challenge(
-    challenge_id: int, 
+    challenge_id: str, 
     application_data: schemas.ApplicationCreate, 
     current_user: models.User = Depends(auth.get_current_user), 
     db: Session = Depends(database.get_db)
@@ -56,7 +56,7 @@ def get_my_applications(
 
 @router.get("/api/challenges/{challenge_id}/applications", response_model=List[schemas.Application])
 def get_challenge_applications(
-    challenge_id: int,
+    challenge_id: str,
     current_user: models.User = Depends(auth.get_current_user), 
     db: Session = Depends(database.get_db)
 ):
@@ -72,7 +72,7 @@ def get_challenge_applications(
 
 @router.put("/api/applications/{application_id}/status", response_model=schemas.Application)
 def update_application_status(
-    application_id: int,
+    application_id: str,
     status_update: dict, # Expecting {"status": "accepted" | "rejected"}
     current_user: models.User = Depends(auth.get_current_user),
     db: Session = Depends(database.get_db)
