@@ -54,6 +54,8 @@ from routers import analytics
 app.include_router(analytics.router)
 from routers import users
 app.include_router(users.router)
+from routers import reports
+app.include_router(reports.router)
 
 @app.get("/status")
 def health_check():

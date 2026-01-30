@@ -19,15 +19,11 @@ interface DashboardMetrics {
 const MainDashboard: React.FC = () => {
     const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
     const [loading, setLoading] = useState(true);
+    const [downloading, setDownloading] = useState(false);
 
     useEffect(() => {
         const fetchMetrics = async () => {
             try {
-                // In a real app we would call the API. mocking response structure based on backend update
-                // const res = await axios.get('/stats/impact'); 
-                // setMetrics(res.data);
-
-                // Simulated fetch for demo purposes to match newly created backend logic
                 const res = await axios.get('/stats/impact');
                 setMetrics(res.data);
             } catch (err) {
@@ -41,7 +37,7 @@ const MainDashboard: React.FC = () => {
                     roi_estimated: "$42,000",
                     retention_rate: "94%",
                     activation_metrics: {
-                        brand_setup: true, // Change to false to test alert
+                        brand_setup: true,
                         sensory_adoption: 65,
                         accessibility_health: 78,
                         learning_usage: 124
@@ -54,6 +50,27 @@ const MainDashboard: React.FC = () => {
         fetchMetrics();
     }, []);
 
+    const handleDownloadReport = async (format: 'pdf' | 'txt') => {
+        setDownloading(true);
+        try {
+            const response = await axios.get(`/reports/impact/download/${format}`, {
+                responseType: 'blob',
+            });
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `twz_reporte_impacto.${format}`);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+        } catch (err) {
+            console.error("Download failed", err);
+            alert("No se pudo descargar el reporte. Inténtalo más tarde.");
+        } finally {
+            setDownloading(false);
+        }
+    };
+
     if (loading) return <div className="p-8">Calculando métricas...</div>;
     if (!metrics) return <div>Error loading dashboard</div>;
 
@@ -61,28 +78,38 @@ const MainDashboard: React.FC = () => {
 
     return (
         <div className="max-w-7xl mx-auto p-6 space-y-8">
-            <header className="flex justify-between items-center">
+            <header className="flex justify-between items-center bg-white p-6 rounded-xl shadow-sm border border-gray-100">
                 <div>
                     <h1 className="text-3xl font-heading font-bold text-gray-900">Activation Dashboard</h1>
                     <p className="text-gray-500">Monitoriza cómo la neurodiversidad se convierte en ventaja competitiva.</p>
                 </div>
-                {!activation_metrics.brand_setup && (
-                    <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded shadow-sm animate-pulse">
-                        <div className="flex">
-                            <div className="flex-shrink-0">
-                                <svg className="h-5 w-5 text-red-500" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                                </svg>
-                            </div>
-                            <div className="ml-3">
-                                <p className="text-sm text-red-700 font-bold">
-                                    No se ha enviado la configuración inicial de marca.
-                                </p>
-                            </div>
+                <div className="flex gap-2 items-center">
+                    <button
+                        onClick={() => handleDownloadReport('pdf')}
+                        disabled={downloading}
+                        className="bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-lg font-bold flex items-center gap-2 transition-colors disabled:opacity-50"
+                    >
+                        {downloading ? 'Generando...' : '📥 Reporte PDF'}
+                    </button>
+                </div>
+            </header>
+
+            {!activation_metrics.brand_setup && (
+                <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded shadow-sm animate-pulse">
+                    <div className="flex">
+                        <div className="flex-shrink-0">
+                            <svg className="h-5 w-5 text-red-500" viewBox="0 0 20 20" fill="currentColor">
+                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                            </svg>
+                        </div>
+                        <div className="ml-3">
+                            <p className="text-sm text-red-700 font-bold">
+                                No se ha enviado la configuración inicial de marca.
+                            </p>
                         </div>
                     </div>
-                )}
-            </header>
+                </div>
+            )}
 
             {/* Critical Metrics Grid */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
