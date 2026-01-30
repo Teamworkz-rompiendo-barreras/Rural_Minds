@@ -7,14 +7,28 @@ const LandingPage: React.FC = () => {
             {/* Hero Section */}
             <section className="bg-primary text-white py-24 px-6 text-center">
                 <div className="max-w-5xl mx-auto flex flex-col items-center">
-                    <img src="/logo.png" alt="Rural Minds Logo" className="h-48 w-auto mb-10 bg-white rounded-2xl p-4 shadow-xl transform hover:scale-105 transition-transform duration-500" />
-                    <h1 className="text-6xl font-heading font-bold mb-8 tracking-tight">ROMPIENDO BARRERAS</h1>
-                    <p className="text-xl mb-8 font-sans">
+                    {/* Logo P1 sobre P2 sin fondo blanco */}
+                    <div className="mb-10 transform hover:scale-105 transition-transform duration-500">
+                        {/* SVG Logo Placeholder - Rural Minds (P1 Color #F2D680) */}
+                        <svg width="200" height="60" viewBox="0 0 200 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <text x="10" y="40" fontFamily="Futura, sans-serif" fontWeight="bold" fontSize="32" fill="#F2D680">RURAL MINDS</text>
+                            <path d="M10 50 H190" stroke="#F2D680" strokeWidth="2" />
+                        </svg>
+                    </div>
+
+                    <h1 className="text-6xl font-heading font-bold mb-8 tracking-tight">
+                        Innovación con Denominación de Origen
+                    </h1>
+
+                    <p className="max-w-3xl text-[18px] leading-relaxed mb-10 font-sans text-gray-100" style={{ fontFamily: "'Atkinson Hyperlegible', sans-serif" }}>
                         Convertimos la neurodiversidad en ventaja competitiva.
+                        <br />
                         El sistema operativo completo para la inclusión y retención de talento.
                     </p>
+
                     <div className="flex justify-center gap-4">
-                        <Link to="/register" className="px-8 py-4 bg-accent text-primary font-bold rounded-lg hover:bg-opacity-90 transition-all shadow-lg text-lg">
+                        {/* Botón Primario: P1 (#F2D680) + N900 (#0D1321) */}
+                        <Link to="/register" className="px-8 py-4 bg-accent text-[#0D1321] font-bold rounded-lg hover:bg-yellow-400 transition-all shadow-lg text-lg flex items-center gap-2">
                             Empieza Gratis
                         </Link>
                         <Link to="/contact" className="px-8 py-4 bg-transparent border-2 border-white text-white font-bold rounded-lg hover:bg-white hover:text-primary transition-all text-lg">
