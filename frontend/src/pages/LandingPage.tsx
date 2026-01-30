@@ -7,9 +7,9 @@ const LandingPage: React.FC = () => {
             {/* Hero Section */}
             <section className="bg-primary text-white py-24 px-6 text-center">
                 <div className="max-w-5xl mx-auto flex flex-col items-center">
-                    {/* Logo Real (Imagen sin fondo) */}
+                    {/* Logo Real (con fondo blanco para visibilidad) */}
                     <div className="mb-8 transform hover:scale-105 transition-transform duration-500">
-                        <img src="/logo.png" alt="Rural Minds Logo" className="h-24 w-auto object-contain" />
+                        <img src="/logo.png" alt="Rural Minds Logo" className="h-24 w-auto object-contain bg-white p-3 rounded-xl shadow-md" />
                     </div>
 
                     {/* Titular: Más pequeño para asegurar una línea */}
