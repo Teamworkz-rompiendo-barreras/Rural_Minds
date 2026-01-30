@@ -30,12 +30,12 @@ const MyAdjustments: React.FC = () => {
     };
 
     const handleFeedback = async (id: string) => {
-        const scoreStr = prompt("On a scale of 1-10, how much has this adjustment improved your productivity?");
+        const scoreStr = prompt("En una escala del 1 al 10, ¿cuánto ha mejorado tu productividad este ajuste?");
         if (!scoreStr) return;
 
         const score = parseFloat(scoreStr);
         if (isNaN(score) || score < 1 || score > 10) {
-            alert("Please enter a valid number between 1 and 10.");
+            alert("Por favor introduce un número válido entre 1 y 10.");
             return;
         }
 
@@ -44,32 +44,32 @@ const MyAdjustments: React.FC = () => {
                 score: score,
                 notes: "User submitted feedback"
             });
-            alert("Thank you! Your feedback helps us measure impact.");
+            alert("¡Gracias! Tu feedback nos ayuda a medir el impacto.");
             fetchLogs();
         } catch (err) {
-            alert("Failed to submit feedback.");
+            alert("Error al enviar feedback.");
         }
     };
 
-    if (loading) return <div className="p-8">Loading adjustments...</div>;
+    if (loading) return <div className="p-8">Cargando ajustes...</div>;
 
     return (
         <div className="max-w-4xl mx-auto p-6">
-            <h1 className="text-3xl font-heading font-bold text-primary mb-6">My Adjustments</h1>
+            <h1 className="text-3xl font-heading font-bold text-primary mb-6">Mis Ajustes</h1>
 
             <div className="bg-white rounded-xl shadow-md overflow-hidden">
                 {logs.length === 0 ? (
                     <div className="p-8 text-center text-gray-500">
-                        No adjustments requested yet. Check the <a href="/solutions" className="text-primary font-bold underline">Catalog</a>.
+                        No has solicitado ajustes todavía. Revisa el <a href="/solutions" className="text-primary font-bold underline">Catálogo</a>.
                     </div>
                 ) : (
                     <table className="w-full text-left">
                         <thead className="bg-gray-50 border-b">
                             <tr>
-                                <th className="p-4 font-bold text-gray-600">Adjustment</th>
-                                <th className="p-4 font-bold text-gray-600">Date</th>
-                                <th className="p-4 font-bold text-gray-600">Status</th>
-                                <th className="p-4 font-bold text-gray-600 text-right">Action</th>
+                                <th className="p-4 font-bold text-gray-600">Ajuste</th>
+                                <th className="p-4 font-bold text-gray-600">Fecha</th>
+                                <th className="p-4 font-bold text-gray-600">Estado</th>
+                                <th className="p-4 font-bold text-gray-600 text-right">Acción</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -82,13 +82,15 @@ const MyAdjustments: React.FC = () => {
                                             log.status === 'approved' ? 'bg-blue-100 text-blue-800' :
                                                 'bg-yellow-100 text-yellow-800'
                                             }`}>
-                                            {log.status}
+                                            {log.status === 'implemented' ? 'Implementado' :
+                                                log.status === 'approved' ? 'Aprobado' :
+                                                    log.status === 'requested' ? 'Solicitado' : log.status}
                                         </span>
                                     </td>
                                     <td className="p-4 text-right">
-                                        {/* Since backend default for MVP doesn't auto-move to implemented, we simulate the button availability or auto-implement in demo. 
-                                            For now, let's allow feedback on any status just for testing, or assume 'requested' is enough to rate 'potential' impact? 
-                                            No, prompt said "After implementation". I will trust the status. 
+                                        {/* Since backend default for MVP doesn't auto-move to implemented, we simulate the button availability or auto-implement in demo.
+                                            For now, let's allow feedback on any status just for testing, or assume 'requested' is enough to rate 'potential' impact?
+                                            No, prompt said "After implementation". I will trust the status.
                                             (Note: Backend default is 'requested'. I might manually update DB or just show button for testing purposes if I can't wait 30 days) */}
 
                                         {/* For MVP DEMO: Allow rating always so user can test the flow */}
@@ -97,10 +99,10 @@ const MyAdjustments: React.FC = () => {
                                                 onClick={() => handleFeedback(log.id)}
                                                 className="text-sm bg-primary text-white px-3 py-1 rounded hover:bg-opacity-90 font-bold"
                                             >
-                                                Rate Impact
+                                                Valorar Impacto
                                             </button>
                                         ) : (
-                                            <span className="text-primary font-bold">Score: {log.feedback_score}/10</span>
+                                            <span className="text-primary font-bold">Puntuación: {log.feedback_score}/10</span>
                                         )}
                                     </td>
                                 </tr>

@@ -41,38 +41,38 @@ const OrganizationSettings: React.FC = () => {
                 email: inviteEmail,
                 role: 'enterprise'
             });
-            setInviteSuccess(`Invitation sent to ${inviteEmail}`);
+            setInviteSuccess(`Invitación enviada a ${inviteEmail}`);
             setInviteEmail('');
             fetchUsers(); // Refresh list
         } catch (err: any) {
-            setInviteError(err.response?.data?.detail || 'Failed to invite user');
+            setInviteError(err.response?.data?.detail || 'Error al invitar usuario');
         }
     };
 
     const handleRemove = async (userId: string) => {
-        if (!window.confirm("Are you sure you want to remove this user?")) return;
+        if (!window.confirm("¿Seguro que deseas eliminar a este usuario?")) return;
         try {
             await axios.delete(`/org/users/${userId}`);
             fetchUsers();
         } catch (err) {
-            alert('Failed to delete user');
+            alert('Error al eliminar usuario');
         }
     };
 
-    if (loading) return <div>Loading...</div>;
+    if (loading) return <div>Cargando...</div>;
 
     return (
         <div className="max-w-4xl mx-auto p-6">
-            <h1 className="text-3xl font-heading font-bold text-primary mb-6">Organization Management</h1>
+            <h1 className="text-3xl font-heading font-bold text-primary mb-6">Gestión del Equipo</h1>
 
             {/* Invite Section */}
             <div className="bg-white p-6 rounded-xl shadow-md mb-8 border-t-4 border-accent">
-                <h2 className="text-xl font-bold mb-4">Invite Team Member</h2>
+                <h2 className="text-xl font-bold mb-4">Invitar Miembro</h2>
                 <form onSubmit={handleInvite} className="flex gap-4 items-start">
                     <div className="flex-grow">
                         <input
                             type="email"
-                            placeholder="colleague@company.com"
+                            placeholder="colega@empresa.com"
                             value={inviteEmail}
                             onChange={(e) => setInviteEmail(e.target.value)}
                             required
@@ -85,7 +85,7 @@ const OrganizationSettings: React.FC = () => {
                         type="submit"
                         className="px-6 py-3 bg-primary text-white font-bold rounded-lg hover:bg-opacity-90"
                     >
-                        Invite
+                        Invitar
                     </button>
                 </form>
             </div>
@@ -96,8 +96,8 @@ const OrganizationSettings: React.FC = () => {
                     <thead className="bg-gray-50 border-b">
                         <tr>
                             <th className="p-4 font-bold text-gray-600">Email</th>
-                            <th className="p-4 font-bold text-gray-600">Role</th>
-                            <th className="p-4 font-bold text-gray-600 text-right">Actions</th>
+                            <th className="p-4 font-bold text-gray-600">Rol</th>
+                            <th className="p-4 font-bold text-gray-600 text-right">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -107,7 +107,7 @@ const OrganizationSettings: React.FC = () => {
                                 <td className="p-4">
                                     <span className={`px-2 py-1 rounded text-xs uppercase font-bold ${u.role === 'enterprise' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100'
                                         }`}>
-                                        {u.role}
+                                        {u.role === 'enterprise' ? 'Empresa' : u.role}
                                     </span>
                                 </td>
                                 <td className="p-4 text-right">
@@ -116,7 +116,7 @@ const OrganizationSettings: React.FC = () => {
                                             onClick={() => handleRemove(u.id)}
                                             className="text-red-500 hover:text-red-700 font-bold text-sm"
                                         >
-                                            Remove
+                                            Eliminar
                                         </button>
                                     )}
                                 </td>
@@ -124,7 +124,7 @@ const OrganizationSettings: React.FC = () => {
                         ))}
                     </tbody>
                 </table>
-                {users.length === 0 && <div className="p-8 text-center text-gray-500">No members found.</div>}
+                {users.length === 0 && <div className="p-8 text-center text-gray-500">No se encontraron miembros.</div>}
             </div>
         </div>
     );

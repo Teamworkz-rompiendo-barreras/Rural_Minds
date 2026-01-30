@@ -1,6 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List, Optional
+from datetime import datetime
+import uuid
 
 import models, schemas, auth, database
 
@@ -16,8 +18,52 @@ def read_articles(
 ):
     query = db.query(models.Article)
     if category:
+        # Map Spanish categories to English/DB keys if necessary, or just use Spanish
+        # For simplicity in this demo, we'll try to match exact first
         query = query.filter(models.Article.category == category)
-    return query.all()
+    
+    results = query.all()
+    
+    # If no results found (empty DB), return mock data for DEMO purposes
+    if not results:
+        mock_articles = [
+            models.Article(
+                id=uuid.uuid4(),
+                title="Guía de Entrevistas Inclusivas",
+                summary="Aprende a estructurar entrevistas que permitan brillar al talento neurodivergente.",
+                content="Contenido completo de la guía de entrevistas...",
+                author="Equipo PACTO",
+                category="Contratación",
+                tags=["entrevistas", "rrhh"],
+                created_at=datetime.now()
+            ),
+            models.Article(
+                id=uuid.uuid4(),
+                title="Ajustes Razonables: Más allá de la rampa",
+                summary="Descubre cómo pequeños cambios en el entorno digital impactan positivamente.",
+                content="Contenido sobre ajustes sensoriales y cognitivos...",
+                author="Ana Experta",
+                category="Adaptaciones",
+                tags=["ajustes", "sensorial"],
+                created_at=datetime.now()
+            ),
+             models.Article(
+                id=uuid.uuid4(),
+                title="Neurodiversidad 101 para Managers",
+                summary="Conceptos básicos para liderar equipos neurodiversos con éxito.",
+                content="Contenido educativo básico...",
+                author="Rural Minds Academy",
+                category="Neurodiversidad 101",
+                tags=["liderazgo"],
+                created_at=datetime.now()
+            )
+        ]
+        # Filter mocks if category is selected
+        if category:
+            return [a for a in mock_articles if a.category == category]
+        return mock_articles
+        
+    return results
 
 import uuid
 

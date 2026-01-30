@@ -40,14 +40,14 @@ const LearningCenter: React.FC = () => {
         setLoading(false);
     };
 
-    const categories = ["Hiring", "Management", "Accommodations", "Neurodiversity 101"];
+    const categories = ["Contratación", "Gestión", "Adaptaciones", "Neurodiversidad 101"];
 
     return (
         <div className="max-w-6xl mx-auto p-6">
             <header className="mb-8 text-center">
-                <h1 className="text-4xl font-heading font-bold text-primary mb-4">Learning Center</h1>
+                <h1 className="text-4xl font-heading font-bold text-primary mb-4">Centro de Aprendizaje</h1>
                 <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-                    Bite-sized knowledge to help you build a more inclusive workplace.
+                    Conocimiento en pequeñas dosis para ayudarte a construir un entorno inclusivo.
                 </p>
             </header>
 
@@ -60,7 +60,7 @@ const LearningCenter: React.FC = () => {
                         : 'bg-white text-gray-600 hover:bg-gray-100 border'
                         }`}
                 >
-                    All
+                    Todos
                 </button>
                 {categories.map(cat => (
                     <button
@@ -78,7 +78,7 @@ const LearningCenter: React.FC = () => {
 
             {/* Article Grid */}
             {loading ? (
-                <div className="text-center py-12">Loading knowledge...</div>
+                <div className="text-center py-12">Cargando artículos...</div>
             ) : (
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                     {articles.map(article => (
@@ -101,8 +101,8 @@ const LearningCenter: React.FC = () => {
                                 <h3 className="text-xl font-bold mb-3 group-hover:text-primary transition-colors">{article.title}</h3>
                                 <p className="text-gray-600 text-sm line-clamp-3 mb-4">{article.summary}</p>
                                 <div className="flex items-center justify-between text-xs text-gray-400 border-t pt-4">
-                                    <span>By {article.author}</span>
-                                    <span>Read More →</span>
+                                    <span>Por {article.author}</span>
+                                    <span>Leer más →</span>
                                 </div>
                             </div>
                         </div>
@@ -112,7 +112,7 @@ const LearningCenter: React.FC = () => {
 
             {!loading && articles.length === 0 && (
                 <div className="text-center py-12 bg-white rounded-xl shadow-sm border border-dashed border-gray-300">
-                    <p className="text-gray-500">No articles found in this category.</p>
+                    <p className="text-gray-500">No se encontraron artículos en esta categoría.</p>
                 </div>
             )}
 
