@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import axios from '../config/api';
 import { useAuth } from '../context/AuthContext';
 
 const SubscriptionSettings: React.FC = () => {
@@ -14,7 +14,7 @@ const SubscriptionSettings: React.FC = () => {
 
     const fetchDetails = async () => {
         try {
-            const res = await axios.get('http://127.0.0.1:8000/org/settings');
+            const res = await axios.get('/org/settings');
             if (res.data && res.data.subscription_plan) {
                 setCurrentPlan(res.data.subscription_plan);
             }
@@ -29,7 +29,7 @@ const SubscriptionSettings: React.FC = () => {
         if (confirm(`Are you sure you want to switch to the ${plan} plan?`)) {
             setUpdating(true);
             try {
-                await axios.patch('http://127.0.0.1:8000/org/settings', {
+                await axios.patch('/org/settings', {
                     subscription_plan: plan
                 });
                 setCurrentPlan(plan);

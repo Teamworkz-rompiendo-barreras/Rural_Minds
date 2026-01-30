@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import axios from '../config/api';
 import { useAuth } from '../context/AuthContext';
 
 interface User {
@@ -22,7 +22,7 @@ const OrganizationSettings: React.FC = () => {
 
     const fetchUsers = async () => {
         try {
-            const res = await axios.get('http://127.0.0.1:8000/org/users');
+            const res = await axios.get('/org/users');
             setUsers(res.data);
             setLoading(false);
         } catch (err) {
@@ -37,7 +37,7 @@ const OrganizationSettings: React.FC = () => {
         setInviteSuccess('');
 
         try {
-            await axios.post('http://127.0.0.1:8000/org/invite', {
+            await axios.post('/org/invite', {
                 email: inviteEmail,
                 role: 'enterprise'
             });
@@ -52,7 +52,7 @@ const OrganizationSettings: React.FC = () => {
     const handleRemove = async (userId: string) => {
         if (!window.confirm("Are you sure you want to remove this user?")) return;
         try {
-            await axios.delete(`http://127.0.0.1:8000/org/users/${userId}`);
+            await axios.delete(`/org/users/${userId}`);
             fetchUsers();
         } catch (err) {
             alert('Failed to delete user');

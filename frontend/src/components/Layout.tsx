@@ -55,6 +55,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                                         <Link to="/talent-dashboard" className="text-gray-600 hover:text-primary font-bold">Oportunidades</Link>
                                         <Link to="/profile" className="text-gray-600 hover:text-primary font-bold">Mi Perfil</Link>
                                         <Link to="/sensory-profile" className="text-gray-600 hover:text-primary font-bold">Sensorial</Link>
+                                        <Link to="/my-adjustments" className="text-gray-600 hover:text-primary font-bold">Ajustes</Link>
                                     </>
                                 )}
 
@@ -64,6 +65,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                                         <Link to="/enterprise-dashboard" className="text-gray-600 hover:text-primary font-bold">Mi Panel</Link>
                                         <Link to="/create-project" className="text-gray-600 hover:text-primary font-bold">Crear Vacante</Link>
                                         <Link to="/solutions" className="text-gray-600 hover:text-primary font-bold">Soluciones</Link>
+                                        <div className="h-6 w-px bg-gray-300 mx-1"></div>
+                                        <Link to="/org-settings" className="text-sm text-gray-500 hover:text-primary">Equipo</Link>
+                                        <Link to="/subscription" className="text-sm text-gray-500 hover:text-primary">Plan</Link>
                                     </>
                                 )}
 
@@ -81,12 +85,13 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                                     <>
                                         <Link to="/admin" className="text-purple-600 hover:text-purple-800 font-bold">Admin Global</Link>
                                         <Link to="/reports" className="text-gray-600 hover:text-primary font-bold">Informes</Link>
+                                        <Link to="/org-settings" className="text-gray-600 hover:text-primary font-bold">Org</Link>
                                     </>
                                 )}
 
                                 <button
                                     onClick={handleLogout}
-                                    className="text-primary font-bold hover:underline"
+                                    className="ml-4 text-primary font-bold hover:underline border-l-2 pl-4 border-gray-200"
                                 >
                                     Salir
                                 </button>
@@ -107,9 +112,14 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
             <footer className="bg-white border-t border-gray-200 p-6 mt-auto">
                 <div className="container mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
-                    <p className="text-sm text-gray-600">
-                        Rural Minds. <em>Innovación con denominación de origen</em> © 2026
-                    </p>
+                    <div className="flex items-center gap-6">
+                        <p className="text-sm text-gray-600">
+                            Rural Minds. <em>Innovación con denominación de origen</em> © 2026
+                        </p>
+                        <Link to="/learning" className="text-sm text-p2 hover:underline font-bold">
+                            Learning Center
+                        </Link>
+                    </div>
                     <p className="text-sm text-gray-500">
                         Powered by <strong className="text-p2">Teamworkz</strong>
                     </p>

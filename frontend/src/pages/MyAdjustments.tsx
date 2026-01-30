@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import axios from '../config/api';
 
 interface AdjustmentLog {
     id: string;
@@ -20,7 +20,7 @@ const MyAdjustments: React.FC = () => {
 
     const fetchLogs = async () => {
         try {
-            const res = await axios.get('http://127.0.0.1:8000/accessibility/adjustments/mine');
+            const res = await axios.get('/accessibility/adjustments/mine');
             setLogs(res.data);
         } catch (err) {
             console.error(err);
@@ -40,7 +40,7 @@ const MyAdjustments: React.FC = () => {
         }
 
         try {
-            await axios.post(`http://127.0.0.1:8000/accessibility/adjustments/${id}/feedback`, {
+            await axios.post(`/accessibility/adjustments/${id}/feedback`, {
                 score: score,
                 notes: "User submitted feedback"
             });
@@ -79,8 +79,8 @@ const MyAdjustments: React.FC = () => {
                                     <td className="p-4 text-sm text-gray-600">{new Date(log.timestamp).toLocaleDateString()}</td>
                                     <td className="p-4">
                                         <span className={`px-2 py-1 rounded text-xs font-bold uppercase ${log.status === 'implemented' ? 'bg-green-100 text-green-800' :
-                                                log.status === 'approved' ? 'bg-blue-100 text-blue-800' :
-                                                    'bg-yellow-100 text-yellow-800'
+                                            log.status === 'approved' ? 'bg-blue-100 text-blue-800' :
+                                                'bg-yellow-100 text-yellow-800'
                                             }`}>
                                             {log.status}
                                         </span>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import axios from '../config/api';
 import { useAuth } from '../context/AuthContext';
 
 interface Article {
@@ -28,11 +28,11 @@ const LearningCenter: React.FC = () => {
     const fetchArticles = async () => {
         setLoading(true);
         try {
-            const url = selectedCategory
-                ? `http://127.0.0.1:8000/api/learning?category=${selectedCategory}`
-                : 'http://127.0.0.1:8000/api/learning';
+            const endpoint = selectedCategory
+                ? `/api/learning?category=${selectedCategory}`
+                : '/api/learning';
 
-            const res = await axios.get(url);
+            const res = await axios.get(endpoint);
             setArticles(res.data);
         } catch (err) {
             console.error("Failed to fetch articles");
@@ -56,8 +56,8 @@ const LearningCenter: React.FC = () => {
                 <button
                     onClick={() => setSelectedCategory(null)}
                     className={`px-6 py-2 rounded-full font-bold transition-all ${!selectedCategory
-                            ? 'bg-primary text-white shadow-lg'
-                            : 'bg-white text-gray-600 hover:bg-gray-100 border'
+                        ? 'bg-primary text-white shadow-lg'
+                        : 'bg-white text-gray-600 hover:bg-gray-100 border'
                         }`}
                 >
                     All
@@ -67,8 +67,8 @@ const LearningCenter: React.FC = () => {
                         key={cat}
                         onClick={() => setSelectedCategory(cat)}
                         className={`px-6 py-2 rounded-full font-bold transition-all ${selectedCategory === cat
-                                ? 'bg-primary text-white shadow-lg'
-                                : 'bg-white text-gray-600 hover:bg-gray-100 border'
+                            ? 'bg-primary text-white shadow-lg'
+                            : 'bg-white text-gray-600 hover:bg-gray-100 border'
                             }`}
                     >
                         {cat}
