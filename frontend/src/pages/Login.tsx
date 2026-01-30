@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import axios from 'axios';
+import axios from '../config/api';
 import { useAuth } from '../context/AuthContext';
 
 const Login: React.FC = () => {
@@ -18,7 +18,7 @@ const Login: React.FC = () => {
             formData.append('username', email); // OAuth2 expects 'username'
             formData.append('password', password);
 
-            const response = await axios.post('http://127.0.0.1:8000/auth/login', formData, {
+            const response = await axios.post('/auth/login', formData, {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
 
