@@ -21,7 +21,7 @@ interface ProfileData {
 }
 
 const TalentProfileWizard: React.FC = () => {
-    const { user, token } = useAuth();
+    const { user } = useAuth();
     const navigate = useNavigate();
 
     // Wizard State
