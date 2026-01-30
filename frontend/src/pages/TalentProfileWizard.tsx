@@ -106,9 +106,10 @@ const TalentProfileWizard: React.FC = () => {
             // Save talent profile
             await axios.put('/api/profiles/me', profileData);
             navigate('/talent-dashboard');
-        } catch (err) {
+        } catch (err: any) {
             console.error(err);
-            alert('Error al guardar. Inténtalo de nuevo.');
+            const msg = err.response?.data?.detail || 'Error desconocido al guardar.';
+            alert(`Error: ${JSON.stringify(msg)}`);
         } finally {
             setSaving(false);
         }
