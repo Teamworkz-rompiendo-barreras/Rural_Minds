@@ -41,3 +41,4 @@ htmlcov/
 
 # Vercel
 .vercel/
+.vercel

@@ -7,7 +7,7 @@ const LandingPage: React.FC = () => {
             {/* Hero Section */}
             <section className="bg-primary text-white py-24 px-6 text-center">
                 <div className="max-w-5xl mx-auto flex flex-col items-center">
-                    <img src="/src/assets/ruralminds_logo.png" alt="Teamworkz Logo" className="h-48 w-auto mb-10 bg-white rounded-2xl p-4 shadow-xl transform hover:scale-105 transition-transform duration-500" />
+                    <img src="/src/assets/ruralminds_logo.png" alt="Rural Minds Logo" className="h-48 w-auto mb-10 bg-white rounded-2xl p-4 shadow-xl transform hover:scale-105 transition-transform duration-500" />
                     <h1 className="text-6xl font-heading font-bold mb-8 tracking-tight">ROMPIENDO BARRERAS</h1>
                     <p className="text-xl mb-8 font-sans">
                         Convertimos la neurodiversidad en ventaja competitiva.
@@ -27,10 +27,10 @@ const LandingPage: React.FC = () => {
             {/* Real Cases / Social Proof */}
             <section className="py-16 px-6 bg-neutral-bg">
                 <div className="max-w-6xl mx-auto">
-                    <h2 className="text-3xl font-heading font-bold text-center mb-12 text-primary">Líderes Inclusivos Confían en Teamworkz</h2>
+                    <h2 className="text-3xl font-heading font-bold text-center mb-12 text-primary">Líderes Inclusivos Confían en Rural Minds</h2>
                     <div className="grid md:grid-cols-3 gap-8">
                         <div className="bg-white p-6 rounded-xl shadow-md border-t-4 border-accent">
-                            <p className="italic text-gray-600 mb-4">"Teamworkz nos ayudó a cubrir 5 roles técnicos en un mes con candidatos increíbles."</p>
+                            <p className="italic text-gray-600 mb-4">"Rural Minds nos ayudó a cubrir 5 roles técnicos en un mes con candidatos increíbles."</p>
                             <div className="font-bold text-primary">- TechFlow Solutions</div>
                         </div>
                         <div className="bg-white p-6 rounded-xl shadow-md border-t-4 border-primary">
@@ -48,7 +48,7 @@ const LandingPage: React.FC = () => {
             {/* Features Grid (Brief) */}
             <section className="py-16 px-6">
                 <div className="max-w-6xl mx-auto text-center">
-                    <h2 className="text-3xl font-bold font-heading text-primary mb-12">¿Por qué Teamworkz?</h2>
+                    <h2 className="text-3xl font-bold font-heading text-primary mb-12">¿Por qué Rural Minds?</h2>
                     <div className="grid md:grid-cols-2 gap-12 text-left">
                         <div>
                             <h3 className="text-2xl font-bold mb-2">Para Empresas</h3>

@@ -21,7 +21,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 <div className="container mx-auto flex items-center justify-between">
                     {/* Placeholder Logo */}
                     <div className="flex items-center gap-3">
-                        <img src="/src/assets/ruralminds_logo.png" alt="Teamworkz Logo" className="h-16 w-auto object-contain" />
+                        <img src="/src/assets/ruralminds_logo.png" alt="Rural Minds Logo" className="h-16 w-auto object-contain" />
                     </div>
                     <nav className="flex items-center gap-4">
                         <Link to="/" className="text-gray-600 hover:text-primary font-bold transition-colors">Home</Link>
@@ -69,9 +69,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
             <footer className="bg-white border-t border-gray-200 p-6 mt-auto">
                 <div className="container mx-auto flex flex-col md:flex-row justify-between items-center text-sm text-gray-600 gap-4">
-                    <span className="font-medium">Teamworkz © 2026</span>
+                    <span className="font-medium">Rural Minds © 2026</span>
                     <span>
-                        Powered by <span className="text-primary font-bold">Teamworkz</span>
+                        Powered by <span className="text-primary font-bold">Rural Minds</span> | Innovación con Denominación de Origen
                     </span>
                 </div>
             </footer>

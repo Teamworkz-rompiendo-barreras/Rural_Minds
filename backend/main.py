@@ -14,9 +14,21 @@ models.Base.metadata.create_all(bind=engine)
 app = FastAPI(title="RuralMinds API")
 
 # Configure CORS
+import os
+allowed_origins = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "https://rural-minds.vercel.app",
+    "https://rural-minds-lerele1s-projects.vercel.app",
+]
+# Add any additional origins from environment variable
+extra_origins = os.getenv("ALLOWED_ORIGINS", "")
+if extra_origins:
+    allowed_origins.extend(extra_origins.split(","))
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
