@@ -7,17 +7,14 @@ const LandingPage: React.FC = () => {
             {/* Hero Section */}
             <section className="bg-primary text-white py-24 px-6 text-center">
                 <div className="max-w-5xl mx-auto flex flex-col items-center">
-                    {/* Logo P1 sobre P2 - Más grande y legible */}
+                    {/* Logo Real (Imagen sin fondo) */}
                     <div className="mb-8 transform hover:scale-105 transition-transform duration-500">
-                        <svg width="340" height="90" viewBox="0 0 340 90" fill="none" xmlns="http://www.w3.org/2000/svg" className="overflow-visible">
-                            <text x="50%" y="55" textAnchor="middle" fontFamily="Arial, sans-serif" fontWeight="900" fontSize="40" fill="#F2D680" letterSpacing="0.05em">RURAL MINDS</text>
-                            <path d="M70 70 H270" stroke="#F2D680" strokeWidth="4" />
-                        </svg>
+                        <img src="/logo.png" alt="Rural Minds Logo" className="h-24 w-auto object-contain" />
                     </div>
 
-                    {/* Titular: Forzando una línea y mejorando legibilidad */}
+                    {/* Titular: Más pequeño para asegurar una línea */}
                     <div className="w-full px-4 mb-8">
-                        <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold text-white leading-tight tracking-wide mx-auto max-w-screen-xl">
+                        <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold text-white leading-tight tracking-wide mx-auto max-w-screen-xl whitespace-nowrap overflow-hidden text-ellipsis">
                             Innovación con Denominación de Origen
                         </h1>
                     </div>
