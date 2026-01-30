@@ -7,7 +7,7 @@ const LandingPage: React.FC = () => {
             {/* Hero Section */}
             <section className="bg-primary text-white py-24 px-6 text-center">
                 <div className="max-w-5xl mx-auto flex flex-col items-center">
-                    <img src="/src/assets/ruralminds_logo.png" alt="Rural Minds Logo" className="h-48 w-auto mb-10 bg-white rounded-2xl p-4 shadow-xl transform hover:scale-105 transition-transform duration-500" />
+                    <img src="/logo.png" alt="Rural Minds Logo" className="h-48 w-auto mb-10 bg-white rounded-2xl p-4 shadow-xl transform hover:scale-105 transition-transform duration-500" />
                     <h1 className="text-6xl font-heading font-bold mb-8 tracking-tight">ROMPIENDO BARRERAS</h1>
                     <p className="text-xl mb-8 font-sans">
                         Convertimos la neurodiversidad en ventaja competitiva.

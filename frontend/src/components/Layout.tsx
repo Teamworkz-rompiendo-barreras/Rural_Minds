@@ -21,7 +21,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 <div className="container mx-auto flex items-center justify-between">
                     {/* Placeholder Logo */}
                     <div className="flex items-center gap-3">
-                        <img src="/src/assets/ruralminds_logo.png" alt="Rural Minds Logo" className="h-16 w-auto object-contain" />
+                        <img src="/logo.png" alt="Rural Minds Logo" className="h-16 w-auto object-contain" />
                     </div>
                     <nav className="flex items-center gap-4">
                         <Link to="/" className="text-gray-600 hover:text-primary font-bold transition-colors">Home</Link>
