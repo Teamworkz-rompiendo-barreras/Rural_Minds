@@ -8,13 +8,19 @@ router = APIRouter(
     tags=["applications"],
 )
 
-@router.post("/api/challenges/{challenge_id}/apply", response_model=schemas.Application)
-def apply_to_challenge(
-    challenge_id: str, 
-    application_data: schemas.ApplicationCreate, 
+@router.post("/api/applications", response_model=schemas.Application)
+def create_application(
+    application_data: dict, # Using dict to extract fields manually or adapt checks
     current_user: models.User = Depends(auth.get_current_user), 
     db: Session = Depends(database.get_db)
 ):
+    # This endpoint replaces the old /api/challenges/{id}/apply
+    challenge_id = application_data.get("challenge_id")
+    cover_letter = application_data.get("cover_letter")
+    
+    if not challenge_id:
+        raise HTTPException(status_code=400, detail="Challenge ID required")
+
     if current_user.role != "talent":
         raise HTTPException(status_code=403, detail="Only talents can apply to challenges")
 
@@ -35,7 +41,7 @@ def apply_to_challenge(
     new_application = models.Application(
         user_id=current_user.id,
         challenge_id=challenge_id,
-        cover_letter=application_data.cover_letter,
+        cover_letter=cover_letter,
         status="pending"
     )
     
@@ -60,6 +66,7 @@ def get_challenge_applications(
     current_user: models.User = Depends(auth.get_current_user), 
     db: Session = Depends(database.get_db)
 ):
+    # Check challenge exists
     challenge = db.query(models.Challenge).filter(models.Challenge.id == challenge_id).first()
     if not challenge:
         raise HTTPException(status_code=404, detail="Challenge not found")

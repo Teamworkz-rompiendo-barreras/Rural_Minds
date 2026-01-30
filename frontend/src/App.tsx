@@ -9,6 +9,11 @@ import SensoryProfile from './pages/SensoryProfile';
 import SolutionsCatalog from './pages/SolutionsCatalog';
 import MyAdjustments from './pages/MyAdjustments';
 import AdminDashboard from './pages/AdminDashboard';
+import MunicipalityDashboard from './pages/MunicipalityDashboard';
+import EnterpriseDashboard from './pages/EnterpriseDashboard';
+import CreateProject from './pages/CreateProject';
+import ProjectDetail from './pages/ProjectDetail';
+import Chat from './pages/Chat';
 
 import LandingPage from './pages/LandingPage';
 import MainDashboard from './pages/MainDashboard';
@@ -27,11 +32,21 @@ function App() {
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/create" element={<ChallengeWizard />} />
+        <Route path="/create-project" element={<CreateProject />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/profile" element={<TalentProfileWizard />} />
+
+        {/* Dashboards by Profile */}
         <Route path="/talent-dashboard" element={<TalentDashboard />} />
-        <Route path="/dashboard" element={<MainDashboard />} />
+        <Route path="/municipality-dashboard" element={<MunicipalityDashboard />} />
+        <Route path="/enterprise-dashboard" element={<EnterpriseDashboard />} />
+        <Route path="/admin" element={<AdminDashboard />} /> {/* Superadmin */}
+        <Route path="/project/:id" element={<ProjectDetail />} />
+        <Route path="/chat/:applicationId" element={<Chat />} />
+
+        <Route path="/dashboard" element={<MainDashboard />} /> {/* Legacy/Generic */}
+
         <Route path="/onboarding" element={<CompanyOnboarding />} />
         <Route path="/org-settings" element={<OrganizationSettings />} />
         <Route path="/learning" element={<LearningCenter />} />
@@ -41,7 +56,7 @@ function App() {
         <Route path="/sensory-profile" element={<SensoryProfile />} />
         <Route path="/solutions" element={<SolutionsCatalog />} />
         <Route path="/my-adjustments" element={<MyAdjustments />} />
-        <Route path="/admin" element={<AdminDashboard />} />
+
         <Route path="*" element={<NotFound />} />
       </Routes>
     </Layout>

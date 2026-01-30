@@ -5,8 +5,11 @@ from sqlalchemy.orm import Session
 from typing import List
 import os
 
-from routers import profile, applications, challenges
-import models, schemas, auth
+from routers import (
+    auth, users, profile, articles, challenges,
+    applications, analytics, messages, legal
+)
+import models, schemas
 from database import engine, get_db
 
 # Create tables only if strictly necessary (better to use migrations)
@@ -56,8 +59,11 @@ from routers import users
 app.include_router(users.router)
 from routers import reports
 app.include_router(reports.router)
+app.include_router(reports.router)
 from routers import debug
 app.include_router(debug.router)
+app.include_router(messages.router)
+app.include_router(legal.router)
 
 @app.get("/status")
 def health_check():

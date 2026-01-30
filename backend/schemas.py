@@ -19,6 +19,8 @@ class OrganizationBase(BaseModel):
     industry: Optional[str] = None
     size: Optional[str] = None
     subscription_plan: Optional[str] = "starter"
+    org_type: Optional[str] = "enterprise"
+    municipality_id: Optional[uuid.UUID] = None
 
 class OrganizationCreate(OrganizationBase):
     pass
@@ -30,6 +32,8 @@ class OrganizationUpdate(BaseModel):
     industry: Optional[str] = None
     size: Optional[str] = None
     subscription_plan: Optional[str] = None
+    org_type: Optional[str] = None
+    municipality_id: Optional[uuid.UUID] = None
 
 class Organization(OrganizationBase):
     id: uuid.UUID
@@ -52,6 +56,7 @@ class UserPublic(UserBase):
     role: str
     status: str
     organization_id: Optional[uuid.UUID] = None
+    organization: Optional[Organization] = None
 
     class Config:
         orm_mode = True
@@ -131,6 +136,7 @@ class ChallengeBase(BaseModel):
     location_type: Optional[str] = "remote"
     compensation: Optional[str] = None
     deadline: Optional[datetime] = None
+    is_public: bool = True
 
 class ChallengeCreate(ChallengeBase):
     pass
@@ -144,6 +150,7 @@ class ChallengeUpdate(BaseModel):
     compensation: Optional[str] = None
     deadline: Optional[datetime] = None
     status: Optional[str] = None
+    is_public: Optional[bool] = None
 
 class Challenge(ChallengeBase):
     id: uuid.UUID
@@ -190,6 +197,46 @@ class SolutionCreate(SolutionBase):
 class Solution(SolutionBase):
     id: uuid.UUID
     created_at: datetime
+    
+    class Config:
+        orm_mode = True
+
+# --- Messages ---
+class MessageBase(BaseModel):
+    content: Optional[str] = None
+    message_type: str = "text" # text, voice, attachment, system
+    attachment_url: Optional[str] = None
+    attachment_label: Optional[str] = None
+
+class MessageCreate(MessageBase):
+    pass
+
+class Message(MessageBase):
+    id: uuid.UUID
+    application_id: uuid.UUID
+    sender_id: uuid.UUID
+    is_read: bool
+    created_at: datetime
+    read_at: Optional[datetime] = None
+    
+    class Config:
+        orm_mode = True
+
+# --- Legal Consents ---
+class LegalConsentBase(BaseModel):
+    document_type: str
+    version: str
+    consents: dict = {}
+    ip_address: Optional[str] = None
+    user_agent: Optional[str] = None
+
+class LegalConsentCreate(LegalConsentBase):
+    pass
+
+class LegalConsent(LegalConsentBase):
+    id: uuid.UUID
+    user_id: uuid.UUID
+    accepted_at: datetime
     
     class Config:
         orm_mode = True

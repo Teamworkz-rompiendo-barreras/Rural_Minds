@@ -39,14 +39,30 @@ def create_challenge(challenge: schemas.ChallengeCreate, db: Session = Depends(d
 def read_challenges(skip: int = 0, limit: int = 100, db: Session = Depends(database.get_db), current_user: models.User = Depends(auth.get_current_user)):
     query = db.query(models.Challenge)
     
-    # Validation: Multi-tenancy enforcement
+    # Validation: Multi-tenancy enforcement and Visibility
     if current_user.role == "enterprise" and current_user.organization_id:
-        query = query.filter(models.Challenge.tenant_id == current_user.organization_id)
+        # Enterprise sees their own challenges (or all public ones? Usually their own for management)
+        # If they want to see public ones from others, we might need a different endpoint or param.
+        # For now, let's assume this endpoint is for "Marketplace" view if param says so, or "My Challenges" if not?
+        # Actually, separate endpoint `read_my_challenges` exists.
+        # So this `read_challenges` should be the "Marketplace/Explorer".
+        # Enterprises might want to see what others are posting? Or maybe not.
+        # Let's stick to:
+        # - Talent: See all PUBLIC and OPEN challenges.
+        # - Enterprise: See their own (or maybe all public too? Let's say all public for ecosystem awareness)
+        # - Admin: See all.
+        
+        # Mixed approach: Show public challenges AND my own (even if private)
+        query = query.filter(
+            (models.Challenge.is_public == True) | 
+            (models.Challenge.tenant_id == current_user.organization_id)
+        )
+    elif current_user.role == "talent":
+        # Talent only sees PUBLIC and OPEN challenges
+        query = query.filter(models.Challenge.is_public == True, models.Challenge.status == "open")
     
-    # Talents can see open challenges? Assuming yes for marketplace.
-    # Admins see all.
-    
-    challenges = query.offset(skip).limit(limit).all()
+    # Basic pagination
+    challenges = query.order_by(models.Challenge.created_at.desc()).offset(skip).limit(limit).all()
     return challenges
 
 @router.get("/api/my-challenges", response_model=List[schemas.Challenge])
@@ -137,3 +153,23 @@ def update_challenge_status(
     db.commit()
     db.refresh(challenge)
     return challenge 
+
+@router.get("/api/challenges/{challenge_id}", response_model=schemas.Challenge)
+def read_challenge(challenge_id: str, db: Session = Depends(database.get_db), current_user: models.User = Depends(auth.get_current_user)):
+    # Basic visibility check
+    challenge = db.query(models.Challenge).filter(models.Challenge.id == challenge_id).first()
+    if not challenge:
+        raise HTTPException(status_code=404, detail="Challenge not found")
+        
+    # Visibility logic
+    if challenge.is_public:
+        return challenge
+        
+    # If not public, must be creator or admin or tenant
+    if current_user.role == "super_admin":
+        return challenge
+    
+    if current_user.organization_id == challenge.tenant_id:
+        return challenge
+
+    raise HTTPException(status_code=403, detail="Not authorized to view this challenge") 

@@ -62,6 +62,12 @@ class Organization(Base):
     industry = Column(String, nullable=True)
     size = Column(String, nullable=True)
     subscription_plan = Column(String, default="starter")
+    
+    # New fields for RuralMinds
+    org_type = Column(String, default="enterprise") # enterprise, municipality
+    municipality_id = Column(GUID, ForeignKey("organizations.id"), nullable=True) # If enterprise, links to municipality
+    
+    parent = relationship("Organization", remote_side=[id], backref="companies")
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
     users = relationship("User", back_populates="organization")
@@ -141,6 +147,7 @@ class Challenge(Base):
     compensation = Column(String, nullable=True)
     deadline = Column(DateTime, nullable=True)
     status = Column(String, default="open")  # open, closed, in_progress
+    is_public = Column(Boolean, default=True) # New field for visibility
     
     tenant_id = Column(GUID, ForeignKey("organizations.id"), nullable=True)
     creator_id = Column(GUID, ForeignKey("users.id"), nullable=True)
@@ -218,3 +225,42 @@ class Solution(Base):
     cost_estimate = Column(String) # $, $$, $$$
     
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+class Message(Base):
+    __tablename__ = "messages"
+
+    id = Column(GUID, primary_key=True, default=uuid.uuid4, index=True)
+    application_id = Column(GUID, ForeignKey("applications.id"), nullable=False, index=True)
+    sender_id = Column(GUID, ForeignKey("users.id"), nullable=False)
+    
+    content = Column(String, nullable=True) # Text content
+    message_type = Column(String, default="text") # text, voice, attachment, system
+    
+    attachment_url = Column(String, nullable=True)
+    attachment_label = Column(String, nullable=True) # Accessibility label
+    
+    is_read = Column(Boolean, default=False)
+    read_at = Column(DateTime, nullable=True)
+    
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    
+    application = relationship("Application", backref="messages")
+    sender = relationship("User")
+
+class LegalConsent(Base):
+    __tablename__ = "legal_consents"
+
+    id = Column(GUID, primary_key=True, default=uuid.uuid4, index=True)
+    user_id = Column(GUID, ForeignKey("users.id"), nullable=False, index=True)
+    
+    document_type = Column(String) # "privacy_policy", "terms_conditions", "sensory_sharing"
+    version = Column(String) # "1.0", "2026-Q1"
+    
+    consents = Column(JSON, default=dict)
+    
+    ip_address = Column(String, nullable=True)
+    user_agent = Column(String, nullable=True)
+    
+    accepted_at = Column(DateTime, default=datetime.datetime.utcnow)
+    
+    user = relationship("User", backref="legal_agreements")

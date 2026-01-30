@@ -3,14 +3,28 @@
 @import "tailwindcss";
 
 @theme {
-    --color-primary: #374BA6;
-    --color-accent: #F2D680;
-    --color-neutral-bg: #F3F4F6;
-    --color-text-main: #0D1321;
+    /* Rural Minds / Teamworkz Palette */
+    /* P1 (Light Surface): Suitable for N900 text */
+    --color-p1: #F0F4EF;
+
+    /* P2 (Dark Primary - Action): #374BA6 per latest spec */
+    --color-p2: #374BA6;
+
+    --color-n100: #F3F4F6;
+    /* Card Background */
+    --color-n900: #0D1321;
+    /* Deep Black/Navy */
+
+    --color-primary: var(--color-p2);
+    --color-accent: #D4A373;
+    --color-neutral-bg: var(--color-p1);
+    --color-text-main: var(--color-n900);
+
+    /* S3 Focus Ring */
     --color-focus-ring: #8095F2;
 
     --font-sans: "Atkinson Hyperlegible", sans-serif;
-    --font-heading: "Futura", "Jost", sans-serif;
+    --font-heading: "Futura", "Jost", "Spartan", sans-serif;
 }
 
 @media (prefers-reduced-motion: reduce) {

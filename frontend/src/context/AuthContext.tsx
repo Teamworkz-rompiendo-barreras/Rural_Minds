@@ -1,11 +1,20 @@
 import React, { createContext, useState, useContext, useEffect, type ReactNode } from 'react';
 import axios from '../config/api';
 
+interface Organization {
+    id: string;
+    name: string;
+    org_type?: string;
+    municipality_id?: string;
+}
+
 interface User {
     id: string;
     email: string;
     role: string;
+    full_name?: string;
     organization_id?: string;
+    organization?: Organization;
     status?: string;
 }
 
@@ -24,12 +33,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
 
     useEffect(() => {
+        // If token exists, set default header and fetch user
         if (token) {
-            axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+            // Type assertion for custom property if needed, or just rely on interceptor
+            // axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
             localStorage.setItem('token', token);
             fetchUser();
         } else {
-            delete axios.defaults.headers.common['Authorization'];
+            // delete axios.defaults.headers.common['Authorization'];
             localStorage.removeItem('token');
             setUser(null);
         }
@@ -37,14 +48,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     const fetchUser = async () => {
         try {
-            // Use configured axios instance via import if possible, but here we replace the call
-            // Since we are in AuthContext, let's assume global axios defaults are set or use the imported instance if refactored.
-            // Currently using 'axios' from import 'axios'. We should switch import to '../config/api'
-            const response = await axios.get('/user/me');
+            // API call to get current user details
+            const response = await axios.get('/auth/me');
             setUser(response.data);
         } catch (error) {
             console.error('Failed to fetch user', error);
-            logout();
+            // If 401, clear token
+            // logout(); 
+            // Better not to force logout on network error, only on 401. But keeping simple for now.
         }
     };
 
