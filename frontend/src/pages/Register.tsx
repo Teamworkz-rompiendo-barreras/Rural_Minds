@@ -1,24 +1,25 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import axios from '../config/api';
 
 const Register: React.FC = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
-    const [role, setRole] = useState('enterprise'); // Default to Enterprise for this phase
+    const [role, setRole] = useState('enterprise');
     const [orgName, setOrgName] = useState('');
     const [error, setError] = useState('');
-    const navigate = useNavigate();
+    const [success, setSuccess] = useState(false);
+    const [loading, setLoading] = useState(false);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
+        setLoading(true);
 
-        // Prepare Payload
         const payload = {
             org_data: {
-                name: role === 'enterprise' ? orgName : `Freelance - ${email}`, // Auto-gen for talent
+                name: role === 'enterprise' ? orgName : `Freelance - ${email}`,
                 subscription_plan: 'starter'
             },
             user_data: {
@@ -31,20 +32,67 @@ const Register: React.FC = () => {
 
         try {
             await axios.post('/auth/register', payload);
-            navigate('/login');
+            setSuccess(true);
         } catch (err: any) {
             console.error("Registration error:", err);
             const detail = err.response?.data?.detail;
             const message = typeof detail === 'string' ? detail : JSON.stringify(detail);
-            setError(message || 'Registration failed');
+            setError(message || 'Error en el registro');
+        } finally {
+            setLoading(false);
         }
     };
+
+    // Success state - show verification message
+    if (success) {
+        return (
+            <div className="flex items-center justify-center flex-grow p-4">
+                <div className="bg-white p-10 rounded-xl shadow-lg max-w-md w-full border-t-4 border-green-500 text-center">
+                    <div className="text-6xl mb-6">📧</div>
+                    <h2 className="text-2xl font-heading font-bold text-green-700 mb-4">
+                        ¡Revisa tu Email!
+                    </h2>
+                    <p className="text-gray-600 mb-6 leading-relaxed">
+                        Hemos enviado un enlace de verificación a <strong className="text-n900">{email}</strong>.
+                        <br /><br />
+                        Haz clic en el enlace del email para activar tu cuenta.
+                    </p>
+                    <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-lg text-sm text-yellow-800 mb-6">
+                        <strong>⚠️ Importante:</strong> No podrás iniciar sesión hasta que confirmes tu email.
+                    </div>
+                    <div className="space-y-3">
+                        <Link
+                            to="/login"
+                            className="block w-full bg-p2 text-white font-bold py-3 px-6 rounded-lg hover:bg-p2/90 transition-all"
+                        >
+                            Ir al Login
+                        </Link>
+                        <p className="text-sm text-gray-500">
+                            ¿No recibiste el email?{' '}
+                            <button
+                                onClick={() => setSuccess(false)}
+                                className="text-p2 font-bold underline hover:no-underline"
+                            >
+                                Reenviar
+                            </button>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="flex items-center justify-center flex-grow p-4">
             <div className="bg-white p-8 rounded-xl shadow-lg max-w-md w-full border-t-4 border-accent">
                 <h2 className="text-3xl font-heading font-bold text-primary mb-6 text-center">Únete a Rural Minds</h2>
-                {error && <div className="bg-red-100 text-red-700 p-3 rounded mb-4 text-sm" role="alert" aria-live="polite">{error}</div>}
+
+                {error && (
+                    <div className="bg-red-100 text-red-700 p-3 rounded mb-4 text-sm" role="alert" aria-live="polite">
+                        {error}
+                    </div>
+                )}
+
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
                         <label className="block text-sm font-bold mb-1">Email</label>
@@ -54,10 +102,11 @@ const Register: React.FC = () => {
                             onChange={(e) => setEmail(e.target.value)}
                             className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-focus-ring outline-none"
                             required
+                            placeholder="tu@email.com"
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-bold mb-1">Password</label>
+                        <label className="block text-sm font-bold mb-1">Contraseña</label>
                         <div className="relative">
                             <input
                                 type={showPassword ? "text" : "password"}
@@ -65,11 +114,14 @@ const Register: React.FC = () => {
                                 onChange={(e) => setPassword(e.target.value)}
                                 className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-focus-ring outline-none pr-10"
                                 required
+                                minLength={8}
+                                placeholder="Mínimo 8 caracteres"
                             />
                             <button
                                 type="button"
                                 onClick={() => setShowPassword(!showPassword)}
                                 className="absolute inset-y-0 right-0 px-3 flex items-center text-gray-500 hover:text-primary focus:outline-none"
+                                aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
                             >
                                 {showPassword ? (
                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -84,48 +136,52 @@ const Register: React.FC = () => {
                             </button>
                         </div>
                     </div>
+
                     <div>
-                        <label className="block text-sm font-bold mb-2">I am a...</label>
+                        <label className="block text-sm font-bold mb-2">Soy...</label>
                         <div className="grid grid-cols-2 gap-4">
                             <button
                                 type="button"
                                 onClick={() => setRole('talent')}
                                 className={`p-3 border rounded-lg text-center transition-all ${role === 'talent' ? 'border-primary bg-blue-50 text-primary font-bold ring-2 ring-focus-ring' : 'border-gray-200 hover:bg-gray-50'}`}
                             >
-                                Talent
+                                🧑‍💻 Talento
                             </button>
                             <button
                                 type="button"
                                 onClick={() => setRole('enterprise')}
                                 className={`p-3 border rounded-lg text-center transition-all ${role === 'enterprise' ? 'border-primary bg-blue-50 text-primary font-bold ring-2 ring-focus-ring' : 'border-gray-200 hover:bg-gray-50'}`}
                             >
-                                Enterprise
+                                🏢 Empresa
                             </button>
                         </div>
                     </div>
 
                     {role === 'enterprise' && (
                         <div>
-                            <label className="block text-sm font-bold mb-1">Organization Name</label>
+                            <label className="block text-sm font-bold mb-1">Nombre de la Organización</label>
                             <input
                                 type="text"
                                 value={orgName}
                                 onChange={(e) => setOrgName(e.target.value)}
                                 className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-focus-ring outline-none"
                                 required
+                                placeholder="Tu empresa o ayuntamiento"
                             />
                         </div>
                     )}
 
                     <button
                         type="submit"
-                        className="w-full bg-primary text-white font-bold py-2 rounded hover:bg-opacity-90 transition-colors"
+                        disabled={loading}
+                        className="w-full bg-primary text-white font-bold py-3 rounded-lg hover:bg-opacity-90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                        Create Account
+                        {loading ? 'Creando cuenta...' : 'Crear Cuenta'}
                     </button>
                 </form>
+
                 <p className="mt-4 text-center text-sm text-gray-600">
-                    Already have an account? <Link to="/login" className="text-primary font-bold hover:underline">Login</Link>
+                    ¿Ya tienes cuenta? <Link to="/login" className="text-primary font-bold hover:underline">Iniciar Sesión</Link>
                 </p>
             </div>
         </div>

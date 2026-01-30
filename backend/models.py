@@ -83,7 +83,12 @@ class User(Base):
     email = Column(String, unique=True, index=True)
     hashed_password = Column(String)
     role = Column(String, default=UserRole.TALENT)
-    status = Column(String, default="active") # active, pending, disabled
+    status = Column(String, default="pending") # active, pending, disabled
+    
+    # Email Verification
+    email_verified = Column(Boolean, default=False)
+    verification_token = Column(String, nullable=True) # UUID token for email confirmation
+    verification_token_expires = Column(DateTime, nullable=True)
     
     organization = relationship("Organization", back_populates="users")
     

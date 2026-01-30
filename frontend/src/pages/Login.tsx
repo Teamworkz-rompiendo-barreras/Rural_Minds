@@ -8,15 +8,20 @@ const Login: React.FC = () => {
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState('');
+    const [needsVerification, setNeedsVerification] = useState(false);
+    const [loading, setLoading] = useState(false);
     const { login } = useAuth();
     const navigate = useNavigate();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
+        setNeedsVerification(false);
+        setLoading(true);
+
         try {
             const formData = new FormData();
-            formData.append('username', email); // OAuth2 expects 'username'
+            formData.append('username', email);
             formData.append('password', password);
 
             const response = await axios.post('/auth/login', formData, {
@@ -26,7 +31,7 @@ const Login: React.FC = () => {
             const { access_token } = response.data;
             login(access_token);
 
-            // Fetch user profile immediately to decide navigation
+            // Fetch user profile to decide navigation
             try {
                 const userRes = await axios.get('/user/me', {
                     headers: { Authorization: `Bearer ${access_token}` }
@@ -36,16 +41,36 @@ const Login: React.FC = () => {
                 if (role === 'super_admin') {
                     navigate('/admin');
                 } else if (role === 'enterprise') {
-                    navigate('/dashboard');
+                    navigate('/enterprise-dashboard');
                 } else {
-                    navigate('/profile'); // Talent or others
+                    navigate('/talent-dashboard');
                 }
-            } catch (e) {
-                console.error("Failed to fetch profile for redirection", e);
-                navigate('/dashboard'); // Fallback
+            } catch {
+                navigate('/dashboard');
             }
+        } catch (err: any) {
+            const status = err.response?.status;
+            const detail = err.response?.data?.detail;
+
+            if (status === 403 && detail?.includes('confirma tu email')) {
+                setNeedsVerification(true);
+                setError(detail);
+            } else {
+                setError(detail || 'Email o contraseña incorrectos');
+            }
+            console.error(err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleResendVerification = async () => {
+        try {
+            await axios.post(`/auth/resend-verification?email=${encodeURIComponent(email)}`);
+            setError('');
+            setNeedsVerification(false);
+            alert('Se ha enviado un nuevo enlace de verificación a tu email.');
         } catch (err) {
-            setError('Invalid email or password');
             console.error(err);
         }
     };
@@ -53,8 +78,31 @@ const Login: React.FC = () => {
     return (
         <div className="flex items-center justify-center flex-grow p-4">
             <div className="bg-white p-8 rounded-xl shadow-lg max-w-md w-full border-t-4 border-primary">
-                <h2 className="text-3xl font-heading font-bold text-primary mb-6 text-center">Login</h2>
-                {error && <div className="bg-red-100 text-red-700 p-3 rounded mb-4 text-sm" role="alert" aria-live="polite">{error}</div>}
+                <h2 className="text-3xl font-heading font-bold text-primary mb-6 text-center">Iniciar Sesión</h2>
+
+                {error && (
+                    <div
+                        className={`p-4 rounded mb-4 text-sm ${needsVerification ? 'bg-yellow-50 border border-yellow-200 text-yellow-800' : 'bg-red-100 text-red-700'}`}
+                        role="alert"
+                        aria-live="polite"
+                    >
+                        {needsVerification ? (
+                            <>
+                                <p className="font-bold mb-2">📧 Verificación pendiente</p>
+                                <p className="mb-3">{error}</p>
+                                <button
+                                    onClick={handleResendVerification}
+                                    className="text-p2 font-bold underline hover:no-underline"
+                                >
+                                    Reenviar email de verificación
+                                </button>
+                            </>
+                        ) : (
+                            error
+                        )}
+                    </div>
+                )}
+
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
                         <label className="block text-sm font-bold mb-1">Email</label>
@@ -64,10 +112,11 @@ const Login: React.FC = () => {
                             onChange={(e) => setEmail(e.target.value)}
                             className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-focus-ring outline-none"
                             required
+                            placeholder="tu@email.com"
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-bold mb-1">Password</label>
+                        <label className="block text-sm font-bold mb-1">Contraseña</label>
                         <div className="relative">
                             <input
                                 type={showPassword ? "text" : "password"}
@@ -80,6 +129,7 @@ const Login: React.FC = () => {
                                 type="button"
                                 onClick={() => setShowPassword(!showPassword)}
                                 className="absolute inset-y-0 right-0 px-3 flex items-center text-gray-500 hover:text-primary focus:outline-none"
+                                aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
                             >
                                 {showPassword ? (
                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -96,13 +146,14 @@ const Login: React.FC = () => {
                     </div>
                     <button
                         type="submit"
-                        className="w-full bg-primary text-white font-bold py-2 rounded hover:bg-opacity-90 transition-colors"
+                        disabled={loading}
+                        className="w-full bg-primary text-white font-bold py-3 rounded-lg hover:bg-opacity-90 transition-colors disabled:opacity-50"
                     >
-                        Sign In
+                        {loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
                     </button>
                 </form>
                 <p className="mt-4 text-center text-sm text-gray-600">
-                    Don't have an account? <Link to="/register" className="text-primary font-bold hover:underline">Register</Link>
+                    ¿No tienes cuenta? <Link to="/register" className="text-primary font-bold hover:underline">Regístrate</Link>
                 </p>
             </div>
         </div>
