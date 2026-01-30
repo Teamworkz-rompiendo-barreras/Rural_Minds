@@ -4,24 +4,35 @@
 
 @theme {
     /* Rural Minds / Teamworkz Palette */
-    /* P1 (Light Surface): Suitable for N900 text */
-    --color-p1: #F0F4EF;
 
-    /* P2 (Dark Primary - Action): #374BA6 per latest spec */
+    /* P1 - Gold (Identity/Accents): #F2D680 */
+    --color-p1: #F2D680;
+
+    /* P2 - Blue (Primary Action): #374BA6 */
     --color-p2: #374BA6;
 
-    --color-n100: #F3F4F6;
-    /* Card Background */
-    --color-n900: #0D1321;
-    /* Deep Black/Navy */
+    /* Secondary Colors */
+    --color-s1: #F0E8D1;
+    /* Sand: Cards/Low Contrast */
+    --color-s2: #FFE7A1;
+    /* Sun: Highlights/Metrics */
+    --color-s3: #8095F2;
+    /* Lavender: Focus Ring */
 
+    /* Neutrals */
+    --color-n900: #0D1321;
+    /* Almost Black: Text */
+    --color-n100: #F3F4F6;
+    /* Light Gray: Background */
+
+    /* Semantic Aliases */
     --color-primary: var(--color-p2);
-    --color-accent: #D4A373;
-    --color-neutral-bg: var(--color-p1);
+    --color-accent: var(--color-p1);
+    --color-neutral-bg: var(--color-n100);
     --color-text-main: var(--color-n900);
 
-    /* S3 Focus Ring */
-    --color-focus-ring: #8095F2;
+    /* Focus Ring Alias */
+    --color-focus-ring: var(--color-s3);
 
     --font-sans: "Atkinson Hyperlegible", sans-serif;
     --font-heading: "Futura", "Jost", "Spartan", sans-serif;
