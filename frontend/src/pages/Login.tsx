@@ -23,8 +23,27 @@ const Login: React.FC = () => {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
 
-            login(response.data.access_token);
-            navigate('/');
+            const { access_token } = response.data;
+            login(access_token);
+
+            // Fetch user profile immediately to decide navigation
+            try {
+                const userRes = await axios.get('/user/me', {
+                    headers: { Authorization: `Bearer ${access_token}` }
+                });
+                const role = userRes.data.role;
+
+                if (role === 'super_admin') {
+                    navigate('/admin');
+                } else if (role === 'enterprise') {
+                    navigate('/dashboard');
+                } else {
+                    navigate('/profile'); // Talent or others
+                }
+            } catch (e) {
+                console.error("Failed to fetch profile for redirection", e);
+                navigate('/dashboard'); // Fallback
+            }
         } catch (err) {
             setError('Invalid email or password');
             console.error(err);

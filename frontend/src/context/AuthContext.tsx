@@ -1,5 +1,5 @@
 import React, { createContext, useState, useContext, useEffect, type ReactNode } from 'react';
-import axios from 'axios';
+import axios from '../config/api';
 
 interface User {
     id: string;
@@ -37,7 +37,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     const fetchUser = async () => {
         try {
-            const response = await axios.get('http://127.0.0.1:8000/auth/me');
+            // Use configured axios instance via import if possible, but here we replace the call
+            // Since we are in AuthContext, let's assume global axios defaults are set or use the imported instance if refactored.
+            // Currently using 'axios' from import 'axios'. We should switch import to '../config/api'
+            const response = await axios.get('/user/me');
             setUser(response.data);
         } catch (error) {
             console.error('Failed to fetch user', error);
