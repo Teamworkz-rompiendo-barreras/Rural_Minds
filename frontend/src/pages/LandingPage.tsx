@@ -7,16 +7,16 @@ const LandingPage: React.FC = () => {
             {/* Hero Section */}
             <section className="bg-primary text-white py-24 px-6 text-center">
                 <div className="max-w-5xl mx-auto flex flex-col items-center">
-                    {/* Logo P1 sobre P2 sin fondo blanco */}
-                    <div className="mb-10 transform hover:scale-105 transition-transform duration-500">
-                        {/* SVG Logo Placeholder - Rural Minds (P1 Color #F2D680) */}
-                        <svg width="200" height="60" viewBox="0 0 200 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <text x="10" y="40" fontFamily="Futura, sans-serif" fontWeight="bold" fontSize="32" fill="#F2D680">RURAL MINDS</text>
-                            <path d="M10 50 H190" stroke="#F2D680" strokeWidth="2" />
+                    {/* Logo P1 sobre P2 - Ampliado y Centrado */}
+                    <div className="mb-8 transform hover:scale-105 transition-transform duration-500">
+                        <svg width="300" height="80" viewBox="0 0 300 80" fill="none" xmlns="http://www.w3.org/2000/svg" className="overflow-visible">
+                            <text x="50%" y="50" textAnchor="middle" fontFamily="Futura, sans-serif" fontWeight="bold" fontSize="36" fill="#F2D680" letterSpacing="0.05em">RURAL MINDS</text>
+                            <path d="M75 62 H225" stroke="#F2D680" strokeWidth="3" />
                         </svg>
                     </div>
 
-                    <h1 className="text-6xl font-heading font-bold mb-8 tracking-tight">
+                    {/* Titular responsivo sin cortes */}
+                    <h1 className="text-4xl md:text-5xl lg:text-7xl font-heading font-bold mb-8 leading-tight w-full max-w-7xl mx-auto px-4">
                         Innovación con Denominación de Origen
                     </h1>
 
