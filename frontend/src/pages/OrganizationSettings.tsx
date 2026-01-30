@@ -1,0 +1,133 @@
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import { useAuth } from '../context/AuthContext';
+
+interface User {
+    id: string;
+    email: string;
+    role: string;
+}
+
+const OrganizationSettings: React.FC = () => {
+    const { token, user } = useAuth();
+    const [users, setUsers] = useState<User[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [inviteEmail, setInviteEmail] = useState('');
+    const [inviteError, setInviteError] = useState('');
+    const [inviteSuccess, setInviteSuccess] = useState('');
+
+    useEffect(() => {
+        if (token) fetchUsers();
+    }, [token]);
+
+    const fetchUsers = async () => {
+        try {
+            const res = await axios.get('http://127.0.0.1:8000/org/users');
+            setUsers(res.data);
+            setLoading(false);
+        } catch (err) {
+            console.error(err);
+            setLoading(false);
+        }
+    };
+
+    const handleInvite = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setInviteError('');
+        setInviteSuccess('');
+
+        try {
+            await axios.post('http://127.0.0.1:8000/org/invite', {
+                email: inviteEmail,
+                role: 'enterprise'
+            });
+            setInviteSuccess(`Invitation sent to ${inviteEmail}`);
+            setInviteEmail('');
+            fetchUsers(); // Refresh list
+        } catch (err: any) {
+            setInviteError(err.response?.data?.detail || 'Failed to invite user');
+        }
+    };
+
+    const handleRemove = async (userId: string) => {
+        if (!window.confirm("Are you sure you want to remove this user?")) return;
+        try {
+            await axios.delete(`http://127.0.0.1:8000/org/users/${userId}`);
+            fetchUsers();
+        } catch (err) {
+            alert('Failed to delete user');
+        }
+    };
+
+    if (loading) return <div>Loading...</div>;
+
+    return (
+        <div className="max-w-4xl mx-auto p-6">
+            <h1 className="text-3xl font-heading font-bold text-primary mb-6">Organization Management</h1>
+
+            {/* Invite Section */}
+            <div className="bg-white p-6 rounded-xl shadow-md mb-8 border-t-4 border-accent">
+                <h2 className="text-xl font-bold mb-4">Invite Team Member</h2>
+                <form onSubmit={handleInvite} className="flex gap-4 items-start">
+                    <div className="flex-grow">
+                        <input
+                            type="email"
+                            placeholder="colleague@company.com"
+                            value={inviteEmail}
+                            onChange={(e) => setInviteEmail(e.target.value)}
+                            required
+                            className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-primary outline-none"
+                        />
+                        {inviteError && <p className="text-red-500 text-sm mt-1">{inviteError}</p>}
+                        {inviteSuccess && <p className="text-green-600 text-sm mt-1">{inviteSuccess}</p>}
+                    </div>
+                    <button
+                        type="submit"
+                        className="px-6 py-3 bg-primary text-white font-bold rounded-lg hover:bg-opacity-90"
+                    >
+                        Invite
+                    </button>
+                </form>
+            </div>
+
+            {/* Users List */}
+            <div className="bg-white rounded-xl shadow-md overflow-hidden">
+                <table className="w-full text-left border-collapse">
+                    <thead className="bg-gray-50 border-b">
+                        <tr>
+                            <th className="p-4 font-bold text-gray-600">Email</th>
+                            <th className="p-4 font-bold text-gray-600">Role</th>
+                            <th className="p-4 font-bold text-gray-600 text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {users.map((u) => (
+                            <tr key={u.id} className="border-b last:border-0 hover:bg-gray-50">
+                                <td className="p-4 font-medium">{u.email}</td>
+                                <td className="p-4">
+                                    <span className={`px-2 py-1 rounded text-xs uppercase font-bold ${u.role === 'enterprise' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100'
+                                        }`}>
+                                        {u.role}
+                                    </span>
+                                </td>
+                                <td className="p-4 text-right">
+                                    {u.id !== user?.id && (
+                                        <button
+                                            onClick={() => handleRemove(u.id)}
+                                            className="text-red-500 hover:text-red-700 font-bold text-sm"
+                                        >
+                                            Remove
+                                        </button>
+                                    )}
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+                {users.length === 0 && <div className="p-8 text-center text-gray-500">No members found.</div>}
+            </div>
+        </div>
+    );
+};
+
+export default OrganizationSettings;

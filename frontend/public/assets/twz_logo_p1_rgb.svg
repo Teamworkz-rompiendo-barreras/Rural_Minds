@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 60" width="200" height="60">
+  <!--
+  TEAMWORKZ LOGO - P1 on transparent (for P2 band)
+  ================================================
+  Format: sRGB
+  Naming: twz_logo_p1_rgb.svg
+  Accessibility: Descriptive title and alt text
+  -->
+  <title>Teamworkz - Rompiendo barreras</title>
+  <desc>Logo de Teamworkz en color primario verde (P1) para uso sobre fondos de color secundario (P2)</desc>
+  
+  <!-- Brand mark: Stylized interlocking circles representing connection -->
+  <g fill="none" stroke="#0F5C2E" stroke-width="3">
+    <circle cx="22" cy="30" r="14" />
+    <circle cx="38" cy="30" r="14" />
+  </g>
+  
+  <!-- Wordmark: TEAMWORKZ -->
+  <text x="60" y="38" 
+        font-family="Futura, 'Arial Black', sans-serif" 
+        font-size="24" 
+        font-weight="700" 
+        fill="#0F5C2E"
+        aria-label="Teamworkz">
+    TEAMWORKZ
+  </text>
+</svg>

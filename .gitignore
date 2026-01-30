@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+venv/
+*.db
+.env
+*.pyc
+
+# Node
+node_modules/
+dist/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Vercel
+.vercel/
+
+# Test/Verify scripts
+verify_*.py

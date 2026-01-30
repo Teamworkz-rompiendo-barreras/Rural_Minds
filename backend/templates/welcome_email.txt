@@ -1,0 +1,37 @@
+====================================
+TEAMWORKZ - Rompiendo barreras
+====================================
+
+Bienvenido a Teamworkz
+----------------------
+
+Estamos encantados de que te unas a nuestra comunidad.
+
+"Estamos rompiendo barreras para convertir la neurodiversidad 
+en tu ventaja competitiva."
+
+En Teamworkz, creemos que cada persona aporta una perspectiva 
+única. Nuestra plataforma te ayudará a:
+
+  • Configurar tu perfil sensorial personalizado
+  • Descubrir ajustes que potencien tu productividad
+  • Conectar con oportunidades que valoran tu talento
+
+¿Listo para empezar? Reserva una sesión con nuestro equipo 
+para ver cómo podemos adaptar la experiencia a tus necesidades.
+
+>> AGENDA 30 MINUTOS: {{DEMO_URL}}
+
+¿Prefieres hablar primero? También puedes pedir una demo 
+con casos reales: {{CONTACT_URL}}
+
+------------------------------------
+
+Teamworkz — Rompiendo barreras
+Web: {{WEBSITE_URL}}
+LinkedIn: {{LINKEDIN_URL}}
+
+Has recibido este correo porque te registraste en Teamworkz.
+Para darte de baja: {{UNSUBSCRIBE_URL}}
+
+====================================

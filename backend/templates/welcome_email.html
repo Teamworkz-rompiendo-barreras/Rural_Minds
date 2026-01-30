@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="light">
+    <title>Bienvenido a Teamworkz</title>
+    <!--[if mso]>
+    <style type="text/css">
+        table {border-collapse:collapse;border-spacing:0;margin:0;}
+        div, td {padding:0;}
+        div {margin:0 !important;}
+    </style>
+    <noscript>
+        <xml>
+            <o:OfficeDocumentSettings>
+                <o:PixelsPerInch>96</o:PixelsPerInch>
+            </o:OfficeDocumentSettings>
+        </xml>
+    </noscript>
+    <![endif]-->
+    <style>
+        /* Atkinson Hyperlegible fallback to Inter */
+        @import url('https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap');
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #F5F5F5;
+            font-family: 'Atkinson Hyperlegible', 'Inter', Arial, sans-serif;
+            font-size: 16px;
+            line-height: 1.5;
+            color: #0D1321;
+            /* N900 */
+        }
+
+        .wrapper {
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            background: #FFFFFF;
+        }
+
+        /* Header: P1 logo on P2 band */
+        .header {
+            background-color: #374BA6;
+            /* P2 */
+            padding: 24px;
+            text-align: center;
+        }
+
+        .header img {
+            max-height: 48px;
+            width: auto;
+        }
+
+        .content {
+            padding: 40px 32px;
+        }
+
+        h1 {
+            font-family: 'Atkinson Hyperlegible', 'Inter', Arial, sans-serif;
+            font-size: 24px;
+            font-weight: 700;
+            color: #0F5C2E;
+            /* P1 */
+            margin: 0 0 16px 0;
+            line-height: 1.3;
+        }
+
+        p {
+            margin: 0 0 16px 0;
+            font-size: 16px;
+            line-height: 1.5;
+            color: #0D1321;
+            /* N900 */
+        }
+
+        .highlight {
+            font-style: italic;
+            color: #374BA6;
+            /* P2 */
+        }
+
+        /* CTA Button: P2 with white text */
+        .cta-button {
+            display: inline-block;
+            background-color: #374BA6;
+            /* P2 */
+            color: #FFFFFF !important;
+            text-decoration: none;
+            padding: 14px 28px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 16px;
+            margin-top: 24px;
+            text-align: center;
+        }
+
+        .cta-button:hover {
+            background-color: #2D3D8A;
+        }
+
+        .footer {
+            padding: 24px 32px;
+            background-color: #F5F5F5;
+            text-align: center;
+            font-size: 12px;
+            color: #666666;
+        }
+
+        .footer a {
+            color: #374BA6;
+            text-decoration: underline;
+        }
+
+        /* Accessibility: underlined links */
+        a {
+            text-decoration: underline;
+        }
+
+        /* High contrast check: white on P2 = 4.58:1 (passes AA) */
+        /* N900 on white = 17.4:1 (passes AAA) */
+    </style>
+</head>
+
+<body>
+    <div class="wrapper" role="article" aria-label="Correo de bienvenida de Teamworkz">
+        <!-- Header with logo -->
+        <div class="header">
+            <img src="cid:twz_logo_p1_rgb" alt="Teamworkz - Rompiendo barreras" width="180" height="48">
+        </div>
+
+        <!-- Main content -->
+        <div class="content">
+            <h1>Bienvenido a Teamworkz</h1>
+
+            <p>
+                Estamos encantados de que te unas a nuestra comunidad.
+            </p>
+
+            <p class="highlight">
+                "Estamos rompiendo barreras para convertir la neurodiversidad en tu ventaja competitiva."
+            </p>
+
+            <p>
+                En Teamworkz, creemos que cada persona aporta una perspectiva única. Nuestra plataforma te ayudará a:
+            </p>
+
+            <ul style="margin: 16px 0; padding-left: 24px; line-height: 1.7;">
+                <li>Configurar tu perfil sensorial personalizado</li>
+                <li>Descubrir ajustes que potencien tu productividad</li>
+                <li>Conectar con oportunidades que valoran tu talento</li>
+            </ul>
+
+            <p>
+                ¿Listo para empezar? Reserva una sesión con nuestro equipo para ver cómo podemos adaptar la experiencia
+                a tus necesidades.
+            </p>
+
+            <div style="text-align: center; margin-top: 32px;">
+                <a href="{{DEMO_URL}}" class="cta-button" role="button">
+                    Agenda 30 minutos
+                </a>
+            </div>
+
+            <p style="margin-top: 32px; font-size: 14px; color: #666666;">
+                ¿Prefieres hablar primero? También puedes
+                <a href="{{CONTACT_URL}}" style="color: #374BA6;">pedir una demo con casos reales</a>.
+            </p>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p style="margin: 0 0 8px 0;">
+                <strong>Teamworkz</strong> — Rompiendo barreras
+            </p>
+            <p style="margin: 0 0 8px 0;">
+                <a href="{{WEBSITE_URL}}">teamworkz.io</a> |
+                <a href="{{LINKEDIN_URL}}">LinkedIn</a>
+            </p>
+            <p style="margin: 0; font-size: 11px; color: #999999;">
+                Has recibido este correo porque te registraste en Teamworkz.
+                <br>
+                <a href="{{UNSUBSCRIBE_URL}}" style="color: #999999;">Darse de baja</a>
+            </p>
+        </div>
+    </div>
+</body>
+
+</html>

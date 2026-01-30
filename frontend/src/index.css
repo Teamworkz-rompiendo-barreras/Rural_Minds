@@ -1,0 +1,89 @@
+@import url('https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+
+@import "tailwindcss";
+
+@theme {
+    --color-primary: #374BA6;
+    --color-accent: #F2D680;
+    --color-neutral-bg: #F3F4F6;
+    --color-text-main: #0D1321;
+    --color-focus-ring: #8095F2;
+
+    --font-sans: "Atkinson Hyperlegible", sans-serif;
+    --font-heading: "Futura", "Jost", sans-serif;
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+    *,
+    ::before,
+    ::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+/* Accessible Focus Ring (3px) */
+*:focus-visible {
+    outline: 3px solid var(--color-focus-ring);
+    outline-offset: 2px;
+}
+
+/* Card Radius Utility */
+.card-radius {
+    border-radius: 12px;
+}
+
+/* P2 Button (Secondary CTA) - Using Accent/Gold */
+.btn-secondary {
+    background-color: var(--color-accent);
+    color: #0D1321;
+    font-weight: bold;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+}
+
+.btn-secondary:hover {
+    opacity: 0.9;
+}
+
+/* PRIMARY BUTTON: P2 Blue (#374BA6) with white text */
+.btn-primary {
+    background-color: #374BA6;
+    /* P2 */
+    color: #FFFFFF;
+    font-weight: bold;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    transition: background-color 0.15s ease;
+}
+
+.btn-primary:hover {
+    background-color: #5063BA;
+    /* Hover state */
+}
+
+.btn-primary:active {
+    background-color: #2E418F;
+    /* Pressed state */
+}
+
+/* Global Link Styles: All links underlined for accessibility */
+a {
+    text-decoration: underline;
+}
+
+a.no-underline {
+    text-decoration: none;
+}
+
+/* Line Height Utilities (1.5-1.7 per brand guide) */
+.leading-accessible {
+    line-height: 1.6;
+}
+
+body {
+    line-height: 1.5;
+}

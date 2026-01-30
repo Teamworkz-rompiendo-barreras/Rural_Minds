@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 60" width="200" height="60">
+  <!--
+  TEAMWORKZ LOGO - HORIZONTAL LOCKUP
+  ==================================
+  Format: sRGB | Naming: twz_logo_horizontal_p1_rgb.svg
+  Use: Primary horizontal layout with brand mark + wordmark
+  -->
+  <title>Teamworkz - Rompiendo barreras</title>
+  <desc>Logo horizontal de Teamworkz en color P1</desc>
+  
+  <!-- Brand mark: Interlocking circles -->
+  <g fill="none" stroke="#0F5C2E" stroke-width="3">
+    <circle cx="22" cy="30" r="14" />
+    <circle cx="38" cy="30" r="14" />
+  </g>
+  
+  <!-- Wordmark -->
+  <text x="60" y="38" 
+        font-family="Futura, 'Arial Black', sans-serif" 
+        font-size="24" 
+        font-weight="700" 
+        fill="#0F5C2E">
+    TEAMWORKZ
+  </text>
+</svg>

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Firma de Email - Teamworkz</title>
+    <style>
+        /* Futura Bold for name/cargo, Atkinson for rest */
+        @import url('https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap');
+    </style>
+</head>
+
+<body style="margin: 0; padding: 0; font-family: 'Atkinson Hyperlegible', Arial, sans-serif;">
+    <!--
+    ACCESSIBLE EMAIL SIGNATURE TEMPLATE
+    ====================================
+    - Name: Futura Bold (fallback: Arial Bold)
+    - Links: Underlined for visual identification
+    - Text: N900 (#0D1321) on white background
+    - Icon contrast: ≥3:1 with border
+    -->
+
+    <table cellpadding="0" cellspacing="0" border="0" style="font-size: 14px; color: #0D1321; line-height: 1.5;">
+        <tr>
+            <td style="padding-right: 16px; vertical-align: top;">
+                <!-- Avatar placeholder -->
+                <img src="{{AVATAR_URL}}" alt="Foto de {{NOMBRE}}" width="72" height="72"
+                    style="border-radius: 50%; border: 2px solid #374BA6;">
+            </td>
+            <td style="vertical-align: top;">
+                <!-- Name and Title: Futura Bold equivalent -->
+                <p
+                    style="margin: 0 0 4px 0; font-family: 'Futura', 'Arial Black', Arial, sans-serif; font-weight: 700; font-size: 16px; color: #0D1321;">
+                    {{NOMBRE}}
+                </p>
+                <p style="margin: 0 0 8px 0; font-size: 13px; color: #374BA6; font-weight: 600;">
+                    {{CARGO}}
+                </p>
+
+                <!-- Brand tagline -->
+                <p style="margin: 0 0 8px 0; font-size: 12px; color: #666666;">
+                    <strong style="color: #0F5C2E;">Teamworkz</strong> — Rompiendo barreras
+                </p>
+
+                <!-- Contact links: All underlined -->
+                <p style="margin: 0; font-size: 12px;">
+                    <a href="{{WEBSITE_URL}}" style="color: #374BA6; text-decoration: underline;">teamworkz.io</a>
+                    &nbsp;|&nbsp;
+                    <a href="mailto:{{EMAIL}}" style="color: #374BA6; text-decoration: underline;">{{EMAIL}}</a>
+                    &nbsp;|&nbsp;
+                    <a href="{{LINKEDIN_URL}}" style="color: #374BA6; text-decoration: underline;">LinkedIn</a>
+                </p>
+
+                <!-- Social icons with contrast border -->
+                <table cellpadding="0" cellspacing="0" border="0" style="margin-top: 12px;">
+                    <tr>
+                        <td style="padding-right: 8px;">
+                            <a href="{{LINKEDIN_URL}}">
+                                <img src="cid:icon_linkedin" alt="LinkedIn" width="24" height="24"
+                                    style="border: 1px solid #374BA6; border-radius: 4px;">
+                            </a>
+                        </td>
+                        <td style="padding-right: 8px;">
+                            <a href="{{TWITTER_URL}}">
+                                <img src="cid:icon_twitter" alt="Twitter/X" width="24" height="24"
+                                    style="border: 1px solid #374BA6; border-radius: 4px;">
+                            </a>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+
+</html>

@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48">
+  <!--
+  TEAMWORKZ LOGO - NO CLAIM (Icon only)
+  =====================================
+  Format: sRGB | Naming: twz_logo_icon_p1_rgb.svg
+  Use: Favicon, small sizes (<48px), app icon
+  Minimum size: 40px digital, 15mm print
+  -->
+  <title>Teamworkz</title>
+  <desc>Icono de Teamworkz sin texto para tamaños pequeños</desc>
+  
+  <!-- Brand mark only: Interlocking circles -->
+  <g fill="none" stroke="#0F5C2E" stroke-width="3">
+    <circle cx="18" cy="24" r="12" />
+    <circle cx="30" cy="24" r="12" />
+  </g>
+</svg>

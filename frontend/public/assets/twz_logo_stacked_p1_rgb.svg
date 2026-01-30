@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 100" width="120" height="100">
+  <!--
+  TEAMWORKZ LOGO - STACKED LOCKUP
+  ================================
+  Format: sRGB | Naming: twz_logo_stacked_p1_rgb.svg
+  Use: Stacked layout for vertical spaces
+  -->
+  <title>Teamworkz - Rompiendo barreras</title>
+  <desc>Logo apilado de Teamworkz en color P1</desc>
+  
+  <!-- Brand mark: Centered interlocking circles -->
+  <g fill="none" stroke="#0F5C2E" stroke-width="3">
+    <circle cx="50" cy="30" r="18" />
+    <circle cx="70" cy="30" r="18" />
+  </g>
+  
+  <!-- Wordmark below -->
+  <text x="60" y="75" 
+        text-anchor="middle"
+        font-family="Futura, 'Arial Black', sans-serif" 
+        font-size="16" 
+        font-weight="700" 
+        fill="#0F5C2E">
+    TEAMWORKZ
+  </text>
+  
+  <!-- Claim -->
+  <text x="60" y="92" 
+        text-anchor="middle"
+        font-family="'Atkinson Hyperlegible', Arial, sans-serif" 
+        font-size="8" 
+        fill="#0F5C2E"
+        opacity="0.8">
+    Rompiendo barreras
+  </text>
+</svg>

@@ -1,0 +1,160 @@
+from sqlalchemy import Column, Integer, String, DateTime, JSON, ForeignKey, Enum, Boolean, Float
+from sqlalchemy.orm import relationship
+from sqlalchemy.dialects.postgresql import UUID
+from database import Base
+import datetime
+import enum
+import uuid
+
+# Helper to define UUID type differently for SQLite vs Postgres if needed
+# For this implementation using the standard uuid library and String storage for SQLite compatibility,
+# or explicit UUID if the driver supports it. 
+# We'll use a custom type or String for SQLite simplicity, but interface as UUID.
+import sqlalchemy.types as types
+
+class GUID(types.TypeDecorator):
+    """Platform-independent GUID type.
+    Uses PostgreSQL's UUID type, otherwise uses CHAR(36), storing as stringified hex values.
+    """
+    impl = types.CHAR
+    cache_ok = True
+
+    def load_dialect_impl(self, dialect):
+        if dialect.name == 'postgresql':
+            return dialect.type_descriptor(UUID())
+        else:
+            return dialect.type_descriptor(types.CHAR(36))
+
+    def process_bind_param(self, value, dialect):
+        if value is None:
+            return value
+        elif dialect.name == 'postgresql':
+            return str(value)
+        else:
+            if not isinstance(value, uuid.UUID):
+                return str(uuid.UUID(value))
+            return str(value)
+
+    def process_result_value(self, value, dialect):
+        if value is None:
+            return value
+        else:
+            if not isinstance(value, uuid.UUID):
+                value = uuid.UUID(value)
+            return value
+
+class UserRole(str, enum.Enum):
+    TALENT = "talent"
+    ENTERPRISE = "enterprise"
+    TERRITORY_ADMIN = "territory_admin"
+    SUPER_ADMIN = "super_admin"
+
+class Organization(Base):
+    __tablename__ = "organizations"
+
+    id = Column(GUID, primary_key=True, default=uuid.uuid4, index=True)
+    name = Column(String, unique=True, index=True)
+    
+    # Branding
+    branding_logo_url = Column(String, nullable=True) # Renamed from logo_url
+    primary_color_override = Column(String, default="#0F5C2E") # Renamed from primary_color
+    
+    industry = Column(String, nullable=True)
+    size = Column(String, nullable=True)
+    subscription_plan = Column(String, default="starter")
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+    users = relationship("User", back_populates="organization")
+    # challenges = relationship("Challenge", back_populates="organization") # Updating Challenge later if needed
+
+class User(Base):
+    __tablename__ = "users"
+
+    id = Column(GUID, primary_key=True, default=uuid.uuid4, index=True)
+    organization_id = Column(GUID, ForeignKey("organizations.id"), nullable=True)
+    
+    full_name = Column(String, nullable=True) # New field
+    email = Column(String, unique=True, index=True)
+    hashed_password = Column(String)
+    role = Column(String, default=UserRole.TALENT)
+    status = Column(String, default="active") # active, pending, disabled
+    
+    organization = relationship("Organization", back_populates="users")
+    
+    accessibility_profile = relationship("AccessibilityProfile", back_populates="user", uselist=False)
+    # challenges_created = relationship("Challenge", back_populates="creator")
+    # applications = relationship("Application", back_populates="user")
+
+class AccessibilityProfile(Base):
+    __tablename__ = "accessibility_profiles"
+
+    id = Column(GUID, primary_key=True, default=uuid.uuid4, index=True)
+    user_id = Column(GUID, ForeignKey("users.id"), unique=True)
+    
+    prefers_reduced_motion = Column(Boolean, default=False)
+    high_contrast_enabled = Column(Boolean, default=False)
+    preferred_font_size = Column(Integer, default=16)
+    
+    sensory_needs = Column(JSON, default=dict) # Structured needs
+    
+    user = relationship("User", back_populates="accessibility_profile")
+
+class AdjustmentsLog(Base):
+    __tablename__ = "adjustments_log"
+
+    id = Column(GUID, primary_key=True, default=uuid.uuid4, index=True)
+    organization_id = Column(GUID, ForeignKey("organizations.id"))
+    user_id = Column(GUID, ForeignKey("users.id"))
+    
+    adjustment_type = Column(String)
+    impact_metric = Column(Float, nullable=True) # 1-10
+    status = Column(String, default="requested") # requested, approved, implemented
+    
+    feedback_score = Column(Float, nullable=True)
+    feedback_date = Column(DateTime, nullable=True)
+    notes = Column(String, nullable=True)
+    
+    timestamp = Column(DateTime, default=datetime.datetime.utcnow)
+
+# Keeping other models simpler for now, but migrating IDs to GUID if referenced
+class Article(Base):
+    __tablename__ = "articles"
+
+    id = Column(GUID, primary_key=True, default=uuid.uuid4, index=True)
+    title = Column(String, index=True)
+    summary = Column(String)
+    content = Column(String)
+    author = Column(String)
+    category = Column(String, index=True)
+    tags = Column(JSON, default=list)
+    image_url = Column(String, nullable=True)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+class Challenge(Base): # Partial update to keep referenced logic working
+    __tablename__ = "challenges"
+    id = Column(GUID, primary_key=True, default=uuid.uuid4, index=True)
+    title = Column(String)
+    description = Column(String)
+    tenant_id = Column(GUID, ForeignKey("organizations.id"), nullable=True) # Mapped to Organization
+    tenant = relationship("Organization") # quick fix relation
+
+class AuditLog(Base):
+    """Tracks admin-relevant events and errors for support/auditing."""
+    __tablename__ = "audit_logs"
+
+    id = Column(GUID, primary_key=True, default=uuid.uuid4, index=True)
+    organization_id = Column(GUID, ForeignKey("organizations.id"), nullable=True)
+    user_id = Column(GUID, ForeignKey("users.id"), nullable=True)
+    
+    event_type = Column(String) # "error", "info", "warning", "security"
+    message = Column(String)
+    details = Column(JSON, default=dict) # Additional context (e.g., file size, stack trace)
+    
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+# Subscription Plan Limits
+PLAN_USER_LIMITS = {
+    "starter": 50,
+    "growth": 250,
+    "enterprise": None  # Unlimited
+}
