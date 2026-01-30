@@ -14,6 +14,7 @@ import EnterpriseDashboard from './pages/EnterpriseDashboard';
 import CreateProject from './pages/CreateProject';
 import ProjectDetail from './pages/ProjectDetail';
 import Chat from './pages/Chat';
+import Contact from './pages/Contact';
 
 import LandingPage from './pages/LandingPage';
 import MainDashboard from './pages/MainDashboard';
@@ -35,6 +36,7 @@ function App() {
         <Route path="/create-project" element={<CreateProject />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/contact" element={<Contact />} />
         <Route path="/profile" element={<TalentProfileWizard />} />
 
         {/* Dashboards by Profile */}

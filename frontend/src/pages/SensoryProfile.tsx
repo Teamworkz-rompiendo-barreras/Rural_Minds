@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import axios from '../config/api';
 import { useAuth } from '../context/AuthContext';
 
 interface SensoryPreferences {
@@ -27,7 +27,7 @@ const SensoryProfile: React.FC = () => {
 
     const fetchProfile = async () => {
         try {
-            const res = await axios.get('http://127.0.0.1:8000/user/profile/accessibility');
+            const res = await axios.get('/user/profile/accessibility');
             if (res.data.sensory_needs) {
                 // Merge default with fetched
                 setPreferences({
@@ -44,7 +44,7 @@ const SensoryProfile: React.FC = () => {
 
     const handleSave = async () => {
         try {
-            await axios.put('http://127.0.0.1:8000/user/profile/accessibility', {
+            await axios.put('/user/profile/accessibility', {
                 sensory_needs: preferences
             });
             setSaved(true);

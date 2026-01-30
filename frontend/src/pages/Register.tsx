@@ -43,7 +43,7 @@ const Register: React.FC = () => {
     return (
         <div className="flex items-center justify-center flex-grow p-4">
             <div className="bg-white p-8 rounded-xl shadow-lg max-w-md w-full border-t-4 border-accent">
-                <h2 className="text-3xl font-heading font-bold text-primary mb-6 text-center">Join Teamworkz</h2>
+                <h2 className="text-3xl font-heading font-bold text-primary mb-6 text-center">Únete a Rural Minds</h2>
                 {error && <div className="bg-red-100 text-red-700 p-3 rounded mb-4 text-sm" role="alert" aria-live="polite">{error}</div>}
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
