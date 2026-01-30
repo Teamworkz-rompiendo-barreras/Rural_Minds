@@ -12,7 +12,15 @@ load_dotenv()
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./teamworkz.db")
 
 # Handle PostgreSQL specific connection args
-if DATABASE_URL.startswith("postgresql"):
+# Handle PostgreSQL specific connection args
+if DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+
+if "postgresql" in DATABASE_URL:
+    if "sslmode" not in DATABASE_URL:
+        # Append sslmode=require for secure connections (Supabase/Vercel)
+        separator = "&" if "?" in DATABASE_URL else "?"
+        DATABASE_URL = f"{DATABASE_URL}{separator}sslmode=require"
     engine = create_engine(DATABASE_URL)
 else:
     # SQLite needs check_same_thread=False
