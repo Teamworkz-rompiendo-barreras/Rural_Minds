@@ -45,6 +45,7 @@ class UserBase(BaseModel):
 
 class UserCreate(UserBase):
     password: str
+    role: Optional[str] = "enterprise"
 
 class UserPublic(UserBase):
     id: uuid.UUID

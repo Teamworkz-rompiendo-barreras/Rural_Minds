@@ -35,12 +35,18 @@ def register(
         raise HTTPException(status_code=400, detail="User email already registered")
         
     hashed_pwd = auth.get_password_hash(user_data.password)
+    
+    # Secure Role Assignment: Never allow super_admin via public registration
+    target_role = user_data.role
+    if target_role not in ["enterprise", "talent"]:
+        target_role = "enterprise"
+        
     new_user = models.User(
         id=uuid.uuid4(),
         email=user_data.email,
         full_name=user_data.full_name,
         hashed_password=hashed_pwd,
-        role="super_admin",
+        role=target_role,
         organization_id=new_org.id
     )
     db.add(new_user)
