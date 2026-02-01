@@ -32,11 +32,11 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     useEffect(() => {
         // Apply global classes or styles based on highContrast
         if (highContrast) {
-            document.documentElement.classList.add('high-contrast');
+            document.body.classList.add('high-contrast');
             document.body.style.backgroundColor = '#000000';
             document.body.style.color = '#FFFFFF';
         } else {
-            document.documentElement.classList.remove('high-contrast');
+            document.body.classList.remove('high-contrast');
             document.body.style.backgroundColor = '';
             document.body.style.color = '';
         }
