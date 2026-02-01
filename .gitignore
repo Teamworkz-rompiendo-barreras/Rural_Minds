@@ -22,3 +22,5 @@ Thumbs.db
 
 # Test/Verify scripts
 verify_*.py
+.vercel
+.env*.local
