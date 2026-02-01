@@ -147,6 +147,7 @@ class Challenge(Base):
     title = Column(String, index=True)
     description = Column(String)
     requirements = Column(JSON, default=list)
+    sensory_requirements = Column(JSON, default=dict) # New field for matching
     skills_needed = Column(JSON, default=list)
     location_type = Column(String, default="remote")  # remote, hybrid, onsite
     compensation = Column(String, nullable=True)
@@ -268,4 +269,18 @@ class LegalConsent(Base):
     
     accepted_at = Column(DateTime, default=datetime.datetime.utcnow)
     
-    user = relationship("User", backref="legal_agreements")
+
+class OnboardingTask(BaseModel):
+    __tablename__ = "onboarding_tasks"
+    
+    id = Column(GUID, primary_key=True, default=uuid.uuid4, index=True)
+    application_id = Column(GUID, ForeignKey("applications.id"), nullable=False, index=True)
+    
+    task_text = Column(String)
+    is_completed = Column(Boolean, default=False)
+    
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    completed_at = Column(DateTime, nullable=True)
+    
+    application = relationship("Application", backref="onboarding_tasks")
+

@@ -100,7 +100,7 @@ const LearningCenter: React.FC = () => {
                                 </div>
                                 <h3 className="text-xl font-bold mb-3 group-hover:text-primary transition-colors">{article.title}</h3>
                                 <p className="text-gray-600 text-sm line-clamp-3 mb-4">{article.summary}</p>
-                                <div className="flex items-center justify-between text-xs text-gray-400 border-t pt-4">
+                                <div className="flex items-center justify-between text-xs text-gray-500 border-t pt-4">
                                     <span>Por {article.author}</span>
                                     <span>Leer más →</span>
                                 </div>

@@ -57,6 +57,8 @@ from routers import analytics
 app.include_router(analytics.router)
 from routers import users
 app.include_router(users.router)
+from routers import onboarding
+app.include_router(onboarding.router)
 from routers import reports
 app.include_router(reports.router)
 app.include_router(reports.router)

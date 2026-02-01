@@ -159,6 +159,10 @@ class Challenge(ChallengeBase):
     tenant_id: Optional[uuid.UUID] = None
     created_at: datetime
     
+    # Matching Output
+    match_score: Optional[float] = None
+    adjustments: Optional[List[str]] = None
+    
     class Config:
         orm_mode = True
 
@@ -237,6 +241,26 @@ class LegalConsent(LegalConsentBase):
     id: uuid.UUID
     user_id: uuid.UUID
     accepted_at: datetime
+    
+    class Config:
+        orm_mode = True
+
+# --- Onboarding Tasks ---
+class OnboardingTaskBase(BaseModel):
+    task_text: str
+    is_completed: bool = False
+
+class OnboardingTaskCreate(OnboardingTaskBase):
+    pass
+
+class OnboardingTaskUpdate(BaseModel):
+    is_completed: bool
+
+class OnboardingTask(OnboardingTaskBase):
+    id: uuid.UUID
+    application_id: uuid.UUID
+    created_at: datetime
+    completed_at: Optional[datetime] = None
     
     class Config:
         orm_mode = True

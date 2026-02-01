@@ -52,7 +52,7 @@ def update_accessibility(
     current_user: models.User = Depends(auth.get_current_user)
 ):
     if not current_user.organization_id:
-        raise HTTPException(status_code=400, detail="User requires an Organization to track evidence.")
+        raise HTTPException(status_code=400, detail="El usuario requiere una organización para registrar la evidencia.")
 
     profile = db.query(models.AccessibilityProfile).filter(models.AccessibilityProfile.user_id == current_user.id).first()
     if not profile:
@@ -62,9 +62,11 @@ def update_accessibility(
     # Track changes for Evidence Log
     changes = []
     if profile.prefers_reduced_motion != profile_update.prefers_reduced_motion:
-        changes.append(f"Reduced Motion: {profile_update.prefers_reduced_motion}")
+        val = "Activado" if profile_update.prefers_reduced_motion else "No activado"
+        changes.append(f"Movimiento Reducido: {val}")
     if profile.high_contrast_enabled != profile_update.high_contrast_enabled:
-        changes.append(f"High Contrast: {profile_update.high_contrast_enabled}")
+        val = "Activado" if profile_update.high_contrast_enabled else "No activado"
+        changes.append(f"Alto Contraste: {val}")
         
     # Apply Updates
     profile.prefers_reduced_motion = profile_update.prefers_reduced_motion
@@ -92,3 +94,28 @@ def update_accessibility(
         print(f"📝 EVIDENCE LOGGED: {changes}")
 
     return profile
+
+
+@router.delete("/me", status_code=status.HTTP_204_NO_CONTENT)
+def delete_me(
+    db: Session = Depends(database.get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    """
+    Delete the current user's account and all associated data.
+    """
+    # 1. Delete associated data
+    if current_user.talent_profile:
+        # Assuming list based on typical backref behavior, iterate to be safe
+        # If it's a single object (uselist=False), this might fail if not handled, 
+        # but SQLAlchemy query delete is safer.
+        db.query(models.TalentProfile).filter(models.TalentProfile.user_id == current_user.id).delete()
+    
+    # Accessibility Profile
+    db.query(models.AccessibilityProfile).filter(models.AccessibilityProfile.user_id == current_user.id).delete()
+        
+    # 2. Delete User
+    db.delete(current_user)
+    db.commit()
+    
+    return None

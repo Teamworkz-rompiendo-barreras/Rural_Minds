@@ -9,12 +9,16 @@ const LandingPage: React.FC = () => {
                 <div className="max-w-5xl mx-auto flex flex-col items-center">
                     {/* Logo Real (con fondo blanco para visibilidad) */}
                     <div className="mb-8 transform hover:scale-105 transition-transform duration-500">
-                        <img src="/logo.png" alt="Rural Minds Logo" className="h-24 w-auto object-contain bg-white p-3 rounded-xl shadow-md" />
+                        <img src="/logo.png" alt="Logotipo de Rural Minds" className="h-24 w-auto object-contain bg-white p-3 rounded-xl shadow-md" />
                     </div>
 
-                    {/* Titular: Más pequeño para asegurar una línea */}
+                    {/* Titular: Adaptativo con text-wrap: balance */}
                     <div className="w-full px-4 mb-8">
-                        <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold text-white leading-tight tracking-wide mx-auto max-w-screen-xl whitespace-nowrap overflow-hidden text-ellipsis">
+                        <h1 className="font-extrabold text-white leading-tight tracking-wide mx-auto max-w-screen-xl"
+                            style={{
+                                textWrap: 'balance',
+                                fontSize: 'clamp(2rem, 5vw, 4rem)'
+                            }}>
                             Innovación con Denominación de Origen
                         </h1>
                     </div>

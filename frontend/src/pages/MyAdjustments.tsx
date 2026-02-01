@@ -29,11 +29,11 @@ const MyAdjustments: React.FC = () => {
         }
     };
 
-    const handleFeedback = async (id: string) => {
-        const scoreStr = prompt("En una escala del 1 al 10, ¿cuánto ha mejorado tu productividad este ajuste?");
-        if (!scoreStr) return;
+    const [activeFeedbackId, setActiveFeedbackId] = useState<string | null>(null);
 
-        const score = parseFloat(scoreStr);
+    // ... (fetchLogs remains same)
+
+    const handleFeedbackSubmit = async (id: string, score: number) => {
         if (isNaN(score) || score < 1 || score > 10) {
             alert("Por favor introduce un número válido entre 1 y 10.");
             return;
@@ -45,6 +45,7 @@ const MyAdjustments: React.FC = () => {
                 notes: "User submitted feedback"
             });
             alert("¡Gracias! Tu feedback nos ayuda a medir el impacto.");
+            setActiveFeedbackId(null);
             fetchLogs();
         } catch (err) {
             alert("Error al enviar feedback.");
@@ -95,12 +96,36 @@ const MyAdjustments: React.FC = () => {
 
                                         {/* For MVP DEMO: Allow rating always so user can test the flow */}
                                         {!log.feedback_score ? (
-                                            <button
-                                                onClick={() => handleFeedback(log.id)}
-                                                className="text-sm bg-primary text-white px-3 py-1 rounded hover:bg-opacity-90 font-bold"
-                                            >
-                                                Valorar Impacto
-                                            </button>
+                                            activeFeedbackId === log.id ? (
+                                                <div className="flex items-center gap-2">
+                                                    <input
+                                                        type="number"
+                                                        min="1"
+                                                        max="10"
+                                                        className="w-16 p-1 border rounded text-sm"
+                                                        placeholder="1-10"
+                                                        autoFocus
+                                                        onKeyDown={(e) => {
+                                                            if (e.key === 'Enter') {
+                                                                handleFeedbackSubmit(log.id, parseInt(e.currentTarget.value));
+                                                            }
+                                                        }}
+                                                    />
+                                                    <button
+                                                        onClick={() => setActiveFeedbackId(null)}
+                                                        className="text-gray-500 hover:text-gray-700 text-xs"
+                                                    >
+                                                        Cancelar
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <button
+                                                    onClick={() => setActiveFeedbackId(log.id)}
+                                                    className="text-sm bg-primary text-white px-3 py-1 rounded hover:bg-opacity-90 font-bold transition-colors"
+                                                >
+                                                    Valorar Impacto
+                                                </button>
+                                            )
                                         ) : (
                                             <span className="text-primary font-bold">Puntuación: {log.feedback_score}/10</span>
                                         )}

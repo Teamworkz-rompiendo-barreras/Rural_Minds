@@ -96,8 +96,24 @@ def update_application_status(
     if new_status not in ["pending", "accepted", "rejected"]:
         raise HTTPException(status_code=400, detail="Invalid status")
         
+    previous_status = application.status
     application.status = new_status
     db.commit()
     db.refresh(application)
     
+    # --- Trigger Onboarding Flow if Accepted ---
+    if new_status == "accepted" and previous_status != "accepted":
+        # 1. Generate Tasks
+        # "Prepara el entorno físico", "Protocolo de bienvenida", "Informa al equipo"
+        tasks = [
+            models.OnboardingTask(application_id=application.id, task_text="Preparar entorno físico (luz, ruido, ubicación)"),
+            models.OnboardingTask(application_id=application.id, task_text="Establecer protocolo de bienvenida y comunicación"),
+            models.OnboardingTask(application_id=application.id, task_text="Informar al equipo sobre ajustes necesarios")
+        ]
+        db.add_all(tasks)
+        db.commit()
+        
+        # 2. (Mock) Trigger Notification logic here if needed
+        # print(f"Notification: Match Accepted for {application.id}")
+
     return application

@@ -104,6 +104,38 @@ const MunicipalityDashboard: React.FC = () => {
                 </div>
             </section>
 
+            {/* Recent Activity Feed - Real-time Updates */}
+            <section className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 animate-fade-in-up">
+                <h3 className="font-heading font-bold text-lg text-n900 mb-4 flex items-center gap-2">
+                    <span>🔔</span> Actividad Reciente del Ecosistema
+                </h3>
+                <ul className="space-y-3">
+                    {/* Mock Notification: Company completed roadmap */}
+                    <li className="flex items-start gap-3 p-3 bg-green-50 border border-green-100 rounded-lg">
+                        <div className="bg-green-100 p-2 rounded-full text-green-700" aria-hidden="true">🌱</div>
+                        <div>
+                            <p className="text-sm text-gray-800 font-medium">
+                                <span className="font-bold">Cooperativa Agroalimentaria</span> ha completado su hoja de ruta de inclusión.
+                            </p>
+                            <p className="text-xs text-green-700 mt-1">
+                                El puesto "Técnico Agrícola" ahora cumple con los estándares de <span className="font-bold">Teamworkz</span>.
+                            </p>
+                            <p className="text-xs text-gray-500 mt-2">Hace 2 horas</p>
+                        </div>
+                    </li>
+
+                    <li className="flex items-start gap-3 p-3 bg-blue-50 border border-blue-100 rounded-lg">
+                        <div className="bg-blue-100 p-2 rounded-full text-blue-700" aria-hidden="true">👤</div>
+                        <div>
+                            <p className="text-sm text-gray-800 font-medium">
+                                Nuevo talento registrado en <span className="font-bold">San Pedro</span> (Perfil: Administrativo).
+                            </p>
+                            <p className="text-xs text-gray-500 mt-2">Hace 5 horas</p>
+                        </div>
+                    </li>
+                </ul>
+            </section>
+
             {/* Main Content Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
@@ -119,8 +151,8 @@ const MunicipalityDashboard: React.FC = () => {
                             <div
                                 key={company.id}
                                 className={`flex flex-col md:flex-row items-start md:items-center justify-between p-4 rounded-xl border transition-all ${company.status === 'pending'
-                                        ? 'bg-orange-50 border-orange-200'
-                                        : 'bg-gray-50 border-gray-100'
+                                    ? 'bg-orange-50 border-orange-200'
+                                    : 'bg-gray-50 border-gray-100'
                                     }`}
                             >
                                 <div className="flex-1 mb-3 md:mb-0">

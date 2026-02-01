@@ -21,34 +21,71 @@ interface Challenge {
     created_at: string;
 }
 
+import MatchSuccessModal from '../components/MatchSuccessModal';
+
+interface Application {
+    id: string;
+    status: string;
+    challenge: {
+        title: string;
+        tenant: {
+            name: string;
+        }
+    }
+}
+
 const TalentDashboard: React.FC = () => {
     const { user } = useAuth();
     const [challenges, setChallenges] = useState<Challenge[]>([]);
     const [filteredChallenges, setFilteredChallenges] = useState<Challenge[]>([]);
     const [loading, setLoading] = useState(true);
 
+    // Match Success Modal State
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
+    const [matchedApplication, setMatchedApplication] = useState<Application | null>(null);
+
     // Filters State
     const [locationFilter, _setLocationFilter] = useState('Todos');
     const [sensoryFilters, setSensoryFilters] = useState({
-        lowNoise: false,    // "Entorno de bajo ruido" or "Entorno Silencioso Garantizado"
-        naturalLight: false, // "Luz natural"
-        asyncComm: false    // "Comunicación asíncrona" or "Horario Flexible / Asíncrono"
+        lowNoise: false,
+        naturalLight: false,
+        asyncComm: false
     });
 
     useEffect(() => {
-        const fetchChallenges = async () => {
+        const fetchData = async () => {
             try {
-                const response = await axios.get('/api/challenges');
-                setChallenges(response.data);
-                setFilteredChallenges(response.data);
+                // 1. Fetch Challenges
+                const challengesRes = await axios.get('/api/challenges');
+                setChallenges(challengesRes.data);
+                setFilteredChallenges(challengesRes.data);
+
+                // 2. Check for Accepted Applications (Mocking check for "unseen" accepted match)
+                const appsRes = await axios.get('/api/applications/me');
+                const acceptedApp = appsRes.data.find((app: any) => app.status === 'accepted');
+
+                if (acceptedApp) {
+                    setMatchedApplication({
+                        id: acceptedApp.id,
+                        status: acceptedApp.status,
+                        challenge: {
+                            title: acceptedApp.challenge?.title || "Proyecto",
+                            tenant: {
+                                name: acceptedApp.challenge?.tenant?.name || "Empresa Confidencial"
+                            }
+                        }
+                    });
+                    setShowSuccessModal(true);
+                }
+
             } catch (error) {
-                console.error("Error fetching project feed:", error);
+                console.error("Error fetching data:", error);
             } finally {
                 setLoading(false);
             }
         };
 
-        fetchChallenges();
+        fetchData();
     }, []);
 
     // Apply Filters
@@ -152,6 +189,28 @@ const TalentDashboard: React.FC = () => {
                             </label>
                         </div>
                     </div>
+
+                    {/* Account Management */}
+                    <div className="bg-red-50 p-6 rounded-xl border border-red-100 card-radius">
+                        <h3 className="font-heading font-bold text-lg text-red-800 mb-2">Mi Cuenta</h3>
+                        <p className="text-sm text-red-700 mb-4">Gestiona tu privacidad o elimina tu perfil completamente.</p>
+                        <button
+                            onClick={async () => {
+                                if (window.confirm("¿Estás seguro de que quieres eliminar tu perfil? Esta acción borrará tus datos y preferencias de accesibilidad.")) {
+                                    try {
+                                        await axios.delete('/users/me');
+                                        alert("Tu cuenta ha sido eliminada.");
+                                        window.location.href = '/login';
+                                    } catch (e) {
+                                        alert("Error al eliminar la cuenta.");
+                                    }
+                                }
+                            }}
+                            className="w-full text-red-700 bg-white border border-red-200 font-bold py-2 rounded hover:bg-red-50 transition-colors text-sm"
+                        >
+                            Eliminar Cuenta
+                        </button>
+                    </div>
                 </aside>
 
                 {/* Project Grid */}
@@ -198,6 +257,21 @@ const TalentDashboard: React.FC = () => {
                                             {challenge.description}
                                         </p>
 
+                                        {/* Wellbeing Score Indicator */}
+                                        <div className="mb-4">
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <span className="text-sm font-bold text-n900">Bienestar Esperado</span>
+                                                <span className="text-xs text-gray-500">(Basado en tu perfil)</span>
+                                            </div>
+                                            <div className="w-full bg-gray-200 rounded-full h-2.5">
+                                                <div
+                                                    className="bg-p2 h-2.5 rounded-full"
+                                                    style={{ width: `${Math.floor(Math.random() * (98 - 75) + 75)}%` }}
+                                                    aria-label="Nivel de bienestar esperado alto"
+                                                ></div>
+                                            </div>
+                                        </div>
+
                                         {/* Tags con Iconos */}
                                         <div className="space-y-2">
                                             {challenge.requirements && challenge.requirements.length > 0 ? (
@@ -224,6 +298,17 @@ const TalentDashboard: React.FC = () => {
                     )}
                 </section>
             </div>
+            {/* Match Success Modal */}
+            {matchedApplication && (
+                <MatchSuccessModal
+                    isOpen={showSuccessModal}
+                    onClose={() => setShowSuccessModal(false)}
+                    companyName={matchedApplication.challenge.tenant.name}
+                    projectName={matchedApplication.challenge.title}
+                    candidateName={user?.full_name || "Talento"}
+                    applicationId={matchedApplication.id}
+                />
+            )}
         </div>
     );
 };

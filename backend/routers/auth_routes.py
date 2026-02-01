@@ -13,6 +13,7 @@ router = APIRouter(
 
 # Token validity: 24 hours
 VERIFICATION_TOKEN_EXPIRE_HOURS = 24
+RESET_TOKEN_EXPIRE_MINUTES = 30
 
 
 @router.post("/register", response_model=dict)
@@ -207,3 +208,56 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
     
     access_token = auth.create_access_token(data={"sub": user.email})
     return {"access_token": access_token, "token_type": "bearer"}
+    access_token = auth.create_access_token(data={"sub": user.email})
+    return {"access_token": access_token, "token_type": "bearer"}
+
+
+@router.post("/forgot-password")
+def forgot_password(email: str, db: Session = Depends(database.get_db)):
+    """
+    Trigger password reset flow. Sends email with reset token.
+    """
+    user = db.query(models.User).filter(models.User.email == email).first()
+    if not user:
+        # Security: fake success to avoid email enumeration
+        return {"message": "Si el email existe, recibirás instrucciones para restablecer tu contraseña."}
+    
+    # Generate token
+    token = generate_verification_token() # Reusing uuid generator
+    user.verification_token = token
+    user.verification_token_expires = datetime.datetime.utcnow() + datetime.timedelta(minutes=30)
+    db.commit()
+    
+    # Send Email (Mocked for now, strictly speaking should be implemented in email_service)
+    # create_task(send_reset_email(email, token)) or similar
+    print(f"📧 [Email Mock] Password Reset for {email}: Token={token}")
+    
+    return {"message": "Si el email existe, recibirás instrucciones para restablecer tu contraseña."}
+
+
+@router.post("/reset-password")
+def reset_password(payload: dict, db: Session = Depends(database.get_db)):
+    """
+    Reset password using valid token.
+    payload: { "token": "...", "new_password": "..." }
+    """
+    token = payload.get("token")
+    new_password = payload.get("new_password")
+    
+    if not token or not new_password:
+        raise HTTPException(status_code=400, detail="Faltan datos requeridos")
+        
+    user = db.query(models.User).filter(models.User.verification_token == token).first()
+    if not user:
+        raise HTTPException(status_code=400, detail="Token inválido o expirado")
+        
+    if user.verification_token_expires < datetime.datetime.utcnow():
+        raise HTTPException(status_code=400, detail="Token expirado")
+        
+    # Update password
+    user.hashed_password = auth.get_password_hash(new_password)
+    user.verification_token = None
+    user.verification_token_expires = None
+    db.commit()
+    
+    return {"message": "Contraseña actualizada correctamente. Ya puedes iniciar sesión."}

@@ -45,7 +45,15 @@ const OrganizationSettings: React.FC = () => {
             setInviteEmail('');
             fetchUsers(); // Refresh list
         } catch (err: any) {
-            setInviteError(err.response?.data?.detail || 'Error al invitar usuario');
+            let msg = 'Error al invitar usuario';
+            if (err.response) {
+                if (err.response.status === 409) msg = "El usuario ya es miembro de la organización.";
+                else if (err.response.status === 404) msg = "Usuario no encontrado en el sistema (debe registrarse primero).";
+                else if (err.response.data?.detail) msg = err.response.data.detail;
+            } else if (err.request) {
+                msg = "Error de conexión. Inténtalo más tarde.";
+            }
+            setInviteError(msg);
         }
     };
 
@@ -77,6 +85,7 @@ const OrganizationSettings: React.FC = () => {
                             onChange={(e) => setInviteEmail(e.target.value)}
                             required
                             className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-primary outline-none"
+                            aria-label="Email del nuevo miembro"
                         />
                         {inviteError && <p className="text-red-500 text-sm mt-1">{inviteError}</p>}
                         {inviteSuccess && <p className="text-green-600 text-sm mt-1">{inviteSuccess}</p>}
@@ -115,6 +124,7 @@ const OrganizationSettings: React.FC = () => {
                                         <button
                                             onClick={() => handleRemove(u.id)}
                                             className="text-red-500 hover:text-red-700 font-bold text-sm"
+                                            aria-label={`Eliminar al usuario ${u.email}`}
                                         >
                                             Eliminar
                                         </button>
@@ -125,6 +135,38 @@ const OrganizationSettings: React.FC = () => {
                     </tbody>
                 </table>
                 {users.length === 0 && <div className="p-8 text-center text-gray-500">No se encontraron miembros.</div>}
+            </div>
+
+            {/* Danger Zone */}
+            <div className="mt-12 pt-8 border-t border-red-200">
+                <h2 className="text-2xl font-bold text-red-700 mb-4">Zona de Peligro</h2>
+                <div className="bg-red-50 p-6 rounded-xl border border-red-200 flex justify-between items-center">
+                    <div>
+                        <h3 className="font-bold text-red-900">Eliminar Cuenta de Organización</h3>
+                        <p className="text-red-700 text-sm">Esta acción es irreversible. Se eliminarán todos los datos, proyectos y candidatos asociados.</p>
+                    </div>
+                    <button
+                        onClick={async () => {
+                            if (window.confirm("¡ATENCIÓN! ¿Estás seguro de que quieres eliminar tu cuenta y todos los datos asociados? Esta acción NO se puede deshacer.")) {
+                                const confirmEmail = prompt("Por favor, escribe tu email para confirmar:");
+                                if (confirmEmail === user?.email) {
+                                    try {
+                                        await axios.delete('/users/me');
+                                        alert("Cuenta eliminada correctamente.");
+                                        window.location.href = '/login';
+                                    } catch (e) {
+                                        alert("Error al eliminar la cuenta.");
+                                    }
+                                } else if (confirmEmail) {
+                                    alert("El email no coincide.");
+                                }
+                            }
+                        }}
+                        className="bg-red-600 text-white font-bold py-2 px-4 rounded hover:bg-red-700 focus:ring-4 focus:ring-red-200 transition-colors"
+                    >
+                        Eliminar mi cuenta
+                    </button>
+                </div>
             </div>
         </div>
     );

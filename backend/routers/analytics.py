@@ -40,22 +40,39 @@ def get_impact_report(
             "roi_estimated": "$0"
         }
 
+    # Determine scope: Single Org or Municipality Aggregation
+    org = db.query(models.Organization).filter(models.Organization.id == org_id).first()
+    is_municipality = org.org_type == 'municipality' if org else False
+
+    # Base Filter
+    if is_municipality:
+        # Get all child orgs + self
+        child_orgs = db.query(models.Organization.id).filter(models.Organization.municipality_id == org_id).all()
+        org_ids = [o[0] for o in child_orgs] + [org_id]
+        
+        # Filters
+        user_filter = models.User.organization_id.in_(org_ids)
+        log_filter = models.AdjustmentsLog.organization_id.in_(org_ids)
+    else:
+        user_filter = models.User.organization_id == org_id
+        log_filter = models.AdjustmentsLog.organization_id == org_id
+
     # 1. Activation Rate: Users with Accessibility Profile / Total Users
-    total_users = db.query(models.User).filter(models.User.organization_id == org_id).count()
-    active_profiles = db.query(models.AccessibilityProfile).join(models.User).filter(models.User.organization_id == org_id).count()
+    total_users = db.query(models.User).filter(user_filter).count()
+    active_profiles = db.query(models.AccessibilityProfile).join(models.User).filter(user_filter).count()
     activation_rate = int((active_profiles / total_users * 100) if total_users > 0 else 0)
 
     # 2. Adequacy Index: Implemented Adjustments / Requested Adjustments
-    total_adjustments = db.query(models.AdjustmentsLog).filter(models.AdjustmentsLog.organization_id == org_id).count()
+    total_adjustments = db.query(models.AdjustmentsLog).filter(log_filter).count()
     implemented_adjustments = db.query(models.AdjustmentsLog).filter(
-        models.AdjustmentsLog.organization_id == org_id, 
+        log_filter, 
         models.AdjustmentsLog.status == 'implemented'
     ).count()
     adequacy_index = int((implemented_adjustments / total_adjustments * 100) if total_adjustments > 0 else 0)
 
     # 3. Well-being Level: Average feedback score
     feedbacks = db.query(models.AdjustmentsLog.feedback_score).filter(
-        models.AdjustmentsLog.organization_id == org_id, 
+        log_filter, 
         models.AdjustmentsLog.feedback_score.isnot(None)
     ).all()
     avg_wellbeing = sum([f[0] for f in feedbacks]) / len(feedbacks) if feedbacks else 0

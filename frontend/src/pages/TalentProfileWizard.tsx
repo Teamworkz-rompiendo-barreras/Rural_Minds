@@ -94,8 +94,13 @@ const TalentProfileWizard: React.FC = () => {
         setChecklist(items);
     };
 
+    const [error, setError] = useState<string | null>(null);
+
+    // ... (rest of states)
+
     const handleSave = async () => {
         setSaving(true);
+        setError(null);
         try {
             // Save accessibility profile
             await axios.put('/user/profile/accessibility', {
@@ -108,8 +113,15 @@ const TalentProfileWizard: React.FC = () => {
             navigate('/talent-dashboard');
         } catch (err: any) {
             console.error(err);
-            const msg = err.response?.data?.detail || 'Error desconocido al guardar.';
-            alert(`Error: ${JSON.stringify(msg)}`);
+            let msg = 'Error desconocido al guardar.';
+            if (err.response) {
+                if (err.response.status === 401) msg = "Sesión expirada. Por favor inicia sesión nuevamente.";
+                else if (err.response.status === 422) msg = "Datos inválidos. Revisa los campos.";
+                else if (err.response.data?.detail) msg = err.response.data.detail;
+            } else if (err.request) {
+                msg = "Error de conexión. Verifica tu internet.";
+            }
+            setError(msg);
         } finally {
             setSaving(false);
         }
@@ -158,8 +170,9 @@ const TalentProfileWizard: React.FC = () => {
                         ? 'border-primary bg-primary text-white'
                         : 'border-gray-200 bg-white hover:border-gray-300'
                         }`}
+                    aria-pressed={accessibilityPrefs.high_contrast}
                 >
-                    <span className="text-3xl mb-2 block">🌓</span>
+                    <span className="text-3xl mb-2 block" aria-hidden="true">🌓</span>
                     <span className="font-bold text-lg">Alto Contraste</span>
                     <p className={`text-sm mt-1 ${accessibilityPrefs.high_contrast ? 'text-gray-200' : 'text-gray-500'}`}>
                         Aumenta la diferencia entre colores para mejor legibilidad.
@@ -172,8 +185,9 @@ const TalentProfileWizard: React.FC = () => {
                         ? 'border-primary bg-primary text-white'
                         : 'border-gray-200 bg-white hover:border-gray-300'
                         }`}
+                    aria-pressed={accessibilityPrefs.reduced_motion}
                 >
-                    <span className="text-3xl mb-2 block">⏸️</span>
+                    <span className="text-3xl mb-2 block" aria-hidden="true">⏸️</span>
                     <span className="font-bold text-lg">Reducir Movimiento</span>
                     <p className={`text-sm mt-1 ${accessibilityPrefs.reduced_motion ? 'text-gray-200' : 'text-gray-500'}`}>
                         Desactiva animaciones y transiciones.
@@ -203,17 +217,10 @@ const TalentProfileWizard: React.FC = () => {
                 <label className="block font-bold mb-3">Sensibilidad a la Luz</label>
                 <div className="flex gap-3">
                     {(['low', 'medium', 'high'] as const).map(level => (
-                        <button
-                            key={level}
-                            onClick={() => setSensoryPrefs(p => ({ ...p, light: level }))}
-                            className={`card-radius flex-1 p-4 border-2 text-center transition-all ${sensoryPrefs.light === level
-                                ? 'border-accent bg-accent/20'
-                                : 'border-gray-200 hover:border-gray-300'
-                                }`}
-                        >
-                            <span className="text-2xl block mb-1">
-                                {level === 'low' ? '🌑' : level === 'medium' ? '🌤️' : '☀️'}
-                            </span>
+                        <button key={level} onClick={() => setSensoryPrefs(p => ({ ...p, light: level }))}
+                            className={`card-radius flex-1 p-4 border-2 text-center transition-all ${sensoryPrefs.light === level ? 'border-accent bg-accent/20' : 'border-gray-200 hover:border-gray-300'}`}
+                            aria-pressed={sensoryPrefs.light === level}>
+                            <span className="text-2xl block mb-1" aria-hidden="true">{level === 'low' ? '🌑' : level === 'medium' ? '🌤️' : '☀️'}</span>
                             <span className="capitalize font-bold">{level === 'low' ? 'Baja' : level === 'medium' ? 'Media' : 'Alta'}</span>
                         </button>
                     ))}
@@ -300,7 +307,9 @@ const TalentProfileWizard: React.FC = () => {
                         {profileData.skills.map(skill => (
                             <span key={skill} className="bg-accent text-gray-900 px-3 py-1 rounded-full text-sm flex items-center gap-2 font-bold">
                                 {skill}
-                                <button onClick={() => setProfileData(prev => ({ ...prev, skills: prev.skills.filter(s => s !== skill) }))} className="hover:text-red-700">×</button>
+                                <button onClick={() => setProfileData(prev => ({ ...prev, skills: prev.skills.filter(s => s !== skill) }))}
+                                    className="hover:text-red-700"
+                                    aria-label={`Eliminar habilidad ${skill}`}>×</button>
                             </span>
                         ))}
                         <input
@@ -349,6 +358,13 @@ const TalentProfileWizard: React.FC = () => {
                     ))}
                 </ul>
             </div>
+
+            {/* Error Message */}
+            {error && (
+                <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded text-sm">
+                    {error}
+                </div>
+            )}
 
             <div className="mt-8">
                 <button onClick={handleSave} disabled={saving} className="btn-secondary text-lg px-8 py-3">

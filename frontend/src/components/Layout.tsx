@@ -1,6 +1,7 @@
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 
 interface LayoutProps {
     children: React.ReactNode;
@@ -8,7 +9,15 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
     const { user, logout, isAuthenticated } = useAuth();
+    const { highContrast, toggleHighContrast } = useTheme();
     const navigate = useNavigate();
+    const location = useLocation(); // Hook for active route
+
+    // Helper for active state
+    const isActive = (path: string) => location.pathname === path ? "active-link text-p2 font-bold border-b-2 border-p2" : "text-gray-600 hover:text-primary font-bold transition-colors";
+
+    // Superadmin specific fix: Ensure /admin doesn't stay active if we are in other routes
+    const isSuperAdminActive = () => location.pathname.startsWith('/admin') ? "active-link text-purple-800 font-bold border-b-2 border-purple-800" : "text-purple-600 hover:text-purple-800 font-bold";
 
     const handleLogout = () => {
         logout();
@@ -33,6 +42,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
     return (
         <div className="min-h-screen bg-neutral-bg font-sans text-text-main flex flex-col">
+            {/* Skip Link for Accessibility */}
+            <a href="#main-content" className="sr-only sr-only-focusable z-50 bg-primary text-white p-2 absolute">
+                Saltar al contenido principal
+            </a>
+
             <header className="bg-white shadow-sm p-4 sticky top-0 z-50">
                 <div className="container mx-auto flex items-center justify-between">
                     {/* Logo */}
@@ -52,46 +66,46 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                                 {/* TALENT Navigation */}
                                 {user?.role === 'talent' && (
                                     <>
-                                        <Link to="/talent-dashboard" className="text-gray-600 hover:text-primary font-bold">Oportunidades</Link>
-                                        <Link to="/profile" className="text-gray-600 hover:text-primary font-bold">Mi Perfil</Link>
-                                        <Link to="/sensory-profile" className="text-gray-600 hover:text-primary font-bold">Sensorial</Link>
-                                        <Link to="/my-adjustments" className="text-gray-600 hover:text-primary font-bold">Ajustes</Link>
+                                        <Link to="/talent-dashboard" className={isActive('/talent-dashboard')}>Oportunidades</Link>
+                                        <Link to="/profile" className={isActive('/profile')}>Mi Perfil</Link>
+                                        <Link to="/sensory-profile" className={isActive('/sensory-profile')}>Sensorial</Link>
+                                        <Link to="/my-adjustments" className={isActive('/my-adjustments')}>Ajustes</Link>
                                     </>
                                 )}
 
                                 {/* ENTERPRISE Navigation */}
                                 {user?.role === 'enterprise' && (
                                     <>
-                                        <Link to="/enterprise-dashboard" className="text-gray-600 hover:text-primary font-bold">Mi Panel</Link>
-                                        <Link to="/create-project" className="text-gray-600 hover:text-primary font-bold">Crear Vacante</Link>
-                                        <Link to="/solutions" className="text-gray-600 hover:text-primary font-bold">Soluciones</Link>
+                                        <Link to="/enterprise-dashboard" className={isActive('/enterprise-dashboard')}>Mi Panel</Link>
+                                        <Link to="/create-project" className={isActive('/create-project')}>Crear Vacante</Link>
+                                        <Link to="/solutions" className={isActive('/solutions')}>Soluciones</Link>
                                         <div className="h-6 w-px bg-gray-300 mx-1"></div>
-                                        <Link to="/org-settings" className="text-sm text-gray-500 hover:text-primary">Equipo</Link>
-                                        <Link to="/subscription" className="text-sm text-gray-500 hover:text-primary">Plan</Link>
+                                        <Link to="/org-settings" className={isActive('/org-settings')}>Equipo</Link>
+                                        <Link to="/subscription" className={isActive('/subscription')}>Plan</Link>
                                     </>
                                 )}
 
                                 {/* MUNICIPALITY Navigation */}
                                 {user?.role === 'territory_admin' && (
                                     <>
-                                        <Link to="/municipality-dashboard" className="text-gray-600 hover:text-primary font-bold">Mi Panel</Link>
-                                        <Link to="/solutions" className="text-gray-600 hover:text-primary font-bold">Soluciones</Link>
-                                        <Link to="/reports" className="text-gray-600 hover:text-primary font-bold">Informes</Link>
+                                        <Link to="/municipality-dashboard" className={isActive('/municipality-dashboard')}>Mi Panel</Link>
+                                        <Link to="/solutions" className={isActive('/solutions')}>Soluciones</Link>
+                                        <Link to="/reports" className={isActive('/reports')}>Informes</Link>
                                     </>
                                 )}
 
                                 {/* SUPER ADMIN Navigation */}
                                 {user?.role === 'super_admin' && (
                                     <>
-                                        <Link to="/admin" className="text-purple-600 hover:text-purple-800 font-bold">Admin Global</Link>
-                                        <Link to="/reports" className="text-gray-600 hover:text-primary font-bold">Informes</Link>
-                                        <Link to="/org-settings" className="text-gray-600 hover:text-primary font-bold">Org</Link>
+                                        <Link to="/admin" className={isSuperAdminActive()}>Admin Global</Link>
+                                        <Link to="/reports" className={isActive('/reports')}>Informes</Link>
+                                        <Link to="/org-settings" className={isActive('/org-settings')}>Org</Link>
                                     </>
                                 )}
 
                                 <button
                                     onClick={handleLogout}
-                                    className="ml-4 text-primary font-bold hover:underline border-l-2 pl-4 border-gray-200"
+                                    className="text-gray-600 hover:text-red-600 font-bold transition-colors"
                                 >
                                     Salir
                                 </button>
@@ -102,11 +116,21 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                                 <Link to="/register" className="px-4 py-2 bg-primary text-white rounded font-bold hover:bg-opacity-90">Registrarse</Link>
                             </div>
                         )}
+
+                        {/* High Contrast Toggle */}
+                        <button
+                            onClick={toggleHighContrast}
+                            className={`ml-2 p-2 rounded-full border-2 font-bold text-xs transition-colors ${highContrast ? 'bg-yellow-300 text-black border-yellow-400' : 'bg-gray-100 text-gray-600 border-gray-300 hover:bg-gray-200'}`}
+                            aria-label={highContrast ? "Desactivar Alto Contraste" : "Activar Alto Contraste"}
+                            title="Cambiar Contraste"
+                        >
+                            {highContrast ? '👁️‍🗨️' : '👁️'}
+                        </button>
                     </nav>
                 </div>
-            </header>
+            </header >
 
-            <main className="flex-grow container mx-auto p-4 flex flex-col">
+            <main id="main-content" className="flex-grow container mx-auto p-4 flex flex-col">
                 {children}
             </main>
 
@@ -125,7 +149,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                     </p>
                 </div>
             </footer>
-        </div>
+        </div >
     );
 };
 
