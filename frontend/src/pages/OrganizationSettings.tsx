@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from '../config/api';
 import { useAuth } from '../context/AuthContext';
+import DeleteAccountModal from '../components/DeleteAccountModal';
 
 interface User {
     id: string;
@@ -15,6 +16,7 @@ const OrganizationSettings: React.FC = () => {
     const [inviteEmail, setInviteEmail] = useState('');
     const [inviteError, setInviteError] = useState('');
     const [inviteSuccess, setInviteSuccess] = useState('');
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
     useEffect(() => {
         if (token) fetchUsers();
@@ -64,6 +66,20 @@ const OrganizationSettings: React.FC = () => {
             fetchUsers();
         } catch (err) {
             alert('Error al eliminar usuario');
+        }
+    };
+
+    const handleAccountDeletion = async (reason: string) => {
+        try {
+            // Optional: Send reason to backend if supported, otherwise just log or ignore
+            console.log("Deletion reason:", reason);
+            await axios.delete('/users/me');
+
+            // Redirect happens after successful deletion logic
+            window.location.href = '/login';
+        } catch (e) {
+            console.error(e);
+            alert("Hubo un problema al eliminar la cuenta. Por favor, contacta con soporte.");
         }
     };
 
@@ -146,28 +162,19 @@ const OrganizationSettings: React.FC = () => {
                         <p className="text-red-700 text-sm">Esta acción es irreversible. Se eliminarán todos los datos, proyectos y candidatos asociados.</p>
                     </div>
                     <button
-                        onClick={async () => {
-                            if (window.confirm("¡ATENCIÓN! ¿Estás seguro de que quieres eliminar tu cuenta y todos los datos asociados? Esta acción NO se puede deshacer.")) {
-                                const confirmEmail = prompt("Por favor, escribe tu email para confirmar:");
-                                if (confirmEmail === user?.email) {
-                                    try {
-                                        await axios.delete('/users/me');
-                                        alert("Cuenta eliminada correctamente.");
-                                        window.location.href = '/login';
-                                    } catch (e) {
-                                        alert("Error al eliminar la cuenta.");
-                                    }
-                                } else if (confirmEmail) {
-                                    alert("El email no coincide.");
-                                }
-                            }
-                        }}
+                        onClick={() => setIsDeleteModalOpen(true)}
                         className="bg-red-600 text-white font-bold py-2 px-4 rounded hover:bg-red-700 focus:ring-4 focus:ring-red-200 transition-colors"
                     >
                         Eliminar mi cuenta
                     </button>
                 </div>
             </div>
+
+            <DeleteAccountModal
+                isOpen={isDeleteModalOpen}
+                onClose={() => setIsDeleteModalOpen(false)}
+                onConfirm={handleAccountDeletion}
+            />
         </div>
     );
 };
