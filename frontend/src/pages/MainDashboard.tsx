@@ -74,7 +74,12 @@ const MainDashboard: React.FC = () => {
     if (loading) return <div className="p-8">Calculando métricas...</div>;
     if (!metrics) return <div>Error loading dashboard</div>;
 
-    const { activation_metrics } = metrics;
+    const activation_metrics = metrics.activation_metrics || {
+        brand_setup: false,
+        sensory_adoption: 0,
+        accessibility_health: 0,
+        learning_usage: 0
+    };
 
     return (
         <div className="max-w-7xl mx-auto p-6 space-y-8">
