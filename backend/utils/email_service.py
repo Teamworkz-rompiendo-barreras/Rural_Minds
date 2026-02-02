@@ -6,7 +6,7 @@ from typing import Optional
 # Configuration
 FRONTEND_URL = os.environ.get("FRONTEND_URL", "https://rural-minds.vercel.app")
 RESEND_API_KEY = os.environ.get("RESEND_API_KEY", "")
-FROM_EMAIL = os.environ.get("FROM_EMAIL", "Rural Minds <noreply@ruralminds.es>")
+FROM_EMAIL = os.environ.get("FROM_EMAIL", "onboarding@resend.dev")
 
 # Initialize Resend
 resend.api_key = RESEND_API_KEY
