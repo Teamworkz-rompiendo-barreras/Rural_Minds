@@ -27,11 +27,19 @@ def debug_info(db: Session = Depends(database.get_db)):
         user_list = []
         db_status = f"Error: {str(e)}"
 
+    # 3. Check Email Config
+    resend_key = os.getenv("RESEND_API_KEY", "")
+    email_active = bool(resend_key)
+    
     return {
         "database_type": "SQLite" if is_sqlite else "PostgreSQL",
         "connection_string_preview": masked_url,
         "db_status": db_status,
         "user_count": user_count,
+        "email_service": {
+            "active": email_active,
+            "key_length": len(resend_key) if resend_key else 0
+        },
         "users": user_list
     }
 
