@@ -57,7 +57,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                     <nav className="flex items-center gap-4">
                         <Link to="/" className="text-gray-600 hover:text-primary font-bold transition-colors">Inicio</Link>
 
-                        {isAuthenticated ? (
+                        {isAuthenticated && user ? (
                             <div className="flex items-center gap-4">
                                 <span className="text-sm text-gray-500 hidden md:block">
                                     {user?.email} <span className="text-p2 font-medium">({getRoleDisplayName()})</span>

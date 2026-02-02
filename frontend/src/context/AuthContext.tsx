@@ -51,11 +51,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             // API call to get current user details
             const response = await axios.get('/auth/me');
             setUser(response.data);
-        } catch (error) {
+        } catch (error: any) {
             console.error('Failed to fetch user', error);
-            // If 401, clear token
-            // logout(); 
-            // Better not to force logout on network error, only on 401. But keeping simple for now.
+            // If 401 or 404, clear token to avoid zombie state
+            if (error.response && (error.response.status === 401 || error.response.status === 404)) {
+                logout();
+            }
         }
     };
 
