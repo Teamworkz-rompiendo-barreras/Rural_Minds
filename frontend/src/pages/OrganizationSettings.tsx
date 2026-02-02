@@ -25,7 +25,7 @@ const OrganizationSettings: React.FC = () => {
     const fetchUsers = async () => {
         try {
             const res = await axios.get('/org/users');
-            setUsers(res.data);
+            setUsers(Array.isArray(res.data) ? res.data : []);
             setLoading(false);
         } catch (err) {
             console.error(err);

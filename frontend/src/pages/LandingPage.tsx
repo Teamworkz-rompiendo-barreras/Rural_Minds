@@ -1,7 +1,23 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const LandingPage: React.FC = () => {
+    const { user, isAuthenticated } = useAuth();
+    const navigate = useNavigate();
+
+    React.useEffect(() => {
+        if (isAuthenticated && user) {
+            if (user.role === 'admin' || user.role === 'superadmin') {
+                navigate('/admin');
+            } else if (user.role === 'enterprise') {
+                navigate('/municipality-dashboard');
+            } else if (user.role === 'talent') {
+                navigate('/talent-dashboard');
+            }
+        }
+    }, [isAuthenticated, user, navigate]);
+
     return (
         <div className="flex flex-col min-h-screen">
             {/* Hero Section */}
