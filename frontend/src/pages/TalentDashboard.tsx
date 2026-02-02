@@ -198,7 +198,7 @@ const TalentDashboard: React.FC = () => {
                             onClick={async () => {
                                 if (window.confirm("¿Estás seguro de que quieres eliminar tu perfil? Esta acción borrará tus datos y preferencias de accesibilidad.")) {
                                     try {
-                                        await axios.delete('/users/me');
+                                        await axios.delete('/user/me');
                                         alert("Tu cuenta ha sido eliminada.");
                                         window.location.href = '/login';
                                     } catch (e) {

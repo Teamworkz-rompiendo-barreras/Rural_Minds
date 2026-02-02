@@ -73,7 +73,7 @@ const OrganizationSettings: React.FC = () => {
         try {
             // Optional: Send reason to backend if supported, otherwise just log or ignore
             console.log("Deletion reason:", reason);
-            await axios.delete('/users/me');
+            await axios.delete('/user/me');
 
             // Redirect happens after successful deletion logic
             window.location.href = '/login';
