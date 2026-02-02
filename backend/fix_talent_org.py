@@ -8,11 +8,14 @@ def fix_talent_org():
     db = SessionLocal()
     
     try:
-        email = "talento@test.com"
+        email = "esperi1@hotmail.es"
         user = db.query(models.User).filter(models.User.email == email).first()
         
         if not user:
-            print("❌ User 'talento@test.com' not found.")
+            print(f"❌ User '{email}' not found.")
+            print("Listing all users:")
+            for u in db.query(models.User).all():
+                print(f" - '{u.email}' (Org: {u.organization_id})")
             return
 
         print(f"👤 User found: {user.email}")

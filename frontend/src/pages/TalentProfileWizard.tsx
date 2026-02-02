@@ -53,6 +53,43 @@ const TalentProfileWizard: React.FC = () => {
         }
     }, [user, navigate]);
 
+    // FETCH EXISTING DATA FOR EDITING
+    useEffect(() => {
+        const fetchExistingData = async () => {
+            // Avoid reloading if we already have data (simplistic check)
+            // But actually we want to load fresh from DB on mount
+            try {
+                // 1. Fetch Accessibility Prefs
+                const accessRes = await axios.get('/user/profile/accessibility');
+                if (accessRes.data) {
+                    setAccessibilityPrefs({
+                        high_contrast: accessRes.data.high_contrast_enabled || false,
+                        reduced_motion: accessRes.data.prefers_reduced_motion || false
+                    });
+                    if (accessRes.data.sensory_needs) {
+                        setSensoryPrefs(accessRes.data.sensory_needs);
+                    }
+                }
+
+                // 2. Fetch Talent Profile (Bio/Skills)
+                const profileRes = await axios.get('/api/profiles/me');
+                if (profileRes.data) {
+                    setProfileData({
+                        bio: profileRes.data.bio || '',
+                        skills: profileRes.data.skills || []
+                    });
+                }
+            } catch (err) {
+                console.log("No existing profile or error fetching", err);
+                // Silent fail is okay here, it just means starting fresh
+            }
+        };
+
+        if (user) {
+            fetchExistingData();
+        }
+    }, [user]);
+
     // Apply accessibility preferences live
     useEffect(() => {
         if (accessibilityPrefs.high_contrast) {
@@ -167,7 +204,7 @@ const TalentProfileWizard: React.FC = () => {
                 <button
                     onClick={() => setAccessibilityPrefs(p => ({ ...p, high_contrast: !p.high_contrast }))}
                     className={`card-radius p-6 text-left border-2 transition-all ${accessibilityPrefs.high_contrast
-                        ? 'border-primary bg-primary text-white'
+                        ? 'border-gray-900 bg-gray-900 text-white'
                         : 'border-gray-200 bg-white hover:border-gray-300'
                         }`}
                     aria-pressed={accessibilityPrefs.high_contrast}

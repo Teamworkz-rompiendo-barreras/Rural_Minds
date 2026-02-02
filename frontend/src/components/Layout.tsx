@@ -120,7 +120,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                         {/* High Contrast Toggle */}
                         <button
                             onClick={toggleHighContrast}
-                            className={`ml-2 p-2 rounded-full border-2 font-bold text-xs transition-colors ${highContrast ? 'bg-yellow-300 text-black border-yellow-400' : 'bg-gray-100 text-gray-600 border-gray-300 hover:bg-gray-200'}`}
+                            className={`ml-2 p-2 rounded-full border-2 font-bold text-xs transition-colors ${highContrast ? 'bg-black text-white border-white' : 'bg-gray-100 text-gray-600 border-gray-300 hover:bg-gray-200'}`}
                             aria-label={highContrast ? "Desactivar Alto Contraste" : "Activar Alto Contraste"}
                             title="Cambiar Contraste"
                         >
