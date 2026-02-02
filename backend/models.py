@@ -270,7 +270,7 @@ class LegalConsent(Base):
     accepted_at = Column(DateTime, default=datetime.datetime.utcnow)
     
 
-class OnboardingTask(BaseModel):
+class OnboardingTask(Base):
     __tablename__ = "onboarding_tasks"
     
     id = Column(GUID, primary_key=True, default=uuid.uuid4, index=True)

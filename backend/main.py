@@ -5,8 +5,9 @@ from sqlalchemy.orm import Session
 from typing import List
 import os
 
+import auth
 from routers import (
-    auth, users, profile, articles, challenges,
+    users, profile, challenges,
     applications, analytics, messages, legal
 )
 import models, schemas
@@ -60,7 +61,7 @@ app.include_router(users.router)
 from routers import onboarding
 app.include_router(onboarding.router)
 from routers import reports
-app.include_router(reports.router)
+
 app.include_router(reports.router)
 from routers import debug
 app.include_router(debug.router)
