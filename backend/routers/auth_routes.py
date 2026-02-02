@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 import models, schemas, auth, database
 import uuid
 import datetime
-from utils.email_service import send_verification_email, send_welcome_email, generate_verification_token
+from utils.email_service import send_verification_email, send_welcome_email, generate_verification_token, send_password_reset_email
 
 router = APIRouter(
     prefix="/auth",
@@ -228,9 +228,12 @@ def forgot_password(email: str, db: Session = Depends(database.get_db)):
     user.verification_token_expires = datetime.datetime.utcnow() + datetime.timedelta(minutes=30)
     db.commit()
     
-    # Send Email (Mocked for now, strictly speaking should be implemented in email_service)
-    # create_task(send_reset_email(email, token)) or similar
-    print(f"📧 [Email Mock] Password Reset for {email}: Token={token}")
+    # Send Email
+    send_password_reset_email(
+        to_email=user.email,
+        user_name=user.full_name,
+        reset_token=token
+    )
     
     return {"message": "Si el email existe, recibirás instrucciones para restablecer tu contraseña."}
 
