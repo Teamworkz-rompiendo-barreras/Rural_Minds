@@ -43,7 +43,7 @@ def debug_info(db: Session = Depends(database.get_db)):
         "users": user_list
     }
 
-@router.post("/test-email")
+@router.get("/test-email")
 def test_email(to_email: str, db: Session = Depends(database.get_db)):
     """
     Test endpoint to verify email configuration in production.
