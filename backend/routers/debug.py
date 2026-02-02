@@ -47,29 +47,60 @@ def debug_info(db: Session = Depends(database.get_db)):
 def test_email(to_email: str, db: Session = Depends(database.get_db)):
     """
     Test endpoint to verify email configuration in production.
+    Custom implementation to capture exact error.
     """
-    from utils.email_service import _send_email, RESEND_API_KEY
+    import resend
+    import os
     
-    masked_key = RESEND_API_KEY[:5] + "..." if RESEND_API_KEY else "None"
+    # 1. Load config directly to ensure freshness
+    resend_key = os.environ.get("RESEND_API_KEY")
+    # Default to the one configured in env or fallback to expected default
+    current_from = os.environ.get("FROM_EMAIL", "Rural Minds <noreply@ruralminds.es>")
+    
+    if not resend_key:
+        return {"success": False, "error": "RESEND_API_KEY not found in environment variables"}
+        
+    resend.api_key = resend_key
+    
+    params = {
+        "from": current_from,
+        "to": [to_email],
+        "subject": "Test Diagnóstico (Detailed)",
+        "html": "<p>Test de envío de Rural Minds.</p>"
+    }
     
     try:
-        success = _send_email(
-            to=to_email,
-            subject="Test de Diagnóstico Rural Minds",
-            html="<p>Si lees esto, el envío de emails funciona correctamente.</p>"
-        )
-        
+        # Attempt 1: Configured sender
+        response = resend.Emails.send(params)
         return {
-            "success": success,
-            "api_key_configured": bool(RESEND_API_KEY),
-            "api_key_preview": masked_key,
-            "message": "Email enviado" if success else "Fallo al enviar (revisar logs server)"
+            "success": True, 
+            "response": response,
+            "sender_used": current_from
         }
     except Exception as e:
-        return {
-            "success": False,
-            "error": str(e),
-            "api_key_configured": bool(RESEND_API_KEY)
-        }
+        original_error = str(e)
+        
+        # Attempt 2: Fallback to Resend default (testing domain)
+        try:
+            fallback_from = "onboarding@resend.dev"
+            params["from"] = fallback_from
+            params["subject"] += " (Fallback Sender)"
+            response_fallback = resend.Emails.send(params)
+            
+            return {
+                "success": False,
+                "original_error": original_error,
+                "fallback_success": True,
+                "message": f"Falló con '{current_from}' pero funcionó con '{fallback_from}'. CAUSA: Tu dominio 'ruralminds.es' no está verificado en Resend.",
+                "solution": "Verifica tu dominio en el dashboard de Resend o usa 'onboarding@resend.dev' temporalmente en la variable FROM_EMAIL."
+            }
+        except Exception as e2:
+            return {
+                "success": False,
+                "error": original_error,
+                "fallback_error": str(e2),
+                "message": "Fallo crítico. Revisa el mensaje de 'error'. Probablemente la API Key es inválida o el email de destino está bloqueado.",
+                "api_key_preview": resend_key[:5] + "..."
+            }
 
 
