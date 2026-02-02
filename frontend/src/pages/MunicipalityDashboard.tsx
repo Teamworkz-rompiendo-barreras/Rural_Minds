@@ -146,9 +146,9 @@ const MunicipalityDashboard: React.FC = () => {
                         <span className="text-sm text-gray-500">Validar empresas locales</span>
                     </div>
 
-                    <div className="space-y-4">
+                    <ul className="space-y-4">
                         {mockCompanies.map((company) => (
-                            <div
+                            <li
                                 key={company.id}
                                 className={`flex flex-col md:flex-row items-start md:items-center justify-between p-4 rounded-xl border transition-all ${company.status === 'pending'
                                     ? 'bg-orange-50 border-orange-200'
@@ -171,7 +171,7 @@ const MunicipalityDashboard: React.FC = () => {
                                     ) : (
                                         <button
                                             onClick={() => handleValidate(company.id)}
-                                            className="px-4 py-2 bg-orange-500 text-white rounded-lg text-sm font-bold hover:bg-orange-600 transition-colors focus:ring-4 focus:ring-orange-200 outline-none"
+                                            className="px-4 py-2 bg-orange-500 text-white rounded-lg text-sm font-bold hover:bg-orange-600 transition-colors focus:ring-4 focus:ring-focus-ring outline-none"
                                         >
                                             Validar Ahora
                                         </button>
@@ -180,9 +180,9 @@ const MunicipalityDashboard: React.FC = () => {
                                         Ver Detalle
                                     </button>
                                 </div>
-                            </div>
+                            </li>
                         ))}
-                    </div>
+                    </ul>
 
                     <div className="mt-6 pt-4 border-t border-gray-100 text-center">
                         <button className="text-p2 font-bold text-sm hover:underline">
@@ -303,7 +303,7 @@ const MunicipalityDashboard: React.FC = () => {
                             </button>
                             <button
                                 onClick={confirmValidation}
-                                className="flex-1 py-3 bg-green-600 text-white rounded-lg font-bold hover:bg-green-700 transition-colors focus:ring-4 focus:ring-green-200 outline-none"
+                                className="flex-1 py-3 bg-green-600 text-white rounded-lg font-bold hover:bg-green-700 transition-colors focus:ring-4 focus:ring-focus-ring outline-none"
                             >
                                 Confirmar Validación
                             </button>

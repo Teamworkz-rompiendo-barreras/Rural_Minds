@@ -85,6 +85,22 @@ const Register: React.FC = () => {
     return (
         <div className="flex items-center justify-center flex-grow p-4">
             <div className="bg-white p-8 rounded-xl shadow-lg max-w-md w-full border-t-4 border-accent">
+                {/* Unified Auth Tabs */}
+                <div className="flex border-b border-gray-200 mb-6">
+                    <Link
+                        to="/login"
+                        className="flex-1 text-center py-2 font-bold text-gray-500 hover:text-primary transition-colors"
+                    >
+                        Iniciar Sesión
+                    </Link>
+                    <Link
+                        to="/register"
+                        className="flex-1 text-center py-2 font-bold text-primary border-b-2 border-primary"
+                    >
+                        Registrarse
+                    </Link>
+                </div>
+
                 <h1 className="text-3xl font-heading font-bold text-primary mb-6 text-center">Únete a Rural Minds</h1>
 
                 {/* Free Access Explainer */}

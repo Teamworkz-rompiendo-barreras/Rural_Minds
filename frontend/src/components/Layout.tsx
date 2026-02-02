@@ -51,7 +51,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             {/* Skip Link for Accessibility - Fixed visibility on focus */}
             <a
                 href="#main-content"
-                className="sr-only focus:not-sr-only focus:absolute focus:top-0 focus:left-0 focus:z-[100] focus:bg-primary focus:text-white focus:p-4 focus:font-bold focus:outline-none focus:ring-4 focus:ring-yellow-400"
+                className="sr-only focus:not-sr-only focus:absolute focus:top-0 focus:left-0 focus:z-[100] focus:bg-primary focus:text-white focus:p-4 focus:font-bold focus:outline-none focus:ring-4 focus:ring-focus-ring"
             >
                 Saltar al contenido principal
             </a>
