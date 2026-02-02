@@ -35,37 +35,4 @@ def debug_info(db: Session = Depends(database.get_db)):
         "users": user_list
     }
 
-@router.get("/schema_fix")
-def schema_fix(db: Session = Depends(database.get_db)):
-    """
-    Emergency endpoint to patch DB schema in production.
-    Adds missing columns to 'users' table.
-    """
-    try:
-        # PostgreSQL specific patch
-        commands = [
-            "ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verified BOOLEAN DEFAULT FALSE;",
-            "ALTER TABLE users ADD COLUMN IF NOT EXISTS status VARCHAR DEFAULT 'pending';",
-            "ALTER TABLE users ADD COLUMN IF NOT EXISTS verification_token VARCHAR;",
-            "ALTER TABLE users ADD COLUMN IF NOT EXISTS verification_token_expires TIMESTAMP;",
-            "ALTER TABLE users ADD COLUMN IF NOT EXISTS full_name VARCHAR;",
-            # Organizations
-            "ALTER TABLE organizations ADD COLUMN IF NOT EXISTS org_type VARCHAR DEFAULT 'enterprise';",
-            "ALTER TABLE organizations ADD COLUMN IF NOT EXISTS municipality_id UUID;"
-        ]
-        
-        results = []
-        for cmd in commands:
-            try:
-                db.execute(text(cmd))
-                results.append(f"✅ Executed: {cmd}")
-            except Exception as e:
-                # If using SQLite, syntax might differ (no IF NOT EXISTS in older versions sometimes)
-                # But prod is Postgres.
-                results.append(f"⚠️ Failed: {cmd} | Error: {str(e)}")
-        
-        db.commit()
-        return {"status": "Schema Patch Attempted", "details": results}
 
-    except Exception as e:
-        return {"status": "Error", "details": str(e)}
