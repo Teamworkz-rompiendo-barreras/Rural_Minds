@@ -27,7 +27,6 @@ allowed_origins = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
     "https://rural-minds.vercel.app",
-    "https://rural-minds-lerele1s-projects.vercel.app",
 ]
 # Add any additional origins from environment variable
 extra_origins = os.getenv("ALLOWED_ORIGINS", "")

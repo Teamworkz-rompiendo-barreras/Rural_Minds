@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // API Configuration
 // Uses environment variable in production, localhost in development
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
+const API_BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '' : 'http://127.0.0.1:8000');
 
 // Create axios instance with base URL
 const api = axios.create({
