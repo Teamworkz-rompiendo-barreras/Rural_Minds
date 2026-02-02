@@ -101,9 +101,10 @@ const Login: React.FC = () => {
                                 <p className="mb-3">{error}</p>
                                 <button
                                     onClick={handleResendVerification}
-                                    className="text-p2 font-bold underline hover:no-underline"
+                                    className="text-p2 font-bold underline hover:no-underline disabled:opacity-50 disabled:cursor-not-allowed"
+                                    disabled={loading}
                                 >
-                                    Reenviar email de verificación
+                                    {loading ? 'Enviando...' : 'Reenviar email de verificación'}
                                 </button>
                             </>
                         ) : (
@@ -152,6 +153,11 @@ const Login: React.FC = () => {
                                 )}
                             </button>
                         </div>
+                        <div className="text-right mt-1">
+                            <Link to="/forgot-password" className="text-xs text-primary hover:underline font-bold">
+                                ¿Olvidaste tu contraseña?
+                            </Link>
+                        </div>
                     </div>
                     <button
                         type="submit"
@@ -164,8 +170,8 @@ const Login: React.FC = () => {
                 <p className="mt-4 text-center text-sm text-gray-600">
                     ¿No tienes cuenta? <Link to="/register" className="text-primary font-bold hover:underline">Regístrate</Link>
                 </p>
-            </div>
-        </div>
+            </div >
+        </div >
     );
 };
 
