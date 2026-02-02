@@ -43,4 +43,33 @@ def debug_info(db: Session = Depends(database.get_db)):
         "users": user_list
     }
 
+@router.post("/test-email")
+def test_email(to_email: str, db: Session = Depends(database.get_db)):
+    """
+    Test endpoint to verify email configuration in production.
+    """
+    from utils.email_service import _send_email, RESEND_API_KEY
+    
+    masked_key = RESEND_API_KEY[:5] + "..." if RESEND_API_KEY else "None"
+    
+    try:
+        success = _send_email(
+            to=to_email,
+            subject="Test de Diagnóstico Rural Minds",
+            html="<p>Si lees esto, el envío de emails funciona correctamente.</p>"
+        )
+        
+        return {
+            "success": success,
+            "api_key_configured": bool(RESEND_API_KEY),
+            "api_key_preview": masked_key,
+            "message": "Email enviado" if success else "Fallo al enviar (revisar logs server)"
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e),
+            "api_key_configured": bool(RESEND_API_KEY)
+        }
+
 
