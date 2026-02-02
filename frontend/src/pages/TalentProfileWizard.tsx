@@ -197,7 +197,7 @@ const TalentProfileWizard: React.FC = () => {
     // Step 1: Accessibility Preferences (BEFORE data)
     const renderAccessibility = () => (
         <div className="py-8">
-            <h2 className="text-2xl font-heading font-bold text-primary mb-2">Ajustes de Interfaz</h2>
+            <h1 className="text-2xl font-heading font-bold text-primary mb-2">Ajustes de Interfaz</h1>
             <p className="text-gray-600 mb-8">Antes de empezar, ¿necesitas alguna adaptación visual?</p>
 
             <div className="grid gap-4 md:grid-cols-2">
@@ -246,7 +246,7 @@ const TalentProfileWizard: React.FC = () => {
     // Step 2: Sensory Preferences (Cards)
     const renderSensory = () => (
         <div className="py-8">
-            <h2 className="text-2xl font-heading font-bold text-primary mb-2">Perfil Sensorial</h2>
+            <h1 className="text-2xl font-heading font-bold text-primary mb-2">Perfil Sensorial</h1>
             <p className="text-gray-600 mb-8">Ayúdanos a entender tu entorno ideal.</p>
 
             {/* Light */}
@@ -324,7 +324,7 @@ const TalentProfileWizard: React.FC = () => {
     // Step 3: Profile Data (Bio, Skills)
     const renderProfile = () => (
         <div className="py-8">
-            <h2 className="text-2xl font-heading font-bold text-primary mb-2">Tu Perfil</h2>
+            <h1 className="text-2xl font-heading font-bold text-primary mb-2">Tu Perfil</h1>
             <p className="text-gray-600 mb-8">Cuéntanos un poco sobre ti (opcional).</p>
 
             <div className="space-y-6">
@@ -379,7 +379,7 @@ const TalentProfileWizard: React.FC = () => {
             <div className="mb-6">
                 <span className="text-6xl">🎉</span>
             </div>
-            <h2 className="text-2xl font-heading font-bold text-primary mb-2">¡Tu Checklist de Ajustes!</h2>
+            <h1 className="text-2xl font-heading font-bold text-primary mb-2">¡Tu Checklist de Ajustes!</h1>
             <p className="text-gray-600 mb-8 max-w-md mx-auto">
                 Basado en tus preferencias, aquí tienes recomendaciones para compartir con tu manager.
             </p>

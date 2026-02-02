@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 import models, schemas, auth, database
@@ -19,6 +19,7 @@ RESET_TOKEN_EXPIRE_MINUTES = 30
 @router.post("/register", response_model=dict)
 def register(
     payload: dict,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(database.get_db)
 ):
     """
@@ -84,8 +85,9 @@ def register(
     db.add(new_user)
     db.commit()
     
-    # 6. Send Verification Email
-    send_verification_email(
+    # 6. Send Verification Email (Background Task)
+    background_tasks.add_task(
+        send_verification_email,
         to_email=new_user.email,
         user_name=new_user.full_name,
         verification_token=verification_token
@@ -99,7 +101,11 @@ def register(
 
 
 @router.get("/verify-email")
-def verify_email(token: str, db: Session = Depends(database.get_db)):
+def verify_email(
+    token: str, 
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(database.get_db)
+):
     """
     Verify user's email using the token sent via email.
     Activates the user account upon successful verification.
@@ -130,7 +136,11 @@ def verify_email(token: str, db: Session = Depends(database.get_db)):
     db.commit()
     
     # Send Welcome Email now that account is verified
-    send_welcome_email(to_email=user.email, user_name=user.full_name)
+    background_tasks.add_task(
+        send_welcome_email,
+        to_email=user.email,
+        user_name=user.full_name
+    )
     
     return {
         "message": "¡Email verificado correctamente! Ya puedes iniciar sesión.",
@@ -140,7 +150,11 @@ def verify_email(token: str, db: Session = Depends(database.get_db)):
 
 
 @router.post("/resend-verification")
-def resend_verification(email: str, db: Session = Depends(database.get_db)):
+def resend_verification(
+    email: str, 
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(database.get_db)
+):
     """
     Resend verification email if the user hasn't verified yet.
     """
@@ -160,7 +174,8 @@ def resend_verification(email: str, db: Session = Depends(database.get_db)):
     db.commit()
     
     # Send new verification email
-    send_verification_email(
+    background_tasks.add_task(
+        send_verification_email,
         to_email=user.email,
         user_name=user.full_name,
         verification_token=new_token
@@ -208,12 +223,14 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
     
     access_token = auth.create_access_token(data={"sub": user.email})
     return {"access_token": access_token, "token_type": "bearer"}
-    access_token = auth.create_access_token(data={"sub": user.email})
-    return {"access_token": access_token, "token_type": "bearer"}
 
 
 @router.post("/forgot-password")
-def forgot_password(email: str, db: Session = Depends(database.get_db)):
+def forgot_password(
+    email: str, 
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(database.get_db)
+):
     """
     Trigger password reset flow. Sends email with reset token.
     """
@@ -228,8 +245,9 @@ def forgot_password(email: str, db: Session = Depends(database.get_db)):
     user.verification_token_expires = datetime.datetime.utcnow() + datetime.timedelta(minutes=30)
     db.commit()
     
-    # Send Email
-    send_password_reset_email(
+    # Send Email (Background)
+    background_tasks.add_task(
+        send_password_reset_email,
         to_email=user.email,
         user_name=user.full_name,
         reset_token=token

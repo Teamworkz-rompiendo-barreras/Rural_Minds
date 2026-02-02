@@ -85,7 +85,15 @@ const Register: React.FC = () => {
     return (
         <div className="flex items-center justify-center flex-grow p-4">
             <div className="bg-white p-8 rounded-xl shadow-lg max-w-md w-full border-t-4 border-accent">
-                <h2 className="text-3xl font-heading font-bold text-primary mb-6 text-center">Únete a Rural Minds</h2>
+                <h1 className="text-3xl font-heading font-bold text-primary mb-6 text-center">Únete a Rural Minds</h1>
+
+                {/* Free Access Explainer */}
+                <div className="bg-blue-50 p-4 rounded-lg mb-6 text-sm text-gray-700 border border-blue-100">
+                    <h3 className="font-bold text-p2 mb-2">🚀 Acceso Gratuito</h3>
+                    <p>
+                        Registrarse no tiene coste. Podrás configurar tu perfil de inclusión, explorar ofertas y acceder a recursos del Learning Center de por vida.
+                    </p>
+                </div>
 
                 {error && (
                     <div className="bg-red-100 text-red-700 p-3 rounded mb-4 text-sm" role="alert" aria-live="polite">

@@ -101,38 +101,68 @@ const SuperAdminDashboard: React.FC = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {/* Metrics */}
-                <div className="bg-white p-8 rounded-xl shadow-md border-t-4 border-gray-800">
-                    <h3 className="font-heading font-bold text-lg text-gray-500 uppercase tracking-wide">Impacto Social Global</h3>
+                <div
+                    role="group"
+                    aria-labelledby="social-impact-title"
+                    className="bg-white p-8 rounded-xl shadow-md border-t-4 border-gray-800"
+                >
+                    <h3 id="social-impact-title" className="font-heading font-bold text-lg text-gray-500 uppercase tracking-wide">Impacto Social Global</h3>
                     <div className="flex items-end gap-2 mt-2">
                         <span className="text-5xl font-bold text-n900">1,240</span>
-                        <span className="text-green-600 font-bold mb-2">▲ 12%</span>
+                        <span className="text-green-600 font-bold mb-2 flex items-center gap-1">
+                            <span aria-hidden="true">▲</span>
+                            <span className="sr-only">Incremento del</span>
+                            12%
+                        </span>
                     </div>
                     <p className="text-sm text-gray-400 mt-2">Inserciones exitosas este año</p>
                 </div>
 
-                <div className="bg-white p-8 rounded-xl shadow-md border-t-4 border-gray-800">
-                    <h3 className="font-heading font-bold text-lg text-gray-500 uppercase tracking-wide">Salud del Ecosistema</h3>
+                <div
+                    role="group"
+                    aria-labelledby="ecosystem-health-title"
+                    className="bg-white p-8 rounded-xl shadow-md border-t-4 border-gray-800"
+                >
+                    <h3 id="ecosystem-health-title" className="font-heading font-bold text-lg text-gray-500 uppercase tracking-wide">Salud del Ecosistema</h3>
                     <div className="mt-4">
                         <div className="flex justify-between mb-1">
-                            <span className="text-sm font-bold">Ayuntamientos Activos</span>
-                            <span className="text-sm">{municipalities.length}</span>
+                            <span id="label-active-munis" className="text-sm font-bold">Ayuntamientos Activos</span>
+                            <span aria-labelledby="label-active-munis" className="text-sm">{municipalities.length}</span>
                         </div>
-                        <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div
+                            className="w-full bg-gray-200 rounded-full h-2"
+                            role="progressbar"
+                            aria-valuenow={Math.min(municipalities.length * 2, 100)}
+                            aria-valuemin={0}
+                            aria-valuemax={100}
+                            aria-label="Progreso de Ayuntamientos Activos"
+                        >
                             <div className="bg-p2 h-2 rounded-full" style={{ width: `${Math.min(municipalities.length * 2, 100)}%` }}></div>
                         </div>
 
                         <div className="flex justify-between mb-1 mt-4">
-                            <span className="text-sm font-bold">Empresas Participantes</span>
-                            <span className="text-sm">128</span>
+                            <span id="label-participants" className="text-sm font-bold">Empresas Participantes</span>
+                            <span aria-labelledby="label-participants" className="text-sm">128</span>
                         </div>
-                        <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div
+                            className="w-full bg-gray-200 rounded-full h-2"
+                            role="progressbar"
+                            aria-valuenow={65}
+                            aria-valuemin={0}
+                            aria-valuemax={100}
+                            aria-label="Progreso de Empresas Participantes"
+                        >
                             <div className="bg-accent h-2 rounded-full" style={{ width: '65%' }}></div>
                         </div>
                     </div>
                 </div>
 
-                <div className="bg-white p-8 rounded-xl shadow-md border-t-4 border-red-500">
-                    <h3 className="font-heading font-bold text-lg text-gray-500 uppercase tracking-wide">Alertas de Auditoría</h3>
+                <div
+                    role="group"
+                    aria-labelledby="audit-alerts-title"
+                    className="bg-white p-8 rounded-xl shadow-md border-t-4 border-red-500"
+                >
+                    <h3 id="audit-alerts-title" className="font-heading font-bold text-lg text-gray-500 uppercase tracking-wide">Alertas de Auditoría</h3>
                     <p className="text-3xl font-bold text-n900 mt-2">3 <span className="text-base font-normal text-gray-500">Proyectos Flagged</span></p>
                     <button className="text-red-600 font-bold text-sm mt-4 hover:underline">Revisar Auditoría d'Impacto</button>
                 </div>

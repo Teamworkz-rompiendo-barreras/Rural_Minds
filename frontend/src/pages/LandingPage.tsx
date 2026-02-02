@@ -31,9 +31,7 @@ const LandingPage: React.FC = () => {
 
                     <div className="flex justify-center gap-4">
                         {/* Botón Primario: P1 (#F2D680) + N900 (#0D1321) */}
-                        <Link to="/register" className="px-8 py-4 bg-accent text-[#0D1321] font-bold rounded-lg hover:bg-yellow-400 transition-all shadow-lg text-lg flex items-center gap-2">
-                            Empieza Gratis
-                        </Link>
+                        {/* Botón de Registro Eliminado por Limpieza */}
                         <Link to="/contact" className="px-8 py-4 bg-transparent border-2 border-white text-white font-bold rounded-lg hover:bg-white hover:text-primary transition-all text-lg">
                             Agenda una Demo
                         </Link>
