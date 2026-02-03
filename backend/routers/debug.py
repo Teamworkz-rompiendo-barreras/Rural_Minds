@@ -150,3 +150,32 @@ def fix_db_schema(db: Session = Depends(database.get_db)):
             messages.append(f"FAILED to add is_public: {str(e)}")
             
     return {"status": "Schema Update Attempted", "logs": messages}
+
+@router.get("/user/{email}")
+def check_user(email: str, db: Session = Depends(database.get_db)):
+    """Check if a user exists by email."""
+    user = db.query(models.User).filter(models.User.email == email).first()
+    if user:
+        return {"exists": True, "id": str(user.id), "email": user.email, "role": user.role}
+    return {"exists": False}
+
+@router.delete("/user/{email}")
+def delete_user(email: str, db: Session = Depends(database.get_db)):
+    """Force delete a user by email."""
+    user = db.query(models.User).filter(models.User.email == email).first()
+    if not user:
+        return {"success": False, "message": "User not found"}
+    
+    try:
+        # Manual cascade delete for safety (similar to delete_me logic)
+        # 1. Delete challenges created by user
+        db.execute(text("DELETE FROM challenges WHERE creator_id = :uid"), {"uid": str(user.id)})
+        # 2. Delete organization membership if any
+        # (This is handled by models but explicit is safer for debug)
+        
+        db.delete(user)
+        db.commit()
+        return {"success": True, "message": f"User {email} deleted successfully"}
+    except Exception as e:
+        db.rollback()
+        return {"success": False, "error": str(e)}
