@@ -2,6 +2,10 @@
     "version": 2,
     "builds": [
         {
+            "src": "backend/api/diag.py",
+            "use": "@vercel/python"
+        },
+        {
             "src": "backend/api/index.py",
             "use": "@vercel/python",
             "config": {
