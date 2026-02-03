@@ -104,3 +104,49 @@ def test_email(to_email: str, db: Session = Depends(database.get_db)):
             }
 
 
+
+@router.post("/fix-db-schema")
+def fix_db_schema(db: Session = Depends(database.get_db)):
+    """
+    Manually apply missing schema changes to production DB.
+    Adds 'sensory_requirements' and 'is_public' to 'challenges' table if missing.
+    """
+    messages = []
+    
+    # Check 1: sensory_requirements (JSON)
+    try:
+        # Check if column exists is tricky in raw SQL independent of dialect,
+        # but 'ALTER TABLE ... ADD COLUMN IF NOT EXISTS' is PostgreSQL 9.6+ standard.
+        # SQLite doesn't support IF NOT EXISTS in ADD COLUMN, but we target Postgres for Prod.
+        
+        # We will try to add it. If it fails, we catch it.
+        # But to be safer, we can try to selecting it first.
+        
+        db.execute(text("SELECT sensory_requirements FROM challenges LIMIT 1"))
+        messages.append("sensory_requirements already exists.")
+    except Exception:
+        db.rollback() # Reset transaction
+        try:
+            # Try adding it
+            db.execute(text("ALTER TABLE challenges ADD COLUMN sensory_requirements JSON DEFAULT '{}'"))
+            db.commit()
+            messages.append("ADDED sensory_requirements column.")
+        except Exception as e:
+            db.rollback()
+            messages.append(f"FAILED to add sensory_requirements: {str(e)}")
+
+    # Check 2: is_public (Boolean)
+    try:
+        db.execute(text("SELECT is_public FROM challenges LIMIT 1"))
+        messages.append("is_public already exists.")
+    except Exception:
+        db.rollback()
+        try:
+            db.execute(text("ALTER TABLE challenges ADD COLUMN is_public BOOLEAN DEFAULT TRUE"))
+            db.commit()
+            messages.append("ADDED is_public column.")
+        except Exception as e:
+            db.rollback()
+            messages.append(f"FAILED to add is_public: {str(e)}")
+            
+    return {"status": "Schema Update Attempted", "logs": messages}
