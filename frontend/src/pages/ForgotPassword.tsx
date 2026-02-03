@@ -6,9 +6,20 @@ const ForgotPassword: React.FC = () => {
     const [email, setEmail] = useState('');
     const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
     const [message, setMessage] = useState('');
+    const [cooldown, setCooldown] = useState(0);
+    const [isResending, setIsResending] = useState(false);
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
+    // Cooldown timer
+    React.useEffect(() => {
+        let timer: any;
+        if (cooldown > 0) {
+            timer = setInterval(() => setCooldown(c => c - 1), 1000);
+        }
+        return () => clearInterval(timer);
+    }, [cooldown]);
+
+    const handleSubmit = async (e?: React.FormEvent) => {
+        if (e) e.preventDefault();
         setStatus('loading');
         setMessage('');
 
@@ -16,10 +27,17 @@ const ForgotPassword: React.FC = () => {
             await axios.post(`/auth/forgot-password?email=${encodeURIComponent(email)}`);
             setStatus('success');
             setMessage('Si el email existe, recibirás instrucciones para restablecer tu contraseña en breve.');
+            setCooldown(30); // 30 seconds cooldown
         } catch (err) {
             console.error(err);
             setStatus('error');
             setMessage('Hubo un error al procesar tu solicitud. Inténtalo de nuevo.');
+        }
+    };
+
+    const handleResend = () => {
+        if (cooldown === 0) {
+            handleSubmit();
         }
     };
 
@@ -33,7 +51,19 @@ const ForgotPassword: React.FC = () => {
                         <div className="bg-green-100 text-green-800 p-4 rounded mb-4">
                             {message}
                         </div>
-                        <Link to="/login" className="text-primary font-bold hover:underline">
+
+                        <div className="mb-6 space-y-2">
+                            <p className="text-sm text-gray-600">¿No has recibido el email?</p>
+                            <button
+                                onClick={handleResend}
+                                disabled={cooldown > 0 || isResending}
+                                className="text-primary font-bold underline hover:no-underline disabled:opacity-50 disabled:cursor-not-allowed disabled:no-underline"
+                            >
+                                {isResending ? 'Enviando...' : (cooldown > 0 ? `Reenviar en ${cooldown}s` : 'Reenviar email')}
+                            </button>
+                        </div>
+
+                        <Link to="/login" className="text-gray-500 font-medium hover:text-gray-700 text-sm">
                             Volver a Iniciar Sesión
                         </Link>
                     </div>
