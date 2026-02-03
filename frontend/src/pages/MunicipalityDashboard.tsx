@@ -31,7 +31,7 @@ const MunicipalityDashboard: React.FC = () => {
     const [selectedCompany, setSelectedCompany] = useState<string | null>(null);
 
     // Data State (Mocked for now, but stateful)
-    const [metrics] = useState(mockMetrics);
+    const [metrics, setMetrics] = useState(mockMetrics);
     const [companies, setCompanies] = useState<any[]>(mockCompanies);
 
     // Invitation State
@@ -56,18 +56,22 @@ const MunicipalityDashboard: React.FC = () => {
         setSelectedCompany(null);
     };
 
-    // Fetch Invite Status
+    // Fetch Invite Status & Stats
     useEffect(() => {
         if (user?.organization?.id) {
-            const fetchInviteStatus = async () => {
+            const fetchData = async () => {
                 try {
-                    const res = await axios.get('/municipality/companies-status');
-                    setInvitationStatus(res.data);
+                    const [statusRes, statsRes] = await Promise.all([
+                        axios.get('/municipality/companies-status'),
+                        axios.get('/municipality/stats')
+                    ]);
+                    setInvitationStatus(statusRes.data);
+                    setMetrics(statsRes.data);
                 } catch (err) {
-                    console.error("Error fetching invite status", err);
+                    console.error("Error fetching dashboard data", err);
                 }
             };
-            fetchInviteStatus();
+            fetchData();
         }
     }, [user]);
 

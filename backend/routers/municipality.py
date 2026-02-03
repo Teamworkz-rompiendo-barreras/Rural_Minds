@@ -122,7 +122,104 @@ def get_companies_status(
             for i in pending
         ],
         "active": [
-            {"name": o.name, "email": "N/A", "status": "active", "logo": o.logo_url} 
+            {"name": o.name, "email": "N/A", "status": "active", "logo": o.branding_logo_url} 
             for o in active
         ]
+    }
+
+@router.get("/stats")
+def get_municipality_stats(
+    db: Session = Depends(database.get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    """
+    Returns KPIs for the Municipality Dashboard.
+    """
+    if current_user.role != "territory_admin":
+        raise HTTPException(status_code=403, detail="Permission denied")
+        
+    org = db.query(models.Organization).filter(models.Organization.id == current_user.organization_id).first()
+    if not org:
+        raise HTTPException(status_code=404, detail="Organization not found")
+        
+    # 1. Companies Validated
+    # Companies linked to this municipality
+    companies = db.query(models.Organization).filter(
+        models.Organization.municipality_id == org.id
+    ).all()
+    
+    validated_companies_count = sum(1 for c in companies if c.validation_status == 'validated')
+    pending_validations_count = sum(1 for c in companies if c.validation_status == 'pending')
+    
+    # 2. Active Projects (Challenges)
+    # Get all challenges from these companies that are 'open'
+    company_ids = [c.id for c in companies]
+    active_projects_count = 0
+    if company_ids:
+        active_projects_count = db.query(models.Challenge).filter(
+            models.Challenge.tenant_id.in_(company_ids),
+            models.Challenge.status == 'open'
+        ).count()
+        
+    # 3. Insertion Rate
+    # (Accepted Apps in these companies / Total Apps in these companies) * 100
+    # This is a bit heavy, let's look for applications to challenges of these companies
+    insertion_rate = 0
+    if company_ids:
+        # We need to join Application -> Challenge -> Organization
+        # But we have company_ids list.
+        total_apps = db.query(models.Application).join(models.Challenge).filter(
+            models.Challenge.tenant_id.in_(company_ids)
+        ).count()
+        
+        accepted_apps = db.query(models.Application).join(models.Challenge).filter(
+            models.Challenge.tenant_id.in_(company_ids),
+            models.Application.status == 'accepted'
+        ).count()
+        
+        if total_apps > 0:
+            insertion_rate = int((accepted_apps / total_apps) * 100)
+            
+    # 4. Local Candidates
+    # TalentProfile.residence_location_id == org.location_id
+    local_candidates_count = 0
+    if org.location_id:
+        local_candidates_count = db.query(models.TalentProfile).filter(
+            models.TalentProfile.residence_location_id == org.location_id
+        ).count()
+        
+    # 5. Attraction Count (Metrics Refinement Phase 5)
+    # Users who do NOT live here but have this location in target_locations
+    attraction_count = 0
+    if org.location_id:
+        # We fetch profiles that confirm willingness to move
+        # And check if target_locations (list of strings) contains our location_id
+        # Doing python-side filter for MVP safety regarding JSON operators
+        loc_id_str = str(org.location_id)
+        
+        # Optimize: Filter by willingness first
+        candidates_willing = db.query(models.TalentProfile).filter(
+            models.TalentProfile.is_willing_to_move == True,
+            models.TalentProfile.residence_location_id != org.location_id
+        ).all()
+        
+        for cand in candidates_willing:
+            # target_locations should be a list of IDs
+            if cand.target_locations and isinstance(cand.target_locations, list):
+                if loc_id_str in cand.target_locations:
+                    attraction_count += 1
+    
+    # Impact Score (Heuristic)
+    # Base 50 + (Validated * 2) + (Active Projects * 5) + (Insertion Rate / 2)
+    impact_score = 50 + (validated_companies_count * 2) + (active_projects_count * 5) + (insertion_rate / 2)
+    if impact_score > 100: impact_score = 100
+    
+    return {
+        "insertionRate": insertion_rate,
+        "companiesValidated": validated_companies_count,
+        "activeProjects": active_projects_count,
+        "localCandidates": local_candidates_count,
+        "attractionCount": attraction_count,
+        "pendingValidations": pending_validations_count,
+        "impactScore": int(impact_score)
     }
