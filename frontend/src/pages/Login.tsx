@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import axios from '../config/api';
 import { useAuth } from '../context/AuthContext';
 
@@ -12,6 +12,8 @@ const Login: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const { login } = useAuth();
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const isDeleted = searchParams.get('deleted') === 'true';
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -104,6 +106,14 @@ const Login: React.FC = () => {
                 </div>
 
                 <h1 className="text-3xl font-heading font-bold text-primary mb-6 text-center">Iniciar Sesión</h1>
+
+                {/* Success Message for Deletion */}
+                {isDeleted && (
+                    <div className="bg-green-100 border border-green-200 text-green-800 p-4 rounded mb-6 text-center animate-fade-in">
+                        <p className="font-bold text-lg mb-1">¡Cuenta eliminada con éxito!</p>
+                        <p className="text-sm">Esperamos volver a verte pronto por aquí.</p>
+                    </div>
+                )}
 
                 {error && (
                     <div

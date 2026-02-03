@@ -76,7 +76,7 @@ const OrganizationSettings: React.FC = () => {
             await axios.delete('/user/me');
 
             // Redirect happens after successful deletion logic
-            window.location.href = '/login';
+            window.location.href = '/login?deleted=true';
         } catch (e: any) {
             console.error(e);
             const msg = e.response?.data?.detail || "Hubo un problema al eliminar la cuenta. Por favor, contacta con soporte.";
