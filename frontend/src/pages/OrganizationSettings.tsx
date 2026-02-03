@@ -77,9 +77,10 @@ const OrganizationSettings: React.FC = () => {
 
             // Redirect happens after successful deletion logic
             window.location.href = '/login';
-        } catch (e) {
+        } catch (e: any) {
             console.error(e);
-            alert("Hubo un problema al eliminar la cuenta. Por favor, contacta con soporte.");
+            const msg = e.response?.data?.detail || "Hubo un problema al eliminar la cuenta. Por favor, contacta con soporte.";
+            alert(msg);
         }
     };
 

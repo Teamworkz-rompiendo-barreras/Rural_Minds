@@ -104,45 +104,32 @@ def delete_me(
     """
     Delete the current user's account and all associated data.
     """
-    # 1. Delete associated data manually to avoid integrity errors
     try:
-        # Delete Messages sent by user
+        # 1. Delete associated data manually to avoid integrity errors (for non-cascaded relationships)
+        # Verify Manual Cleanup for loose content:
+        
+        # Messages sent by user (set to NULL or delete depending on policy. Here we delete)
         db.query(models.Message).filter(models.Message.sender_id == current_user.id).delete()
         
-        # Delete Adjustments Logs
+        # Adjustments Logs
         db.query(models.AdjustmentsLog).filter(models.AdjustmentsLog.user_id == current_user.id).delete()
         
-        # Delete Legal Consents
-        db.query(models.LegalConsent).filter(models.LegalConsent.user_id == current_user.id).delete()
-        
-        # Delete Audit Logs
+        # Audit Logs
         db.query(models.AuditLog).filter(models.AuditLog.user_id == current_user.id).delete()
 
-        # Handle Applications (and their related data)
-        apps = db.query(models.Application).filter(models.Application.user_id == current_user.id).all()
-        for app in apps:
-            # Delete tasks for this app
-            db.query(models.OnboardingTask).filter(models.OnboardingTask.application_id == app.id).delete()
-            # Delete messages linked to this application (even if not sent by user)
-            db.query(models.Message).filter(models.Message.application_id == app.id).delete()
-            db.delete(app)
-            
-        # Handle Talent Profile
-        db.query(models.TalentProfile).filter(models.TalentProfile.user_id == current_user.id).delete()
-        
-        # Handle Accessibility Profile
-        db.query(models.AccessibilityProfile).filter(models.AccessibilityProfile.user_id == current_user.id).delete()
-
-        # Handle Challenges (Unlink creator)
+        # Challenges: Unlink creator (do not delete challenge)
         challenges = db.query(models.Challenge).filter(models.Challenge.creator_id == current_user.id).all()
         for ch in challenges:
             ch.creator_id = None
         
         # 2. Delete User
+        # Cascades will handle: Applications, TalentProfile, LegalConsent, AccessibilityProfile
         db.delete(current_user)
         db.commit()
     except Exception as e:
         db.rollback()
+        import traceback
+        traceback.print_exc() # Log to server console
         raise HTTPException(status_code=500, detail=f"Error deleting account: {str(e)}")
     
     return None

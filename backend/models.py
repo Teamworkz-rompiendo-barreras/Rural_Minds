@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, String, DateTime, JSON, ForeignKey, Enum, Boolean, Float
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, backref
 from sqlalchemy.dialects.postgresql import UUID
 from database import Base
 import datetime
@@ -92,7 +92,7 @@ class User(Base):
     
     organization = relationship("Organization", back_populates="users")
     
-    accessibility_profile = relationship("AccessibilityProfile", back_populates="user", uselist=False)
+    accessibility_profile = relationship("AccessibilityProfile", back_populates="user", uselist=False, cascade="all, delete-orphan")
     # challenges_created = relationship("Challenge", back_populates="creator")
     # applications = relationship("Application", back_populates="user")
 
@@ -177,7 +177,7 @@ class Application(Base):
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
     
-    user = relationship("User", backref="applications")
+    user = relationship("User", backref=backref("applications", cascade="all, delete-orphan"))
     challenge = relationship("Challenge", back_populates="applications")
 
 class TalentProfile(Base):
@@ -196,7 +196,7 @@ class TalentProfile(Base):
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
     
-    user = relationship("User", backref="talent_profile")
+    user = relationship("User", backref=backref("talent_profile", cascade="all, delete-orphan"))
 
 class AuditLog(Base):
     """Tracks admin-relevant events and errors for support/auditing."""
@@ -268,6 +268,8 @@ class LegalConsent(Base):
     user_agent = Column(String, nullable=True)
     
     accepted_at = Column(DateTime, default=datetime.datetime.utcnow)
+    
+    user = relationship("User", backref=backref("legal_consents", cascade="all, delete-orphan"))
     
 
 class OnboardingTask(Base):
