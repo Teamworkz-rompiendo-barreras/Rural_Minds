@@ -18,16 +18,20 @@ const ForgotPassword: React.FC = () => {
         return () => clearInterval(timer);
     }, [cooldown]);
 
-    const handleSubmit = async (e?: React.FormEvent) => {
-        if (e) e.preventDefault();
+    const sendEmail = async (emailAddr: string) => {
+        await axios.post(`/auth/forgot-password?email=${encodeURIComponent(emailAddr)}`);
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
         setStatus('loading');
         setMessage('');
 
         try {
-            await axios.post(`/auth/forgot-password?email=${encodeURIComponent(email)}`);
+            await sendEmail(email);
             setStatus('success');
             setMessage('Si el email existe, recibirás instrucciones para restablecer tu contraseña en breve.');
-            setCooldown(30); // 30 seconds cooldown
+            setCooldown(30);
         } catch (err) {
             console.error(err);
             setStatus('error');
@@ -35,9 +39,19 @@ const ForgotPassword: React.FC = () => {
         }
     };
 
-    const handleResend = () => {
-        if (cooldown === 0) {
-            handleSubmit();
+    const handleResend = async () => {
+        if (cooldown > 0 || isResending) return;
+
+        setIsResending(true);
+        try {
+            await sendEmail(email);
+            setMessage('Si el email existe, recibirás instrucciones para restablecer tu contraseña en breve.');
+            setCooldown(30);
+        } catch (err) {
+            console.error(err);
+            alert('Hubo un error al reenviar el email.');
+        } finally {
+            setIsResending(false);
         }
     };
 
