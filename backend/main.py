@@ -66,6 +66,9 @@ from routers import debug
 app.include_router(debug.router)
 app.include_router(messages.router)
 app.include_router(legal.router)
+from routers import locations
+app.include_router(locations.router)
+
 
 @app.get("/status")
 def health_check():

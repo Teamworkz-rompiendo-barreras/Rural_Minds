@@ -11,6 +11,11 @@ import uuid
 # or explicit UUID if the driver supports it. 
 # We'll use a custom type or String for SQLite simplicity, but interface as UUID.
 import sqlalchemy.types as types
+# Import the new Location model to register it with Base
+# But wait, if I defined it in another file, I need to make sure Base is the same.
+# Both use `database.Base`.
+
+from models_location import Location
 
 class GUID(types.TypeDecorator):
     """Platform-independent GUID type.
@@ -66,8 +71,10 @@ class Organization(Base):
     # New fields for RuralMinds
     org_type = Column(String, default="enterprise") # enterprise, municipality
     municipality_id = Column(GUID, ForeignKey("organizations.id"), nullable=True) # If enterprise, links to municipality
+    location_id = Column(GUID, ForeignKey("locations.id"), nullable=True) # Link to geographic location
     
     parent = relationship("Organization", remote_side=[id], backref="companies")
+    location = relationship("Location") # Relationship
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
     users = relationship("User", back_populates="organization")
@@ -192,6 +199,13 @@ class TalentProfile(Base):
     neurodivergent_traits = Column(JSON, default=list)
     work_style = Column(String, nullable=True)
     communication_preferences = Column(JSON, default=dict)
+
+    # Location Module
+    residence_location_id = Column(GUID, ForeignKey("locations.id"), nullable=True)
+    is_willing_to_move = Column(Boolean, default=False)
+    target_locations = Column(JSON, default=list) # List of Location IDs or names
+
+    residence_location = relationship("Location")
     
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
