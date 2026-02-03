@@ -61,7 +61,20 @@ const RegisterMunicipality: React.FC = () => {
             }
         } catch (err: any) {
             console.error(err);
-            setError(err.response?.data?.detail || 'Error al registrar cuenta');
+            // Enhanced error extraction
+            const detail = err.response?.data?.detail;
+            let errorMessage = 'Error al registrar cuenta';
+
+            if (typeof detail === 'string') {
+                errorMessage = detail;
+            } else if (Array.isArray(detail)) {
+                // Pydantic validation error often comes as array
+                errorMessage = detail.map((e: any) => e.msg).join(', ');
+            } else if (typeof detail === 'object') {
+                errorMessage = JSON.stringify(detail);
+            }
+
+            setError(errorMessage);
         } finally {
             setLoading(false);
         }

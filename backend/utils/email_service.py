@@ -163,9 +163,9 @@ def send_welcome_email(to_email: str, user_name: str) -> bool:
     <html lang="es">
     <head><meta charset="UTF-8"></head>
     <body style="font-family: 'Atkinson Hyperlegible', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f5f5f5;">
-        <div style="background: linear-gradient(135deg, #374BA6 0%, #4B5CC4 100%); color: white; padding: 40px 30px; text-align: center; border-radius: 16px 16px 0 0;">
-            <h1 style="margin: 0 0 10px 0; font-size: 28px;">🎉 ¡Cuenta Activada!</h1>
-            <p style="margin: 0; opacity: 0.9; font-size: 16px;">Ya formas parte de Rural Minds</p>
+        <div style="background-color: #374BA6; background: linear-gradient(135deg, #374BA6 0%, #4B5CC4 100%); color: white; padding: 40px 30px; text-align: center; border-radius: 16px 16px 0 0;">
+            <h1 style="margin: 0 0 10px 0; font-size: 28px; color: #ffffff;">🎉 ¡Cuenta Activada!</h1>
+            <p style="margin: 0; opacity: 0.9; font-size: 16px; color: #f0f0f0;">Ya formas parte de Rural Minds</p>
         </div>
         <div style="background: white; padding: 40px 30px; border-radius: 0 0 16px 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
             <p style="font-size: 18px; color: #111; margin-top: 0;">Hola <strong>{{user_name}}</strong>,</p>
@@ -323,9 +323,9 @@ def send_municipality_welcome_email(to_email: str, talent_name: str, municipalit
     <html lang="es">
     <head><meta charset="UTF-8"></head>
     <body style="font-family: 'Atkinson Hyperlegible', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f5f5f5;">
-        <div style="background: linear-gradient(135deg, #374BA6 0%, #4B5CC4 100%); color: white; padding: 40px 30px; text-align: center; border-radius: 16px 16px 0 0;">
-            <h1 style="margin: 0 0 10px 0; font-size: 24px;">{{municipality_name}} te espera 🌿</h1>
-            <p style="margin: 0; opacity: 0.9; font-size: 16px;">Innovación con Denominación de Origen</p>
+        <div style="background-color: #374BA6; background: linear-gradient(135deg, #374BA6 0%, #4B5CC4 100%); color: white; padding: 40px 30px; text-align: center; border-radius: 16px 16px 0 0;">
+            <h1 style="margin: 0 0 10px 0; font-size: 24px; color: #ffffff;">{{municipality_name}} te espera 🌿</h1>
+            <p style="margin: 0; opacity: 0.9; font-size: 16px; color: #f0f0f0;">Innovación con Denominación de Origen</p>
         </div>
         <div style="background: white; padding: 40px 30px; border-radius: 0 0 16px 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
             <p style="font-size: 18px; color: #111; margin-top: 0;">¡Hola <strong>{{talent_name}}</strong>!</p>
@@ -398,9 +398,9 @@ def send_invitation_email(to_email: str, entity_name: str, token: str) -> bool:
     <html lang="es">
     <head><meta charset="UTF-8"></head>
     <body style="font-family: 'Atkinson Hyperlegible', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f5f5f5;">
-        <div style="background: linear-gradient(135deg, #374BA6 0%, #4B5CC4 100%); color: white; padding: 40px 30px; text-align: center; border-radius: 16px 16px 0 0;">
-            <h1 style="margin: 0 0 10px 0; font-size: 24px;">Invitación a Rural Minds</h1>
-            <p style="margin: 0; opacity: 0.9; font-size: 16px;">Plataforma de Talento e Innovación Rural</p>
+        <div style="background-color: #374BA6; background: linear-gradient(135deg, #374BA6 0%, #4B5CC4 100%); color: white; padding: 40px 30px; text-align: center; border-radius: 16px 16px 0 0;">
+            <h1 style="margin: 0 0 10px 0; font-size: 24px; color: #ffffff;">Invitación a Rural Minds</h1>
+            <p style="margin: 0; opacity: 0.9; font-size: 16px; color: #f0f0f0;">Plataforma de Talento e Innovación Rural</p>
         </div>
         <div style="background: white; padding: 40px 30px; border-radius: 0 0 16px 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
             <p style="font-size: 18px; color: #111; margin-top: 0;">Hola,</p>

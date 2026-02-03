@@ -35,21 +35,42 @@ def create_prod_tables():
 
     # --- Manual Patching for missing columns in Organizations (Admin Dashboard Fix) ---
     from sqlalchemy import text
+    from sqlalchemy.exc import ProgrammingError
+
     print("🔧 Patching 'organizations' table columns...")
     with engine.connect() as conn:
-        try:
-            # validation_status
-            conn.execute(text("ALTER TABLE organizations ADD COLUMN IF NOT EXISTS validation_status VARCHAR DEFAULT 'pending'"))
-            # branding_logo_url
-            conn.execute(text("ALTER TABLE organizations ADD COLUMN IF NOT EXISTS branding_logo_url VARCHAR NULL"))
-            # municipality_id
-            conn.execute(text("ALTER TABLE organizations ADD COLUMN IF NOT EXISTS municipality_id UUID NULL"))
-            # org_type (ensure it exists, might overlap)
-            conn.execute(text("ALTER TABLE organizations ADD COLUMN IF NOT EXISTS org_type VARCHAR DEFAULT 'enterprise'"))
-            
-            print("✅ 'organizations' columns patched.")
-        except Exception as e:
-            print(f"⚠️ Error patching columns: {e}")
+        columns_to_add = [
+            ("validation_status", "VARCHAR DEFAULT 'pending'"),
+            ("branding_logo_url", "VARCHAR NULL"),
+            ("municipality_id", "UUID NULL"),
+            ("org_type", "VARCHAR DEFAULT 'enterprise'"),
+            ("seal_downloaded_at", "TIMESTAMP NULL"),
+            ("location_id", "UUID NULL"),
+            ("primary_color_override", "VARCHAR DEFAULT '#0F5C2E'")
+        ]
+        
+        for col_name, col_def in columns_to_add:
+            try:
+                # Start a nested transaction section if possible, or just rely on autocommit isolation if engine supports
+                # For safety, we will just try/except and ensure we are clean.
+                # Since we are in a block `with engine.connect() as conn`, it starts a transaction.
+                # We need to use SAVEPOINTs or just try one by one in separate connections if this fails.
+                # Simplest way: wrap in nested transaction
+                with conn.begin_nested():
+                    print(f"   Attempting to add: {col_name}...")
+                    conn.execute(text(f"ALTER TABLE organizations ADD COLUMN {col_name} {col_def}"))
+                print(f"   ✅ Added {col_name}")
+            except ProgrammingError as e:
+                # The nested transaction handles rollback of the failed statement automatically
+                if "already exists" in str(e):
+                    print(f"   ℹ️  Column {col_name} already exists.")
+                else:
+                    print(f"   ⚠️ Failed to add {col_name}: {e}")
+            except Exception as e:
+                 print(f"   ⚠️ General Error adding {col_name}: {e}")
+                 
+             
+    # --- Check for AuditLog & AdjustmentsLog ---
             
     # --- Check for AuditLog & AdjustmentsLog ---
     if "audit_logs" not in tables:
