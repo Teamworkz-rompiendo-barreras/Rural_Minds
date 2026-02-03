@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, JSON, ForeignKey, Enum, Boolean, Float
+﻿from sqlalchemy import Column, Integer, String, DateTime, JSON, ForeignKey, Enum, Boolean, Float
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.dialects.postgresql import UUID
 from database import Base
@@ -333,3 +333,6 @@ class MasterResource(Base):
     version = Column(String, default="1.0")
     updated_by = Column(GUID, ForeignKey("users.id"), nullable=True)
     updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
+
+# Import from models_location to make them available via models module
+from models_location import MunicipalityDetails, MunicipalityResource, Location
