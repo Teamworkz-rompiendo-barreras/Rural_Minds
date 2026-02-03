@@ -17,6 +17,7 @@ interface Challenge {
     tenant?: {
         name: string;
         municipality_id?: string;
+        location_id?: string;
     };
     created_at: string;
 }
@@ -49,7 +50,8 @@ const TalentDashboard: React.FC = () => {
     const [sensoryFilters, setSensoryFilters] = useState({
         lowNoise: false,
         naturalLight: false,
-        asyncComm: false
+        asyncComm: false,
+        nearMe: false
     });
 
     useEffect(() => {
@@ -109,9 +111,15 @@ const TalentDashboard: React.FC = () => {
             );
         }
 
-        // 2. Location (Mock logic since we don't have full municipality list yet)
-        if (locationFilter !== 'Todos') {
-            // result = result.filter(...) 
+        // 2. Location (Near Me)
+        if (sensoryFilters.nearMe && user?.talent_profile?.residence_location_id) {
+            result = result.filter(c =>
+                c.tenant?.location_id === user.talent_profile?.residence_location_id
+            );
+        } else if (sensoryFilters.nearMe && !user?.talent_profile?.residence_location_id) {
+            // User checked 'near me' but has no location set
+            // Optional: could show a warning or empty list. For now, empty list is safer as "nothing is near nowhere"
+            result = [];
         }
 
         setFilteredChallenges(result);
@@ -143,6 +151,26 @@ const TalentDashboard: React.FC = () => {
                         <h3 className="font-heading font-bold text-lg text-n900 mb-4">Filtrar por Ajustes</h3>
 
                         <div className="space-y-3">
+                            {/* Proximidad - NEW */}
+                            <label className="flex items-center gap-3 cursor-pointer group bg-indigo-50 p-2 rounded-lg border border-indigo-100 hover:border-indigo-200 transition-colors">
+                                <div className="relative flex items-center">
+                                    <input
+                                        type="checkbox"
+                                        className="peer h-5 w-5 cursor-pointer appearance-none rounded-md border border-indigo-300 transition-all checked:border-indigo-600 checked:bg-indigo-600 focus:ring-2 focus:ring-indigo-200 focus:ring-offset-2"
+                                        checked={sensoryFilters.nearMe}
+                                        onChange={e => setSensoryFilters({ ...sensoryFilters, nearMe: e.target.checked })}
+                                    />
+                                    <span className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-white opacity-0 peer-checked:opacity-100">
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
+                                    </span>
+                                </div>
+                                <div className="flex flex-col">
+                                    <span className="text-gray-900 font-bold text-sm">📍 Cerca de Mí</span>
+                                    <span className="text-xs text-indigo-600">KM 0</span>
+                                </div>
+                            </label>
+
+                            <hr className="border-gray-100 my-2" />
                             <label className="flex items-center gap-3 cursor-pointer group">
                                 <div className="relative flex items-center">
                                     <input

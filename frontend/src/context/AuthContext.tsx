@@ -17,6 +17,13 @@ interface User {
     organization_id?: string;
     organization?: Organization;
     status?: string;
+    talent_profile?: {
+        residence_location_id?: string;
+        is_willing_to_move?: boolean;
+        target_locations?: string[];
+        bio?: string;
+        skills?: string[];
+    };
 }
 
 interface AuthContextType {

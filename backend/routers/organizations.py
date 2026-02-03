@@ -55,16 +55,14 @@ def get_location_metrics(location_id: str, db: Session = Depends(database.get_db
         models.TalentProfile.residence_location_id == location_id
     ).count()
     
-    # 3. New Residents (Attraction - Willing to move to this location)
-    # This requires JSON query, which determines on DB dialect. 
-    # For now, we will fetch all and filter in python for simplicity if dataset is small, 
-    # or use simple count.
-    # Postgres JSONb contains: 
-    # filter(models.TalentProfile.target_locations.contains([location_id])) 
+    # 3. New Residents (Attraction)
+    # Fetch all profiles with target_locations (optimization: filter not null if possible, but fetching all is safe for prototype)
+    all_profiles = db.query(models.TalentProfile).all()
     
-    # Simplified approach for prototype:
-    attracted_talent = 0 
-    # (To be implemented with proper JSON operators later)
+    attracted_talent = 0
+    for profile in all_profiles:
+        if profile.target_locations and location_id in profile.target_locations:
+            attracted_talent += 1
     
     return {
         "companies_validated": companies_count,

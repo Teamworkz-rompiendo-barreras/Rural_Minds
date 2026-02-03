@@ -12,6 +12,7 @@ const mockMetrics = {
     companiesValidated: 12,
     activeProjects: 5,
     localCandidates: 34,
+    attractionCount: 0, // Attraction metric (new residents)
     pendingValidations: 2,
     impactScore: 92
 };
@@ -59,6 +60,7 @@ const MunicipalityDashboard: React.FC = () => {
                         ...prev,
                         companiesValidated: metricsRes.data.companies_validated || prev.companiesValidated,
                         localCandidates: metricsRes.data.local_candidates || prev.localCandidates,
+                        attractionCount: metricsRes.data.new_residents_interest || 0,
                         // Add rooting/attraction if API provides it
                     }));
                 }
@@ -149,7 +151,7 @@ const MunicipalityDashboard: React.FC = () => {
                         </div>
                         <div className="h-8 w-px bg-gray-200"></div>
                         <div className="text-center">
-                            <p className="text-2xl font-bold text-indigo-600">0</p>
+                            <p className="text-2xl font-bold text-indigo-600">{metrics.attractionCount}</p>
                             <p className="text-[10px] text-gray-500 uppercase">Nuevos</p>
                         </div>
                     </div>
