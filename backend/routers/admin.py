@@ -36,17 +36,45 @@ def get_global_stats(
     total_users = db.query(models.User).count()
     
     # 2. Sealed Companies (Excellence)
+    # Using 'validation_status' which we ensured exists via DB Patch
     sealed_companies = db.query(models.Organization).filter(
         models.Organization.validation_status == 'validated'
     ).count()
 
-    # 3. Active Municipalities (Has at least 1 validated company or active admin)
+    # 3. Active Municipalities (Has active admin or content)
+    # For now, simplest proxy is just count of municipalities as they are created 'active' via invite
     active_municipalities = total_munis 
 
-    # 4. Impact Metrics (Simulated/Calculated)
-    matches_count = db.query(models.Application).filter(models.Application.status == 'accepted').count()
-    rooting_index = 85 
-    attraction_rate = 12 
+    # 4. Impact Metrics (Calculated)
+    # Matches
+    accepted_apps = db.query(models.Application).filter(models.Application.status == 'accepted').all()
+    matches_count = len(accepted_apps)
+    
+    rooting_count = 0
+    attraction_count = 0
+    
+    if matches_count > 0:
+        for app in accepted_apps:
+            # Logic: If candidate was from same province as challenge -> Rooting
+            # If from different -> Attraction
+            # This requires complex joins, for now we will infer from User Profile
+            # Simple Heuristic: 
+            # If user.is_willing_to_move = True -> likely moved -> Attraction
+            # Else -> Rooting
+            user = db.query(models.User).get(app.user_id)
+            if user:
+                # We need to check TalentProfile ideally
+                profile = db.query(models.TalentProfile).filter(models.TalentProfile.user_id == user.id).first()
+                if profile and profile.is_willing_to_move:
+                     attraction_count += 1
+                else:
+                     rooting_count += 1
+                     
+        rooting_index = int((rooting_count / matches_count) * 100)
+        attraction_rate = int((attraction_count / matches_count) * 100)
+    else:
+        rooting_index = 0
+        attraction_rate = 0
 
     # Users by plan
     users_by_plan = {}
@@ -91,24 +119,58 @@ def get_heatmap_data(
 ):
     """
     Returns aggregated data by province/region for the heatmap.
-    Mocking distribution for Spain provinces based on active municipalities.
     """
-    # In a real scenario, we would join Organization -> Location -> Province
-    # For now, we return a mocked list that matches the frontend SVG IDs (e.g., 'ES-M', 'ES-B'...)
+    from models_location import Location
     
-    # Fetch real municipalities to seed the map if possible
-    munis = db.query(models.Organization).filter(models.Organization.org_type == "municipality").all()
+    # Map Spanish Province Names to ISO-like IDs supported by the frontend map
+    # This mapping might need adjustment based on the SVG map component
+    province_map = {
+        "Madrid": "ES-M", "Barcelona": "ES-B", "Valencia": "ES-V", "Sevilla": "ES-SE",
+        "Zaragoza": "ES-Z", "Málaga": "ES-MA", "Murcia": "ES-MU", "Palma": "ES-PM",
+        "Las Palmas": "ES-GC", "Bilbao": "ES-BI", "Alicante": "ES-A", "Córdoba": "ES-CO",
+        "Valladolid": "ES-VA", "Vigo": "ES-PO", "Gijón": "ES-O", "Hospitalet": "ES-B",
+        "Vitoria": "ES-VI", "Coruña": "ES-C", "Granada": "ES-GR", "Elche": "ES-A",
+        "Asturias": "ES-O", "Cantabria": "ES-S", "Navarra": "ES-NA", "La Rioja": "ES-LO",
+        "Cáceres": "ES-CC", "Badajoz": "ES-BA", "Toledo": "ES-TO", "Albacete": "ES-AB",
+        "Ciudad Real": "ES-CR", "Cuenca": "ES-CU", "Guadalajara": "ES-GU",
+        "León": "ES-LE", "Zamora": "ES-ZA", "Salamanca": "ES-SA", "Palencia": "ES-P",
+        "Burgos": "ES-BU", "Soria": "ES-SO", "Segovia": "ES-SG", "Ávila": "ES-AV",
+        "Lugo": "ES-LU", "Ourense": "ES-OR", "Pontevedra": "ES-PO", 
+        "Huelva": "ES-H", "Cádiz": "ES-CA", "Jaén": "ES-J", "Almería": "ES-AL"
+    }
     
-    # Return simplfied structure
-    return [
-        {"id": "ES-M", "name": "Madrid", "value": 45, "activity": "high"},
-        {"id": "ES-B", "name": "Barcelona", "value": 30, "activity": "high"},
-        {"id": "ES-CB", "name": "Cantabria", "value": 15, "activity": "medium"},
-        {"id": "ES-AS", "name": "Asturias", "value": 20, "activity": "medium"},
-        {"id": "ES-EX", "name": "Extremadura", "value": 10, "activity": "low"},
-        {"id": "ES-AN", "name": "Andalucía", "value": 5, "activity": "low"}
-        # Add more logic here to map real data later
-    ]
+    # Aggregate data: Count Organizations by Province
+    # Join Organization -> Location
+    results = db.query(Location.province, func.count(models.Organization.id))\
+        .join(models.Organization, models.Organization.location_id == Location.id)\
+        .group_by(Location.province).all()
+        
+    data = []
+    for province, count in results:
+        if not province: continue
+        
+        map_id = province_map.get(province, f"ES-{province[:2].upper()}")
+        
+        # Determine activity level
+        activity = "low"
+        if count > 10: activity = "high"
+        elif count > 3: activity = "medium"
+        
+        data.append({
+            "id": map_id,
+            "name": province,
+            "value": count,
+            "activity": activity
+        })
+        
+    # If no data, return a default set so the map isn't blank
+    if not data:
+        data = [
+            {"id": "ES-M", "name": "Madrid", "value": 0, "activity": "low"},
+            {"id": "ES-B", "name": "Barcelona", "value": 0, "activity": "low"}
+        ]
+        
+    return data
 
 @router.get("/quality-audit")
 def get_quality_audit(
