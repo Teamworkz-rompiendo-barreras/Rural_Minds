@@ -18,6 +18,10 @@
     ],
     "routes": [
         {
+            "src": "/api/(ping|diag)",
+            "dest": "/backend/api/diag.py"
+        },
+        {
             "src": "/(api|auth|user|admin|organization|profile|applications|solutions|onboarding|reports|debug|messages|legal|status)(.*)",
             "dest": "/backend/api/index.py"
         },
