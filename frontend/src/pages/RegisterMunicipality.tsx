@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import axios from '../config/api';
+import { useAuth } from '../context/AuthContext';
 
 const RegisterMunicipality: React.FC = () => {
     const [searchParams] = useSearchParams();
@@ -13,6 +14,15 @@ const RegisterMunicipality: React.FC = () => {
     const [fullName, setFullName] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+
+    const { logout } = useAuth(); // Import logout
+
+    useEffect(() => {
+        // Security: Force logout when entering this page to prevent session mixing
+        logout();
+        localStorage.removeItem('token');
+        localStorage.removeItem('user_role'); // Clean up any other artifacts
+    }, []);
 
     useEffect(() => {
         if (!token) {

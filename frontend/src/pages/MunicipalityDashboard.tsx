@@ -108,12 +108,19 @@ const MunicipalityDashboard: React.FC = () => {
         <div className="flex flex-col gap-8 max-w-7xl mx-auto px-4 py-6 font-body">
 
             {/* Header ... (same as before) */}
+            {/* Header */}
             <header className="border-b border-gray-100 pb-6 mb-2">
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     <div>
-                        <h1 className="text-4xl font-heading font-bold text-p2 mb-2">
-                            Panel del Ayuntamiento
-                        </h1>
+                        <div className="flex items-center gap-3 mb-2">
+                            <h1 className="text-4xl font-heading font-bold text-p2">
+                                Panel del Ayuntamiento
+                            </h1>
+                            {/* Identity Badge */}
+                            <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${user?.role === 'super_admin' ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-600'}`}>
+                                {user?.role === 'super_admin' ? '👀 Modo Superadmin' : `Admin: ${user?.full_name || 'Desconocido'}`}
+                            </span>
+                        </div>
                         <p className="text-xl text-n900">
                             {user?.organization?.name || "Tu Municipio"} — Gestión de Impacto Social
                         </p>
