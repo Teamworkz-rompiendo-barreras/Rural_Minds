@@ -14,6 +14,9 @@ def ping():
 def diag():
     import sys
     import os
+    
+    # Add parent directory to path to allow importing backend modules
+    sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     info = {
         "python_version": sys.version,
         "platform": sys.platform,
