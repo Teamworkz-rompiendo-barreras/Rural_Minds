@@ -1,354 +1,254 @@
+
 import React, { useState, useEffect } from 'react';
-import api from '../config/api';
-import { Link } from 'react-router-dom';
+import axios from '../config/api';
+import { useNavigate } from 'react-router-dom';
 
-// --- Types ---
-interface SystemConfig {
-    key: string;
-    value: string;
-    description: string;
-    data_type: string;
-}
+const SuperAdminConfig: React.FC = () => {
+    const navigate = useNavigate();
+    const [activeTab, setActiveTab] = useState<'resources' | 'emails' | 'system'>('resources');
 
-interface EmailTemplate {
-    key: string;
-    subject_template: string;
-    body_html_template: string;
-}
-
-interface MasterResource {
-    id: string;
-    name: string;
-    resource_type: string;
-    public_url: string;
-    updated_at: string;
-}
-
-export default function SuperAdminConfig() {
-    const [activeTab, setActiveTab] = useState<'resources' | 'comms' | 'system'>('resources');
-
-    return (
-        <div className="max-w-7xl mx-auto px-4 py-8">
-            <div className="mb-8">
-                <Link to="/admin" className="text-gray-500 hover:text-gray-700 text-sm mb-2 flex items-center gap-1">
-                    ← Volver al Dashboard
-                </Link>
-                <h1 className="text-3xl font-bold text-gray-900">Configuración Global</h1>
-                <p className="text-gray-500 mt-1">El Cerebro Operativo de Rural Minds</p>
-            </div>
-
-            {/* Tabs */}
-            <div className="flex border-b border-gray-200 mb-8">
-                <TabButton
-                    active={activeTab === 'resources'}
-                    onClick={() => setActiveTab('resources')}
-                    label="📚 Recursos Maestros"
-                />
-                <TabButton
-                    active={activeTab === 'comms'}
-                    onClick={() => setActiveTab('comms')}
-                    label="📨 Comunicaciones"
-                />
-                <TabButton
-                    active={activeTab === 'system'}
-                    onClick={() => setActiveTab('system')}
-                    label="⚙️ Parámetros del Sistema"
-                />
-            </div>
-
-            {/* Content */}
-            <div className="min-h-[500px]">
-                {activeTab === 'resources' && <ResourcesTab />}
-                {activeTab === 'comms' && <CommunicationsTab />}
-                {activeTab === 'system' && <SystemTab />}
-            </div>
-        </div>
-    );
-}
-
-function TabButton({ active, onClick, label }: { active: boolean; onClick: () => void; label: string }) {
-    return (
-        <button
-            onClick={onClick}
-            className={`px-6 py-3 font-medium text-sm focus:outline-none transition-colors ${active
-                ? 'border-b-2 border-primary-600 text-primary-700'
-                : 'text-gray-500 hover:text-gray-700'
-                }`}
-        >
-            {label}
-        </button>
-    );
-}
-
-// --- Resources Tab ---
-function ResourcesTab() {
-    const [resources, setResources] = useState<MasterResource[]>([]);
-    const [uploading, setUploading] = useState(false);
+    // State
+    const [resources, setResources] = useState<any[]>([]);
+    const [emails, setEmails] = useState<any[]>([]);
+    const [systemConfig, setSystemConfig] = useState<any[]>([]);
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
-        loadResources();
-    }, []);
+        if (activeTab === 'resources') fetchResources();
+        if (activeTab === 'emails') fetchEmails();
+        if (activeTab === 'system') fetchSystemConfig();
+    }, [activeTab]);
 
-    const loadResources = async () => {
+    const fetchResources = async () => {
+        setLoading(true);
         try {
-            const res = await api.get('/config/resources');
+            const res = await axios.get('/config/resources');
             setResources(res.data);
-        } catch (e) {
-            console.error("Failed to load resources", e);
-        }
+        } catch (err) { console.error(err); }
+        finally { setLoading(false); }
     };
 
-    const handleDrop = async (e: React.DragEvent) => {
-        e.preventDefault();
-        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-            await handleUpload(e.dataTransfer.files[0]);
-        }
+    const fetchEmails = async () => {
+        setLoading(true);
+        try {
+            const res = await axios.get('/config/emails');
+            setEmails(res.data);
+        } catch (err) { console.error(err); }
+        finally { setLoading(false); }
     };
 
-    const handleUpload = async (file: File) => {
-        setUploading(true);
+    const fetchSystemConfig = async () => {
+        setLoading(true);
+        try {
+            const res = await axios.get('/config/system');
+            setSystemConfig(res.data);
+        } catch (err) { console.error(err); }
+        finally { setLoading(false); }
+    };
+
+    // --- Resources Handlers ---
+    const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (!e.target.files || e.target.files.length === 0) return;
+        const file = e.target.files[0];
         const formData = new FormData();
         formData.append('file', file);
         formData.append('name', file.name); // Default name
-        formData.append('resource_type', 'file'); // Default type
+        formData.append('resource_type', 'generic'); // Default type
 
         try {
-            await api.post('/config/resources/upload', formData, {
+            await axios.post('/config/resources/upload', formData, {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
-            loadResources(); // Refresh
-            alert("Recurso subido con éxito");
+            fetchResources();
+            alert('Recurso subido correctamente');
         } catch (err) {
-            alert("Error al subir archivo");
-        } finally {
-            setUploading(false);
+            console.error(err);
+            alert('Error al subir recurso');
         }
     };
 
-    return (
-        <div className="space-y-8">
-            {/* Upload Area */}
-            <div
-                onDrop={handleDrop}
-                onDragOver={(e) => e.preventDefault()}
-                className="border-2 border-dashed border-gray-300 rounded-xl p-10 text-center hover:border-primary-500 hover:bg-primary-50 transition-colors cursor-pointer"
-            >
-                <div className="text-4xl mb-4">📤</div>
-                <h3 className="text-lg font-semibold text-gray-700">Arrastra archivos aquí o haz clic</h3>
-                <p className="text-sm text-gray-500 mt-2">PDFs, Sellos (SVG/PNG), Guías</p>
-                <input
-                    type="file"
-                    className="hidden"
-                    id="fileInput"
-                    onChange={(e) => e.target.files && handleUpload(e.target.files[0])}
-                />
-                <label
-                    htmlFor="fileInput"
-                    className="mt-4 inline-block px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50 cursor-pointer"
-                >
-                    Seleccionar Archivo
-                </label>
-                {uploading && <p className="text-primary-600 mt-2 font-medium">Subiendo...</p>}
-            </div>
+    // --- System Handlers ---
+    const handleConfigUpdate = async (key: string, value: string) => {
+        try {
+            await axios.put(`/config/system/${key}`, { value });
+            alert('Configuración guardada');
+        } catch (err) {
+            console.error(err);
+            alert('Error al guardar');
+        }
+    };
 
-            {/* List */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {resources.map((res) => (
-                    <div key={res.id} className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow">
-                        <div className="flex justify-between items-start mb-3">
-                            <span className="text-2xl">{res.resource_type === 'pdf' ? '📄' : '🖼️'}</span>
-                            <a
-                                href={api.defaults.baseURL?.replace('/api', '') + res.public_url}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="text-xs font-semibold bg-gray-100 text-gray-600 px-2 py-1 rounded"
-                            >
-                                Ver
-                            </a>
-                        </div>
-                        <h4 className="font-semibold text-gray-800 truncate" title={res.name}>{res.name}</h4>
-                        <p className="text-xs text-gray-500 mt-1">Actualizado: {new Date(res.updated_at).toLocaleDateString()}</p>
-                        <div className="mt-4 pt-4 border-t border-gray-100">
-                            <code className="text-xs bg-gray-50 p-1 rounded text-gray-600 break-all select-all">
-                                {res.public_url}
-                            </code>
-                        </div>
+    // --- Email Handlers ---
+    const handleEmailUpdate = async (key: string, subject: string, body: string) => {
+        try {
+            await axios.put(`/config/emails/${key}`, { subject, body_html: body });
+            alert('Plantilla guardada');
+        } catch (err) {
+            console.error(err);
+            alert('Error al guardar plantilla');
+        }
+    }
+
+    return (
+        <div className="min-h-screen bg-gray-50 pb-20">
+            <header className="bg-white shadow-sm sticky top-0 z-20">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                        <button onClick={() => navigate('/admin-dashboard')} className="text-gray-500 hover:text-gray-900">
+                            ← Volver
+                        </button>
+                        <h1 className="text-2xl font-bold text-n900">🧠 Cerebro Operativo</h1>
                     </div>
-                ))}
-            </div>
-        </div>
-    );
-}
-
-// --- Communications Tab ---
-function CommunicationsTab() {
-    const [templates, setTemplates] = useState<EmailTemplate[]>([]);
-    const [selectedTemplate, setSelectedTemplate] = useState<EmailTemplate | null>(null);
-
-    useEffect(() => {
-        loadTemplates();
-    }, []);
-
-    const loadTemplates = async () => {
-        try {
-            const res = await api.get('/config/emails');
-            setTemplates(res.data);
-        } catch (e) {
-            console.error(e);
-        }
-    };
-
-    const handleSave = async () => {
-        if (!selectedTemplate) return;
-        try {
-            await api.put(`/config/emails/${selectedTemplate.key}`, {
-                subject: selectedTemplate.subject_template,
-                body_html: selectedTemplate.body_html_template
-            });
-            alert("Plantilla guardada");
-            loadTemplates();
-        } catch (e) {
-            alert("Error al guardar");
-        }
-    };
-
-    return (
-        <div className="flex h-[600px] border border-gray-200 rounded-xl overflow-hidden bg-white">
-            {/* Sidebar */}
-            <div className="w-1/4 border-r border-gray-200 bg-gray-50 overflow-y-auto">
-                <div className="p-4 border-b border-gray-200">
-                    <h3 className="font-semibold text-gray-700">Plantillas</h3>
                 </div>
-                <ul>
-                    {templates.map(t => (
-                        <li
-                            key={t.key}
-                            onClick={() => setSelectedTemplate(t)}
-                            className={`p-3 cursor-pointer hover:bg-white border-b border-gray-100 text-sm ${selectedTemplate?.key === t.key ? 'bg-white border-l-4 border-l-primary-600 font-medium' : 'text-gray-600'}`}
-                        >
-                            {t.key}
-                        </li>
-                    ))}
-                    {templates.length === 0 && <li className="p-4 text-sm text-gray-400">Cargando o sin plantillas...</li>}
-                </ul>
-            </div>
+            </header>
 
-            {/* Editor */}
-            <div className="flex-1 flex flex-col p-6">
-                {selectedTemplate ? (
-                    <>
-                        <div className="mb-4">
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Asunto</label>
-                            <input
-                                value={selectedTemplate.subject_template}
-                                onChange={(e) => setSelectedTemplate({ ...selectedTemplate, subject_template: e.target.value })}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:outline-none"
-                            />
+            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                {/* Tabs */}
+                <div className="flex gap-4 mb-8 border-b border-gray-200">
+                    <TabButton active={activeTab === 'resources'} onClick={() => setActiveTab('resources')} label="📂 Recursos Maestros" />
+                    <TabButton active={activeTab === 'emails'} onClick={() => setActiveTab('emails')} label="📧 Comunicaciones" />
+                    <TabButton active={activeTab === 'system'} onClick={() => setActiveTab('system')} label="⚙️ Parámetros del Sistema" />
+                </div>
+
+                {loading && <div className="text-center py-10">Cargando...</div>}
+
+                {/* Resources Panel */}
+                {!loading && activeTab === 'resources' && (
+                    <div className="space-y-6">
+                        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                            <h3 className="font-bold text-lg mb-4">Subir Nuevo Recurso</h3>
+                            <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer relative">
+                                <input type="file" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" onChange={handleUpload} />
+                                <span className="text-4xl block mb-2">📤</span>
+                                <p className="font-medium text-gray-600">Arrastra archivos aquí o haz clic para subir</p>
+                                <p className="text-xs text-gray-400 mt-1">PDF, Imagenes, ZIP (Max 10MB)</p>
+                            </div>
                         </div>
 
-                        <div className="flex-1 flex flex-col mb-4">
-                            <label className="block text-sm font-medium text-gray-700 mb-1">HTML Body</label>
-                            <textarea
-                                value={selectedTemplate.body_html_template}
-                                onChange={(e) => setSelectedTemplate({ ...selectedTemplate, body_html_template: e.target.value })}
-                                className="flex-1 w-full px-3 py-2 border border-gray-300 rounded-lg font-mono text-sm focus:ring-2 focus:ring-primary-500 focus:outline-none"
-                            />
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {resources.map((res: any) => (
+                                <div key={res.id} className="bg-white p-4 rounded-lg shadow-sm border border-gray-200 flex flex-col justify-between">
+                                    <div>
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <span className="text-2xl">📄</span>
+                                            <h4 className="font-bold text-sm truncate" title={res.name}>{res.name}</h4>
+                                        </div>
+                                        <p className="text-xs text-gray-500 mb-2">ID: <span className="font-mono">{res.id.substring(0, 8)}...</span></p>
+                                    </div>
+                                    <div className="mt-4 pt-3 border-t border-gray-100 flex justify-between items-center text-xs">
+                                        <span className="text-gray-400">{new Date(res.updated_at).toLocaleDateString()}</span>
+                                        <a href={res.public_url} target="_blank" rel="noreferrer" className="text-p2 font-bold hover:underline">Ver / Descargar</a>
+                                    </div>
+                                </div>
+                            ))}
                         </div>
-
-                        <div className="flex justify-end gap-3">
-                            <button
-                                onClick={() => alert("Previsualización WIP")}
-                                className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
-                            >
-                                Prueba
-                            </button>
-                            <button
-                                onClick={handleSave}
-                                className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
-                            >
-                                Guardar Cambios
-                            </button>
-                        </div>
-                    </>
-                ) : (
-                    <div className="flex items-center justify-center h-full text-gray-400">
-                        Selecciona una plantilla para editar
                     </div>
                 )}
-            </div>
+
+                {/* Emails Panel */}
+                {!loading && activeTab === 'emails' && (
+                    <div className="space-y-6">
+                        {emails.length === 0 && <p className="text-gray-500">No hay plantillas editadas. Se usan las predeterminadas.</p>}
+                        {emails.map((tmpl: any) => (
+                            <EmailEditor key={tmpl.key} tmpl={tmpl} onSave={handleEmailUpdate} />
+                        ))}
+                        {/* Fallback mock if empty for dev visualization? No, simple empty state is fine */}
+
+                    </div>
+                )}
+
+                {/* System Panel */}
+                {!loading && activeTab === 'system' && (
+                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                        <table className="min-w-full divide-y divide-gray-200">
+                            <thead className="bg-gray-50">
+                                <tr>
+                                    <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase">Parámetro</th>
+                                    <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase">Valor</th>
+                                    <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase">Descripción</th>
+                                    <th className="px-6 py-3"></th>
+                                </tr>
+                            </thead>
+                            <tbody className="bg-white divide-y divide-gray-200">
+                                {systemConfig.map((conf: any) => (
+                                    <ConfigRow key={conf.key} config={conf} onSave={handleConfigUpdate} />
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
+            </main>
         </div>
     );
-}
+};
 
-// --- System Tab ---
-function SystemTab() {
-    const [config, setConfig] = useState<SystemConfig[]>([]);
+const TabButton: React.FC<{ active: boolean, onClick: () => void, label: string }> = ({ active, onClick, label }) => (
+    <button
+        onClick={onClick}
+        className={`pb-4 px-2 font-medium text-sm transition-colors relative ${active ? 'text-p2' : 'text-gray-500 hover:text-gray-700'}`}
+    >
+        {label}
+        {active && <span className="absolute bottom-0 left-0 w-full h-0.5 bg-p2"></span>}
+    </button>
+);
 
-    useEffect(() => {
-        loadConfig();
-    }, []);
+const ConfigRow: React.FC<{ config: any, onSave: (k: string, v: string) => void }> = ({ config, onSave }) => {
+    const [val, setVal] = useState(config.value);
+    const [dirty, setDirty] = useState(false);
 
-    const loadConfig = async () => {
-        try {
-            const res = await api.get('/config/system');
-            setConfig(res.data);
-        } catch (e) { console.error(e); }
-    };
-
-    const handleChange = (key: string, val: string) => {
-        setConfig(prev => prev.map(c => c.key === key ? { ...c, value: val } : c));
-    };
-
-    const handleSave = async (key: string) => {
-        const item = config.find(c => c.key === key);
-        if (!item) return;
-        try {
-            await api.put(`/config/system/${key}`, {
-                value: item.value,
-                description: item.description,
-                data_type: item.data_type
-            });
-            alert("Guardado");
-        } catch (e) {
-            alert("Error");
-        }
-    };
+    const handleChange = (e: any) => {
+        setVal(e.target.value);
+        setDirty(true);
+    }
 
     return (
-        <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
-            <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                    <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Parámetro</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Valor</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Descripción</th>
-                        <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acción</th>
-                    </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                    {config.map((item) => (
-                        <tr key={item.key}>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{item.key}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                <input
-                                    value={item.value}
-                                    onChange={(e) => handleChange(item.key, e.target.value)}
-                                    className="border border-gray-300 rounded px-2 py-1 w-full"
-                                />
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.description}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                <button
-                                    onClick={() => handleSave(item.key)}
-                                    className="text-primary-600 hover:text-primary-900 font-semibold"
-                                >
-                                    Guardar
-                                </button>
-                            </td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
-        </div>
-    );
+        <tr>
+            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{config.key}</td>
+            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <input
+                    className="border rounded px-2 py-1 w-full"
+                    value={val}
+                    onChange={handleChange}
+                />
+            </td>
+            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{config.description}</td>
+            <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                {dirty && (
+                    <button onClick={() => { onSave(config.key, val); setDirty(false); }} className="text-p2 hover:text-p1 font-bold">Guardar</button>
+                )}
+            </td>
+        </tr>
+    )
 }
+
+const EmailEditor: React.FC<{ tmpl: any, onSave: (k: string, s: string, b: string) => void }> = ({ tmpl, onSave }) => {
+    const [subject, setSubject] = useState(tmpl.subject_template);
+    const [body, setBody] = useState(tmpl.body_html_template);
+    const [expanded, setExpanded] = useState(false);
+
+    return (
+        <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+            <div className="bg-gray-50 p-4 flex justify-between items-center cursor-pointer" onClick={() => setExpanded(!expanded)}>
+                <h4 className="font-bold text-n900">{tmpl.key}</h4>
+                <span className="text-xs text-gray-500">{expanded ? '▲' : '▼'}</span>
+            </div>
+            {expanded && (
+                <div className="p-4 space-y-4">
+                    <div>
+                        <label className="block text-sm font-bold mb-1">Asunto</label>
+                        <input className="w-full border rounded p-2" value={subject} onChange={e => setSubject(e.target.value)} />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-bold mb-1">HTML Body</label>
+                        <textarea className="w-full border rounded p-2 font-mono text-xs h-64" value={body} onChange={e => setBody(e.target.value)} />
+                    </div>
+                    <div className="flex justify-end">
+                        <button onClick={() => onSave(tmpl.key, subject, body)} className="btn-primary">Guardar Plantilla</button>
+                    </div>
+                </div>
+            )}
+        </div>
+    )
+}
+
+export default SuperAdminConfig;

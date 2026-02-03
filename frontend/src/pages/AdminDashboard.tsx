@@ -129,6 +129,12 @@ const SuperAdminDashboard: React.FC = () => {
                     </div>
                     <div className="flex gap-4">
                         <button
+                            onClick={() => window.location.href = '/admin/config'}
+                            className="bg-white border border-gray-300 text-n700 font-bold py-2 px-4 rounded-lg shadow-sm hover:bg-gray-50 flex items-center gap-2"
+                        >
+                            <span>🧠</span> Cerebro Operativo
+                        </button>
+                        <button
                             onClick={() => setShowInviteModal(true)}
                             className="btn-primary shadow-lg flex items-center gap-2"
                         >

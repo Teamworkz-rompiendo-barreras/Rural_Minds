@@ -276,7 +276,8 @@ def send_application_notification(to_email: str, candidate_name: str, project_ti
     """
     dashboard_link = f"{FRONTEND_URL}/enterprise-dashboard"
     
-    html_content = f"""
+    # Default Template
+    default_html = f"""
     <!DOCTYPE html>
     <html lang="es">
     <head><meta charset="UTF-8"></head>
@@ -289,11 +290,11 @@ def send_application_notification(to_email: str, candidate_name: str, project_ti
                 ¡Tienes una nueva candidatura para tu proyecto!
             </p>
             <div style="background: #F3F4F6; padding: 20px; border-radius: 10px; margin: 20px 0;">
-                <p style="margin: 0 0 10px 0; color: #333;"><strong>Proyecto:</strong> {project_title}</p>
-                <p style="margin: 0; color: #333;"><strong>Candidato:</strong> {candidate_name}</p>
+                <p style="margin: 0 0 10px 0; color: #333;"><strong>Proyecto:</strong> {{project_title}}</p>
+                <p style="margin: 0; color: #333;"><strong>Candidato:</strong> {{candidate_name}}</p>
             </div>
             <div style="text-align: center; margin: 30px 0;">
-                <a href="{dashboard_link}" style="background: #374BA6; color: white; padding: 14px 30px; text-decoration: none; border-radius: 8px; font-weight: bold;">
+                <a href="{{dashboard_link}}" style="background: #374BA6; color: white; padding: 14px 30px; text-decoration: none; border-radius: 8px; font-weight: bold;">
                     Ver Candidatura
                 </a>
             </div>
@@ -306,9 +307,20 @@ def send_application_notification(to_email: str, candidate_name: str, project_ti
     </html>
     """
     
+    subject, html_content = get_filled_template(
+        key="new_application",
+        default_subject=f"Nueva candidatura: {project_title} - Rural Minds",
+        default_html=default_html,
+        context={
+            "project_title": project_title,
+            "candidate_name": candidate_name,
+            "dashboard_link": dashboard_link
+        }
+    )
+    
     return _send_email(
         to=to_email,
-        subject=f"Nueva candidatura: {project_title} - Rural Minds",
+        subject=subject,
         html=html_content
     )
 
@@ -452,7 +464,10 @@ def send_company_invitation_email(to_email: str, company_name: str, municipality
     Sends an invitation email to a local company from a municipality.
     """
     
-    html_content = f"""
+    # Updated to use template system
+    
+    # Default Template
+    default_html = f"""
     <!DOCTYPE html>
     <html lang="es">
     <head><meta charset="UTF-8"></head>
@@ -462,10 +477,10 @@ def send_company_invitation_email(to_email: str, company_name: str, municipality
             <p style="margin: 0; opacity: 0.9; font-size: 16px;">Innovación con Denominación de Origen</p>
         </div>
         <div style="background: white; padding: 40px 30px; border-radius: 0 0 16px 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-            <p style="font-size: 18px; color: #111; margin-top: 0;">Estimado/a responsable de <strong>{company_name}</strong>,</p>
+            <p style="font-size: 18px; color: #111; margin-top: 0;">Estimado/a responsable de <strong>{{company_name}}</strong>,</p>
             
             <p style="font-size: 16px; color: #333; line-height: 1.6;">
-                Desde el Ayuntamiento de <strong>{municipality_name}</strong>, estamos impulsando una iniciativa pionera para fortalecer nuestro tejido empresarial y fijar el talento en nuestras calles: <strong>Rural Minds</strong>.
+                Desde el Ayuntamiento de <strong>{{municipality_name}}</strong>, estamos impulsando una iniciativa pionera para fortalecer nuestro tejido empresarial y fijar el talento en nuestras calles: <strong>Rural Minds</strong>.
             </p>
             
             <p style="font-size: 16px; color: #333; line-height: 1.6;">
@@ -480,7 +495,7 @@ def send_company_invitation_email(to_email: str, company_name: str, municipality
             </ul>
 
             <div style="text-align: center; margin: 35px 0;">
-                <a href="{invite_url}" style="background: #374BA6; color: white; padding: 16px 30px; text-decoration: none; border-radius: 10px; font-weight: bold; font-size: 16px; display: inline-block; box-shadow: 0 4px 12px rgba(55,75,166,0.3);">
+                <a href="{{invite_url}}" style="background: #374BA6; color: white; padding: 16px 30px; text-decoration: none; border-radius: 10px; font-weight: bold; font-size: 16px; display: inline-block; box-shadow: 0 4px 12px rgba(55,75,166,0.3);">
                     Aceptar invitación y registrar mi empresa
                 </a>
             </div>
@@ -491,7 +506,7 @@ def send_company_invitation_email(to_email: str, company_name: str, municipality
             
             <p style="font-size: 16px; color: #333; margin-top: 30px;">
                 Atentamente,<br>
-                <strong>{signature}</strong>
+                <strong>{{signature}}</strong>
             </p>
 
             <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
@@ -502,9 +517,21 @@ def send_company_invitation_email(to_email: str, company_name: str, municipality
     </body>
     </html>
     """
+
+    subject, html_content = get_filled_template(
+        key="company_invitation",
+        default_subject=f"{municipality_name} te invita a liderar la Innovación con Denominación de Origen 🌿",
+        default_html=default_html,
+        context={
+            "company_name": company_name,
+            "municipality_name": municipality_name,
+            "invite_url": invite_url,
+            "signature": signature
+        }
+    )
     
     return _send_email(
         to=to_email,
-        subject=f"{municipality_name} te invita a liderar la Innovación con Denominación de Origen 🌿",
+        subject=subject,
         html=html_content
     )
