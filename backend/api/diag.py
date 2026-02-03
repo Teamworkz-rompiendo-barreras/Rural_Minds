@@ -60,5 +60,45 @@ def diag():
     except Exception as e:
         errors.append(f"resend: {e}")
     
+    # Test backend-specific modules
+    try:
+        import auth
+        info["auth"] = "ok"
+    except Exception as e:
+        errors.append(f"auth: {e}")
+        
+    try:
+        import models
+        info["models"] = "ok"
+    except Exception as e:
+        errors.append(f"models: {e}")
+    
+    try:
+        import database
+        info["database"] = "ok"
+    except Exception as e:
+        errors.append(f"database: {e}")
+    
+    # Test routers
+    routers_to_test = [
+        "routers.auth_routes",
+        "routers.users",
+        "routers.profile",
+        "routers.challenges",
+        "routers.applications",
+        "routers.admin",
+        "routers.municipality",
+        "routers.config",
+        "routers.locations",
+        "routers.organizations",
+    ]
+    
+    for router_name in routers_to_test:
+        try:
+            __import__(router_name)
+            info[router_name] = "ok"
+        except Exception as e:
+            errors.append(f"{router_name}: {str(e)[:100]}")
+    
     info["errors"] = errors
     return info
