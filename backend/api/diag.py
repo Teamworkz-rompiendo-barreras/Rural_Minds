@@ -103,5 +103,21 @@ def diag():
         except Exception as e:
             errors.append(f"{router_name}: {str(e)[:100]}")
     
+    
+    # Test email service
+    try:
+        from utils.email_service import _send_email, IS_PRODUCTION, RESEND_API_KEY
+        info["email_service_is_production"] = IS_PRODUCTION
+        info["email_service_key_masked"] = RESEND_API_KEY[:4] + "***" if RESEND_API_KEY else "None"
+        
+        # Try sending a mock email if in production
+        # We won't actually send to user, but we can try the function call with a safe address if needed
+        # or just verify imports are solid.
+        import resend
+        info["resend_version"] = resend.__version__ if hasattr(resend, "__version__") else "unknown"
+        
+    except Exception as e:
+        errors.append(f"email_service: {e}")
+
     info["errors"] = errors
     return info
