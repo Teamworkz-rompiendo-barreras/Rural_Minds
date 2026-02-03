@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import axios from '../config/api';
 import { useAuth } from '../context/AuthContext';
 
 interface TalentProfile {
     bio: string;
     skills: string[];
+    residence_location_id?: string;
+    is_willing_to_move?: boolean;
 }
 
 interface User {
@@ -27,16 +29,14 @@ interface ApplicationListProps {
 }
 
 const ApplicationList: React.FC<ApplicationListProps> = ({ challengeId, onClose }) => {
-    const { token } = useAuth();
+    const { token, user } = useAuth();
     const [applications, setApplications] = useState<Application[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetchApplications = async () => {
             try {
-                const res = await axios.get(`http://127.0.0.1:8000/api/challenges/${challengeId}/applications`, {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
+                const res = await axios.get(`/challenges/${challengeId}/applications`);
                 setApplications(res.data);
             } catch (err) {
                 console.error(err);
@@ -50,10 +50,7 @@ const ApplicationList: React.FC<ApplicationListProps> = ({ challengeId, onClose 
 
     const updateStatus = async (appId: number, status: 'accepted' | 'rejected') => {
         try {
-            await axios.put(`http://127.0.0.1:8000/api/applications/${appId}/status`,
-                { status },
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
+            await axios.put(`/applications/${appId}/status`, { status });
 
             // Update local state
             setApplications(prev => prev.map(app =>
@@ -106,6 +103,25 @@ const ApplicationList: React.FC<ApplicationListProps> = ({ challengeId, onClose 
                                         {app.status}
                                     </span>
                                 </div>
+
+                                {/* Location Badge - NEW */}
+                                {app.user?.talent_profile?.residence_location_id &&
+                                    app.user?.talent_profile?.residence_location_id === user?.organization?.location_id && (
+                                        <div className="mb-3">
+                                            <span className="inline-flex items-center gap-1 bg-indigo-100 text-indigo-800 text-xs font-bold px-2 py-1 rounded-full border border-indigo-200">
+                                                <span>📍</span> Talento KM 0 ({user?.organization?.name})
+                                            </span>
+                                        </div>
+                                    )}
+
+                                {/* Willing to move - NEW */}
+                                {app.user?.talent_profile?.is_willing_to_move && (
+                                    <div className="mb-3 inline-block ml-2">
+                                        <span className="inline-flex items-center gap-1 bg-purple-100 text-purple-800 text-xs font-bold px-2 py-1 rounded-full border border-purple-200">
+                                            <span>🧳</span> Dispuesto a mudarse
+                                        </span>
+                                    </div>
+                                )}
 
                                 <div className="space-y-3">
                                     {app.user?.talent_profile?.bio && (

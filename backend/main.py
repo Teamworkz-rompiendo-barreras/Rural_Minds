@@ -68,6 +68,9 @@ app.include_router(messages.router)
 app.include_router(legal.router)
 from routers import locations
 app.include_router(locations.router)
+from routers import organizations
+app.include_router(organizations.router)
+
 
 
 @app.get("/status")

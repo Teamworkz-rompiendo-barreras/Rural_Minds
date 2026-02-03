@@ -6,6 +6,7 @@ interface Organization {
     name: string;
     org_type?: string;
     municipality_id?: string;
+    location_id?: string;
 }
 
 interface User {

@@ -1,11 +1,12 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Link } from 'react-router-dom';
 import { PDFDownloadLink } from '@react-pdf/renderer';
 import InclusionManualPDF from '../components/InclusionManualPDF';
+import axios from '../config/api';
 
-// Mock data for demonstration - In production, fetch from API
+// Mock data for fallback
 const mockMetrics = {
     insertionRate: 85,
     companiesValidated: 12,
@@ -31,6 +32,55 @@ const MunicipalityDashboard: React.FC = () => {
     const [showValidationModal, setShowValidationModal] = useState(false);
     const [selectedCompany, setSelectedCompany] = useState<string | null>(null);
 
+    // Real data state
+    const [metrics, setMetrics] = useState(mockMetrics);
+    const [companies, setCompanies] = useState<any[]>(mockCompanies);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            // Determine location ID. 
+            // Priority: organization.location_id -> organization.municipality_id
+            const locationId = user?.organization?.location_id || user?.organization?.municipality_id;
+
+            if (!locationId) {
+                // If no location linked, we might want to fetch all or show empty.
+                // For now, keep mock data if no location.
+                setLoading(false);
+                return;
+            }
+
+            try {
+                // 1. Fetch Metrics
+                const metricsRes = await axios.get(`/organizations/metrics/location/${locationId}`);
+                // Map API response to UI Metrics
+                if (metricsRes.data) {
+                    setMetrics(prev => ({
+                        ...prev,
+                        companiesValidated: metricsRes.data.companies_validated || prev.companiesValidated,
+                        localCandidates: metricsRes.data.local_candidates || prev.localCandidates,
+                        // Add rooting/attraction if API provides it
+                    }));
+                }
+
+                // 2. Fetch Companies
+                const companiesRes = await axios.get(`/organizations?location_id=${locationId}`);
+                if (companiesRes.data && Array.isArray(companiesRes.data)) {
+                    setCompanies(companiesRes.data);
+                }
+
+            } catch (err) {
+                console.error("Error fetching dashboard data:", err);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        if (user?.organization) {
+            fetchData();
+        }
+    }, [user]);
+
     const handleValidate = (companyId: string) => {
         setSelectedCompany(companyId);
         setShowValidationModal(true);
@@ -42,6 +92,10 @@ const MunicipalityDashboard: React.FC = () => {
         setShowValidationModal(false);
         setSelectedCompany(null);
     };
+
+    if (loading) {
+        return <div className="p-8 text-center">Cargando datos del municipio...</div>;
+    }
 
     return (
         <div className="flex flex-col gap-8 max-w-7xl mx-auto px-4 py-6">
@@ -75,29 +129,35 @@ const MunicipalityDashboard: React.FC = () => {
                 </h2>
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
                     <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 text-center">
-                        <p className="text-3xl font-bold text-green-600 mb-1">{mockMetrics.insertionRate}%</p>
+                        <p className="text-3xl font-bold text-green-600 mb-1">{metrics.insertionRate}%</p>
                         <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">Inserción Laboral</p>
                     </div>
                     <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 text-center">
-                        <p className="text-3xl font-bold text-p2 mb-1">{mockMetrics.impactScore}</p>
+                        <p className="text-3xl font-bold text-p2 mb-1">{metrics.impactScore}</p>
                         <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">Puntuación Impacto</p>
                     </div>
                     <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 text-center">
-                        <p className="text-3xl font-bold text-p2 mb-1">{mockMetrics.companiesValidated}</p>
+                        <p className="text-3xl font-bold text-p2 mb-1">{metrics.companiesValidated}</p>
                         <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">Empresas Validadas</p>
                     </div>
-                    <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 text-center">
-                        <p className="text-3xl font-bold text-p2 mb-1">{mockMetrics.activeProjects}</p>
-                        <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">Proyectos Activos</p>
+
+                    {/* New Metric: Rooting vs Attraction */}
+                    <div className="bg-white p-5 rounded-xl shadow-sm border border-yellow-100 text-center col-span-2 flex justify-around items-center">
+                        <div className="text-center">
+                            <p className="text-2xl font-bold text-p2">{metrics.localCandidates}</p>
+                            <p className="text-[10px] text-gray-500 uppercase">Talento Local</p>
+                        </div>
+                        <div className="h-8 w-px bg-gray-200"></div>
+                        <div className="text-center">
+                            <p className="text-2xl font-bold text-indigo-600">0</p>
+                            <p className="text-[10px] text-gray-500 uppercase">Nuevos</p>
+                        </div>
                     </div>
-                    <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 text-center">
-                        <p className="text-3xl font-bold text-p2 mb-1">{mockMetrics.localCandidates}</p>
-                        <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">Talento Local</p>
-                    </div>
+
                     <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 text-center relative">
-                        <p className="text-3xl font-bold text-orange-500 mb-1">{mockMetrics.pendingValidations}</p>
+                        <p className="text-3xl font-bold text-orange-500 mb-1">{metrics.pendingValidations}</p>
                         <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">Pendientes</p>
-                        {mockMetrics.pendingValidations > 0 && (
+                        {metrics.pendingValidations > 0 && (
                             <span className="absolute top-2 right-2 w-3 h-3 bg-orange-500 rounded-full animate-pulse"></span>
                         )}
                     </div>
@@ -147,7 +207,7 @@ const MunicipalityDashboard: React.FC = () => {
                     </div>
 
                     <ul className="space-y-4">
-                        {mockCompanies.map((company) => (
+                        {companies.map((company) => (
                             <li
                                 key={company.id}
                                 className={`flex flex-col md:flex-row items-start md:items-center justify-between p-4 rounded-xl border transition-all ${company.status === 'pending'
@@ -202,7 +262,7 @@ const MunicipalityDashboard: React.FC = () => {
                             Descarga y distribuye el Manual de Inclusión a las empresas de tu territorio para formarlas en comunicación accesible.
                         </p>
 
-                        <PDFDownloadLink document={<InclusionManualPDF />} fileName="Manual_Inclusion_RuralMinds.pdf">
+                        <PDFDownloadLink document={<InclusionManualPDF municipalityName={user?.organization?.name} />} fileName="Manual_Inclusion_RuralMinds.pdf">
                             {({ loading }) => (
                                 <button
                                     disabled={loading}
@@ -230,12 +290,12 @@ const MunicipalityDashboard: React.FC = () => {
                         <div className="space-y-3">
                             <div className="flex justify-between items-center">
                                 <span className="text-white/80">Tasa de Empleo Inclusivo</span>
-                                <span className="font-bold text-lg">{mockMetrics.insertionRate}%</span>
+                                <span className="font-bold text-lg">{metrics.insertionRate}%</span>
                             </div>
                             <div className="w-full bg-white/20 h-2 rounded-full overflow-hidden">
                                 <div
                                     className="bg-white h-full rounded-full transition-all"
-                                    style={{ width: `${mockMetrics.insertionRate}%` }}
+                                    style={{ width: `${metrics.insertionRate}%` }}
                                 ></div>
                             </div>
                             <p className="text-xs text-white/70 mt-2">

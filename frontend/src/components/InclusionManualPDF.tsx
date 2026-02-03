@@ -89,7 +89,11 @@ const styles = StyleSheet.create({
     }
 });
 
-const InclusionManualPDF = () => (
+interface InclusionManualPDFProps {
+    municipalityName?: string;
+}
+
+const InclusionManualPDF: React.FC<InclusionManualPDFProps> = ({ municipalityName }) => (
     <Document title="Manual de Inclusión Rural Minds" author="Rural Minds" language="es">
         <Page size="A4" style={styles.page}>
 
@@ -135,6 +139,14 @@ const InclusionManualPDF = () => (
                 <Text style={styles.sectionTitle}>4. Casos de Éxito</Text>
                 <Text style={styles.text}>
                     Empresas rurales que implementaron estos protocolos reportaron un aumento del 40% en retención de talento y una mejora significativa en la innovación interna.
+                </Text>
+            </View>
+
+            {/* Sección 5: Impacto Local */}
+            <View style={styles.section}>
+                <Text style={styles.sectionTitle}>5. Impacto Social en {municipalityName || "Tu Municipio"}</Text>
+                <Text style={styles.text}>
+                    Al adoptar este manual, contribuyes directamente a la estrategia "Talento KM 0" de {municipalityName || "este territorio"}, fomentando el arraigo y reduciendo la brecha digital.
                 </Text>
             </View>
 
