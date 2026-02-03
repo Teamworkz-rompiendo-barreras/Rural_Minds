@@ -108,8 +108,8 @@ def send_verification_email(to_email: str, user_name: str, verification_token: s
             <p style="margin: 0; opacity: 0.9; font-size: 16px;">Innovación con denominación de origen</p>
         </div>
         <div style="background: white; padding: 40px 30px; border-radius: 0 0 16px 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-            <p style="font-size: 18px; color: #333; margin-top: 0;">Hola <strong>{{user_name}}</strong>,</p>
-            <p style="font-size: 16px; color: #555; line-height: 1.6;">
+            <p style="font-size: 18px; color: #111; margin-top: 0;">Hola <strong>{{user_name}}</strong>,</p>
+            <p style="font-size: 16px; color: #333; line-height: 1.6;">
                 Gracias por unirte a <strong>Rural Minds</strong>. Para activar tu cuenta y empezar a explorar oportunidades inclusivas, confirma tu email haciendo clic en el botón:
             </p>
             <div style="text-align: center; margin: 35px 0;">
@@ -117,14 +117,14 @@ def send_verification_email(to_email: str, user_name: str, verification_token: s
                     ✅ Confirmar mi Email
                 </a>
             </div>
-            <p style="font-size: 14px; color: #888; margin-bottom: 0;">
+            <p style="font-size: 14px; color: #595959; margin-bottom: 0;">
                 ⏰ Este enlace es válido durante <strong>24 horas</strong>.
             </p>
-            <p style="font-size: 14px; color: #888;">
+            <p style="font-size: 14px; color: #595959;">
                 Si no creaste esta cuenta, puedes ignorar este mensaje.
             </p>
-            <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
-            <p style="font-size: 12px; color: #aaa; text-align: center; margin-bottom: 0;">
+            <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
+            <p style="font-size: 12px; color: #595959; text-align: center; margin-bottom: 0;">
                 Rural Minds. <em>Innovación con denominación de origen</em> © 2026<br>
                 <span style="color: #374BA6;">Powered by Teamworkz</span>
             </p>
@@ -168,13 +168,13 @@ def send_welcome_email(to_email: str, user_name: str) -> bool:
             <p style="margin: 0; opacity: 0.9; font-size: 16px;">Ya formas parte de Rural Minds</p>
         </div>
         <div style="background: white; padding: 40px 30px; border-radius: 0 0 16px 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-            <p style="font-size: 18px; color: #333; margin-top: 0;">Hola <strong>{{user_name}}</strong>,</p>
-            <p style="font-size: 16px; color: #555; line-height: 1.6;">
+            <p style="font-size: 18px; color: #111; margin-top: 0;">Hola <strong>{{user_name}}</strong>,</p>
+            <p style="font-size: 16px; color: #333; line-height: 1.6;">
                 Tu email ha sido verificado correctamente. ¡Bienvenido/a a la comunidad de <strong>Rural Minds</strong>!
             </p>
             <div style="background: #F3F4F6; padding: 20px; border-radius: 10px; margin: 25px 0;">
                 <h3 style="margin: 0 0 15px 0; color: #374BA6;">📋 Próximos pasos:</h3>
-                <ol style="margin: 0; padding-left: 20px; color: #555; line-height: 1.8;">
+                <ol style="margin: 0; padding-left: 20px; color: #333; line-height: 1.8;">
                     <li>Completa tu <strong>Perfil de Accesibilidad</strong></li>
                     <li>Explora oportunidades que se adaptan a ti</li>
                     <li>Conecta con empresas inclusivas</li>
@@ -185,8 +185,8 @@ def send_welcome_email(to_email: str, user_name: str) -> bool:
                     Completar mi Perfil →
                 </a>
             </div>
-            <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
-            <p style="font-size: 12px; color: #aaa; text-align: center; margin-bottom: 0;">
+            <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
+            <p style="font-size: 12px; color: #595959; text-align: center; margin-bottom: 0;">
                 Rural Minds. <em>Innovación con denominación de origen</em> © 2026<br>
                 <span style="color: #374BA6;">Powered by Teamworkz</span>
             </p>
@@ -229,8 +229,8 @@ def send_password_reset_email(to_email: str, user_name: str, reset_token: str) -
             <h1 style="margin: 0;">🔑 Restablecer Contraseña</h1>
         </div>
         <div style="background: white; padding: 40px 30px; border-radius: 0 0 16px 16px;">
-            <p style="font-size: 16px; color: #333;">Hola <strong>{{user_name}}</strong>,</p>
-            <p style="font-size: 16px; color: #555; line-height: 1.6;">
+            <p style="font-size: 16px; color: #111;">Hola <strong>{{user_name}}</strong>,</p>
+            <p style="font-size: 16px; color: #333; line-height: 1.6;">
                 Recibimos una solicitud para restablecer la contraseña de tu cuenta Rural Minds.
             </p>
             <div style="text-align: center; margin: 30px 0;">
@@ -238,14 +238,14 @@ def send_password_reset_email(to_email: str, user_name: str, reset_token: str) -
                     Cambiar Contraseña
                 </a>
             </div>
-            <p style="font-size: 14px; color: #888;">
+            <p style="font-size: 14px; color: #595959;">
                 ⏰ Este enlace expira en <strong>1 hora</strong>.
             </p>
-            <p style="font-size: 14px; color: #888;">
+            <p style="font-size: 14px; color: #595959;">
                 Si no solicitaste este cambio, ignora este email.
             </p>
-            <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
-            <p style="font-size: 12px; color: #aaa; text-align: center;">
+            <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
+            <p style="font-size: 12px; color: #595959; text-align: center;">
                 Rural Minds © 2026 | Powered by Teamworkz
             </p>
         </div>
@@ -285,20 +285,20 @@ def send_application_notification(to_email: str, candidate_name: str, project_ti
             <h1 style="margin: 0;">📩 Nueva Candidatura</h1>
         </div>
         <div style="background: white; padding: 40px 30px; border-radius: 0 0 16px 16px;">
-            <p style="font-size: 16px; color: #333;">
+            <p style="font-size: 16px; color: #111;">
                 ¡Tienes una nueva candidatura para tu proyecto!
             </p>
             <div style="background: #F3F4F6; padding: 20px; border-radius: 10px; margin: 20px 0;">
-                <p style="margin: 0 0 10px 0;"><strong>Proyecto:</strong> {project_title}</p>
-                <p style="margin: 0;"><strong>Candidato:</strong> {candidate_name}</p>
+                <p style="margin: 0 0 10px 0; color: #333;"><strong>Proyecto:</strong> {project_title}</p>
+                <p style="margin: 0; color: #333;"><strong>Candidato:</strong> {candidate_name}</p>
             </div>
             <div style="text-align: center; margin: 30px 0;">
                 <a href="{dashboard_link}" style="background: #374BA6; color: white; padding: 14px 30px; text-decoration: none; border-radius: 8px; font-weight: bold;">
                     Ver Candidatura
                 </a>
             </div>
-            <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
-            <p style="font-size: 12px; color: #aaa; text-align: center;">
+            <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
+            <p style="font-size: 12px; color: #595959; text-align: center;">
                 Rural Minds © 2026 | Powered by Teamworkz
             </p>
         </div>
@@ -328,18 +328,18 @@ def send_municipality_welcome_email(to_email: str, talent_name: str, municipalit
             <p style="margin: 0; opacity: 0.9; font-size: 16px;">Innovación con Denominación de Origen</p>
         </div>
         <div style="background: white; padding: 40px 30px; border-radius: 0 0 16px 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-            <p style="font-size: 18px; color: #333; margin-top: 0;">¡Hola <strong>{{talent_name}}</strong>!</p>
-            <p style="font-size: 16px; color: #555; line-height: 1.6;">
+            <p style="font-size: 18px; color: #111; margin-top: 0;">¡Hola <strong>{{talent_name}}</strong>!</p>
+            <p style="font-size: 16px; color: #333; line-height: 1.6;">
                 Hemos visto que tienes interés en formar parte de nuestra comunidad en <strong>{{municipality_name}}</strong>. En Rural Minds, creemos que el talento no tiene fronteras, pero sí raíces, y nos encanta que consideres las nuestras para tu próximo paso profesional.
             </p>
             
             <h3 style="color: #374BA6; margin-top: 25px;">¿En qué puede ayudarte tu nuevo Ayuntamiento?</h3>
-            <p style="font-size: 16px; color: #555; line-height: 1.6;">
+            <p style="font-size: 16px; color: #333; line-height: 1.6;">
                 Moverse al entorno rural es una decisión valiente. Queremos facilitarte el aterrizaje:
             </p>
             
             <div style="background: #F3F4F6; padding: 20px; border-radius: 10px; margin: 20px 0;">
-                <ul style="margin: 0; padding-left: 20px; color: #555; line-height: 1.8;">
+                <ul style="margin: 0; padding-left: 20px; color: #333; line-height: 1.8;">
                     <li><strong>🏠 Vivienda:</strong> Recursos para encontrar tu hogar.</li>
                     <li><strong>🏫 Servicios:</strong> Fibra óptica, colegios, transporte.</li>
                     <li><strong>🤝 Integración:</strong> Te conectaremos con redes locales.</li>
@@ -355,8 +355,8 @@ def send_municipality_welcome_email(to_email: str, talent_name: str, municipalit
                 </a>
             </div>
             
-            <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
-            <p style="font-size: 12px; color: #aaa; text-align: center;">
+            <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
+            <p style="font-size: 12px; color: #595959; text-align: center;">
                 Gestión impulsada por Rural Minds & Teamworkz.
             </p>
         </div>
@@ -403,11 +403,11 @@ def send_invitation_email(to_email: str, entity_name: str, token: str) -> bool:
             <p style="margin: 0; opacity: 0.9; font-size: 16px;">Plataforma de Talento e Innovación Rural</p>
         </div>
         <div style="background: white; padding: 40px 30px; border-radius: 0 0 16px 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-            <p style="font-size: 18px; color: #333; margin-top: 0;">Hola,</p>
-            <p style="font-size: 16px; color: #555; line-height: 1.6;">
+            <p style="font-size: 18px; color: #111; margin-top: 0;">Hola,</p>
+            <p style="font-size: 16px; color: #333; line-height: 1.6;">
                 Has sido invitado para activar el perfil de <strong>{{entity_name}}</strong> en Rural Minds.
             </p>
-            <p style="font-size: 16px; color: #555; line-height: 1.6;">
+            <p style="font-size: 16px; color: #333; line-height: 1.6;">
                 Haz clic en el siguiente botón para establecer tu contraseña y configurar tu ficha de municipio.
             </p>
             
@@ -417,12 +417,12 @@ def send_invitation_email(to_email: str, entity_name: str, token: str) -> bool:
                 </a>
             </div>
             
-            <p style="font-size: 14px; color: #888; text-align: center;">
+            <p style="font-size: 14px; color: #595959; text-align: center;">
                 Este enlace expira en 48 horas.
             </p>
             
-            <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
-            <p style="font-size: 12px; color: #aaa; text-align: center;">
+            <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
+            <p style="font-size: 12px; color: #595959; text-align: center;">
                 Rural Minds © 2026 | Powered by Teamworkz
             </p>
         </div>
@@ -462,18 +462,18 @@ def send_company_invitation_email(to_email: str, company_name: str, municipality
             <p style="margin: 0; opacity: 0.9; font-size: 16px;">Innovación con Denominación de Origen</p>
         </div>
         <div style="background: white; padding: 40px 30px; border-radius: 0 0 16px 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-            <p style="font-size: 18px; color: #333; margin-top: 0;">Estimado/a responsable de <strong>{company_name}</strong>,</p>
+            <p style="font-size: 18px; color: #111; margin-top: 0;">Estimado/a responsable de <strong>{company_name}</strong>,</p>
             
-            <p style="font-size: 16px; color: #555; line-height: 1.6;">
+            <p style="font-size: 16px; color: #333; line-height: 1.6;">
                 Desde el Ayuntamiento de <strong>{municipality_name}</strong>, estamos impulsando una iniciativa pionera para fortalecer nuestro tejido empresarial y fijar el talento en nuestras calles: <strong>Rural Minds</strong>.
             </p>
             
-            <p style="font-size: 16px; color: #555; line-height: 1.6;">
+            <p style="font-size: 16px; color: #333; line-height: 1.6;">
                 Queremos que vuestra empresa sea parte activa de este cambio. Al unirse a nuestra red local, no solo accederán a profesionales cualificados de la zona, sino que contarán con el soporte de Teamworkz para asegurar que cada contratación sea un éxito de inclusión y productividad.
             </p>
 
             <h3 style="color: #0F5C2E; margin-top: 25px;">¿Qué ganáis como empresa local?</h3>
-            <ul style="margin: 0; padding-left: 20px; color: #555; line-height: 1.8;">
+            <ul style="margin: 0; padding-left: 20px; color: #333; line-height: 1.8;">
                 <li><strong>🎯 Acceso a Talento Especializado:</strong> Perfiles con alta capacidad y adecuación sensorial.</li>
                 <li><strong>🎖️ Sello de Excelencia:</strong> Reconocimiento público como empresa socialmente responsable.</li>
                 <li><strong>📊 Métricas de Impacto:</strong> Datos reales sobre vuestra contribución al bienestar local.</li>
@@ -485,17 +485,17 @@ def send_company_invitation_email(to_email: str, company_name: str, municipality
                 </a>
             </div>
             
-            <p style="font-size: 14px; color: #888; text-align: center;">
+            <p style="font-size: 14px; color: #595959; text-align: center;">
                 Unirse es gratuito para las empresas de nuestro municipio.
             </p>
             
-            <p style="font-size: 16px; color: #555; margin-top: 30px;">
+            <p style="font-size: 16px; color: #333; margin-top: 30px;">
                 Atentamente,<br>
                 <strong>{signature}</strong>
             </p>
 
-            <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
-            <p style="font-size: 12px; color: #aaa; text-align: center;">
+            <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
+            <p style="font-size: 12px; color: #595959; text-align: center;">
                 Rural Minds © 2026 | Powered by Teamworkz
             </p>
         </div>
