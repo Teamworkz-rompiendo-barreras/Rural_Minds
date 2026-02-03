@@ -3,6 +3,8 @@ import axios from '../config/api';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
+import LocationSelector from '../components/LocationSelector';
+
 // Types
 interface AccessibilityPrefs {
     high_contrast: boolean;
@@ -18,6 +20,9 @@ interface SensoryPrefs {
 interface ProfileData {
     bio: string;
     skills: string[];
+    residence_location_id?: string;
+    is_willing_to_move: boolean;
+    target_locations: string[]; // List of location IDs
 }
 
 const TalentProfileWizard: React.FC = () => {
@@ -40,7 +45,10 @@ const TalentProfileWizard: React.FC = () => {
     });
     const [profileData, setProfileData] = useState<ProfileData>({
         bio: '',
-        skills: []
+        skills: [],
+        residence_location_id: '',
+        is_willing_to_move: false,
+        target_locations: []
     });
     const [skillInput, setSkillInput] = useState('');
 
@@ -76,7 +84,10 @@ const TalentProfileWizard: React.FC = () => {
                 if (profileRes.data) {
                     setProfileData({
                         bio: profileRes.data.bio || '',
-                        skills: profileRes.data.skills || []
+                        skills: profileRes.data.skills || [],
+                        residence_location_id: profileRes.data.residence_location_id || '',
+                        is_willing_to_move: profileRes.data.is_willing_to_move || false,
+                        target_locations: profileRes.data.target_locations || []
                     });
                 }
             } catch (err) {
@@ -359,6 +370,67 @@ const TalentProfileWizard: React.FC = () => {
                         />
                     </div>
                     <p className="text-xs text-gray-500">Pulsa Enter para añadir.</p>
+                </div>
+
+                {/* Location - NEW */}
+                <div className="pt-4 border-t border-gray-100">
+                    <h3 className="font-bold text-lg text-primary mb-4">Ubicación y Movilidad</h3>
+
+                    <div className="mb-6">
+                        <LocationSelector
+                            label="¿Dónde resides actualmente?"
+                            value={profileData.residence_location_id}
+                            onChange={(id) => setProfileData(prev => ({ ...prev, residence_location_id: id }))}
+                            placeholder="Busca tu municipio..."
+                        />
+                        <p className="text-xs text-gray-500 mt-1">
+                            Te mostraremos oportunidades cercanas y validadas.
+                        </p>
+                    </div>
+
+                    <div className="mb-6 flex items-center gap-3">
+                        <div
+                            onClick={() => setProfileData(prev => ({ ...prev, is_willing_to_move: !prev.is_willing_to_move }))}
+                            className={`w-12 h-6 rounded-full p-1 cursor-pointer transition-colors ${profileData.is_willing_to_move ? 'bg-green-500' : 'bg-gray-300'}`}
+                        >
+                            <div className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform ${profileData.is_willing_to_move ? 'translate-x-6' : 'translate-x-0'}`}></div>
+                        </div>
+                        <span className="font-bold text-gray-700 cursor-pointer" onClick={() => setProfileData(prev => ({ ...prev, is_willing_to_move: !prev.is_willing_to_move }))}>
+                            Estoy dispuesto a mudarme a otro municipio rural
+                        </span>
+                    </div>
+
+                    {profileData.is_willing_to_move && (
+                        <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                            <label className="block font-bold mb-2">Municipios de Interés (Opcional)</label>
+                            <LocationSelector
+                                label=""
+                                placeholder="Añadir municipio de interés..."
+                                onChange={(id) => {
+                                    if (!profileData.target_locations.includes(id)) {
+                                        setProfileData(prev => ({ ...prev, target_locations: [...prev.target_locations, id] }));
+                                    }
+                                }}
+                            />
+
+                            {/* List of selected target locations */}
+                            {profileData.target_locations.length > 0 && (
+                                <div className="flex flex-wrap gap-2 mt-3">
+                                    {profileData.target_locations.map(locId => (
+                                        <span key={locId} className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm flex items-center gap-2 font-bold">
+                                            Municipio #{locId.substring(0, 4)}...
+                                            {/* Note: In real app we need to fetch label for this ID or store object */}
+                                            <button onClick={() => setProfileData(prev => ({ ...prev, target_locations: prev.target_locations.filter(l => l !== locId) }))}
+                                                className="hover:text-purple-900"
+                                            >
+                                                ×
+                                            </button>
+                                        </span>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </div>
             </div>
 
