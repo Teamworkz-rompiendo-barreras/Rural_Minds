@@ -1,22 +1,11 @@
 """
 Script to create superadmin in Supabase Production Database.
-
-This creates:
-1. User in 'users' table with role 'super_admin'
-2. Ensures password hash is correct for login
-
-Run with: python create_superadmin_prod.py
+Uses direct bcrypt hashing to avoid passlib compatibility issues.
 """
 
 import psycopg2
 import uuid
-import sys
-import os
-
-# Add parent to path for imports
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-
-import auth  # Use existing auth module
+import bcrypt
 
 # Supabase Production Connection
 DATABASE_URL = "postgresql://postgres.yfwysmurnfejowjgxdzi:kLAZdfai834!#@aws-1-eu-west-3.pooler.supabase.com:6543/postgres?sslmode=require"
@@ -27,8 +16,10 @@ PASSWORD = "RuralMinds2026!"
 FULL_NAME = "Super Administrador"
 
 def get_password_hash(password: str) -> str:
-    """Use existing auth module for password hashing."""
-    return auth.get_password_hash(password)
+    """Hash password using bcrypt directly."""
+    salt = bcrypt.gensalt(rounds=12)
+    hashed = bcrypt.hashpw(password.encode('utf-8'), salt)
+    return hashed.decode('utf-8')
 
 def create_superadmin():
     print(f"🔌 Connecting to Supabase Production...")
@@ -43,6 +34,8 @@ def create_superadmin():
         existing = cursor.fetchone()
         
         hashed_pwd = get_password_hash(PASSWORD)
+        print(f"📝 Generated bcrypt hash: {hashed_pwd[:30]}...")
+        
         user_id = str(uuid.uuid4())
         
         if existing:
