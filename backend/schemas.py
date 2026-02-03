@@ -116,6 +116,11 @@ class TalentProfileBase(BaseModel):
     neurodivergent_traits: Optional[List[str]] = []
     work_style: Optional[str] = None
     communication_preferences: Optional[dict] = {}
+    
+    # Location Module
+    residence_location_id: Optional[uuid.UUID] = None
+    is_willing_to_move: Optional[bool] = False
+    target_locations: Optional[List[str]] = []
 
 class TalentProfileCreate(TalentProfileBase):
     pass
@@ -123,6 +128,47 @@ class TalentProfileCreate(TalentProfileBase):
 class TalentProfile(TalentProfileBase):
     id: uuid.UUID
     user_id: uuid.UUID
+    
+    class Config:
+        orm_mode = True
+
+    class Config:
+        orm_mode = True
+
+# --- Municipality Details ---
+class MunicipalityDetailsBase(BaseModel):
+    slogan: Optional[str] = None
+    description: Optional[str] = None
+    internet_speed: Optional[str] = None
+    connectivity_info: Optional[str] = None
+    climate_co2: Optional[str] = None
+    services: Optional[dict] = {}
+    gallery_urls: Optional[List[str]] = []
+
+class MunicipalityDetails(MunicipalityDetailsBase):
+    id: uuid.UUID
+    location_id: uuid.UUID
+    
+    class Config:
+        orm_mode = True
+
+    class Config:
+        orm_mode = True
+
+# --- Invitations ---
+class InvitationBase(BaseModel):
+    email: str
+    entity_name: str
+    role: str = "municipality"
+
+class InvitationCreate(InvitationBase):
+    pass
+
+class Invitation(InvitationBase):
+    id: uuid.UUID
+    status: str
+    expires_at: datetime
+    created_at: datetime
     
     class Config:
         orm_mode = True

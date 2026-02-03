@@ -10,7 +10,7 @@ interface Location {
 
 interface LocationSelectorProps {
     value?: string;
-    onChange: (locationId: string) => void;
+    onChange: (locationId: string, municipalityName?: string) => void;
     label?: string;
     placeholder?: string;
     error?: string;
@@ -73,7 +73,7 @@ const LocationSelector: React.FC<LocationSelectorProps> = ({
 
     const handleSelect = (loc: Location) => {
         setQuery(loc.label);
-        onChange(loc.id);
+        onChange(loc.id, loc.municipality);
         setIsOpen(false);
     };
 

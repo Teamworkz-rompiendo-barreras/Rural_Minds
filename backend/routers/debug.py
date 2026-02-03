@@ -146,8 +146,50 @@ def fix_db_schema(db: Session = Depends(database.get_db)):
             db.commit()
             messages.append("ADDED is_public column.")
         except Exception as e:
-            db.rollback()
             messages.append(f"FAILED to add is_public: {str(e)}")
+
+    # Check 3: validation_status (Organization)
+    try:
+        db.execute(text("SELECT validation_status FROM organizations LIMIT 1"))
+        messages.append("validation_status (org) already exists.")
+    except Exception:
+        db.rollback()
+        try:
+            db.execute(text("ALTER TABLE organizations ADD COLUMN validation_status VARCHAR DEFAULT 'pending'"))
+            db.commit()
+            messages.append("ADDED validation_status column to organizations.")
+        except Exception as e:
+            db.rollback()
+            messages.append(f"FAILED to add validation_status: {str(e)}")
+
+    # Check 4: seal_downloaded_at (Organization)
+    try:
+        db.execute(text("SELECT seal_downloaded_at FROM organizations LIMIT 1"))
+        messages.append("seal_downloaded_at (org) already exists.")
+    except Exception:
+        db.rollback()
+        try:
+            db.execute(text("ALTER TABLE organizations ADD COLUMN seal_downloaded_at TIMESTAMP"))
+            db.commit()
+            messages.append("ADDED seal_downloaded_at column to organizations.")
+        except Exception as e:
+            db.rollback()
+            messages.append(f"FAILED to add seal_downloaded_at: {str(e)}")
+
+    # Check 5: location_id (Organization)
+    try:
+        db.execute(text("SELECT location_id FROM organizations LIMIT 1"))
+        messages.append("location_id (org) already exists.")
+    except Exception:
+        db.rollback()
+        try:
+            # Adding nullable GUID column
+            db.execute(text("ALTER TABLE organizations ADD COLUMN location_id CHAR(36)"))
+            db.commit()
+            messages.append("ADDED location_id column to organizations.")
+        except Exception as e:
+            db.rollback()
+            messages.append(f"FAILED to add location_id: {str(e)}")
             
     return {"status": "Schema Update Attempted", "logs": messages}
 

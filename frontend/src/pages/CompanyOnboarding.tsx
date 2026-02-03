@@ -3,12 +3,15 @@ import axios from '../config/api';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import LocationSelector from '../components/LocationSelector';
+import WelcomeRewardModal from '../components/modals/WelcomeReward';
 
 const CompanyOnboarding: React.FC = () => {
     const { token } = useAuth();
     const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
+    const [showReward, setShowReward] = useState(false);
+    const [municipalityName, setMunicipalityName] = useState('');
 
     const [formData, setFormData] = useState({
         name: '',
@@ -35,12 +38,20 @@ const CompanyOnboarding: React.FC = () => {
                     primary_color: res.data.primary_color_override || '#0F5C2E',
                     location_id: res.data.location_id || ''
                 });
+                // Note: We might need to fetch the municipality name if location_id is set.
+                // For now, if the user selects it in the UI, we get the name from the selector/local state?
+                // Actually LocationSelector returns ID only. 
+                // We'll trust the selector to have populated the visual, but for the badge we need the string.
+                // We'll try to fetch it or generic fallback.
+                if (res.data.municipality_id) {
+                    // In a real app we would fetch /municipality/{id}
+                    setMunicipalityName("Tu Municipio");
+                }
             }
             setLoading(false);
         } catch (err) {
             console.error(err);
             setLoading(false);
-            // If 404/Fail, maybe they are super new or something unique.
         }
     };
 
@@ -48,11 +59,16 @@ const CompanyOnboarding: React.FC = () => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
+    // Callback to get name from LocationSelector
+    const handleLocationChange = (id: string, name?: string) => {
+        setFormData(prev => ({ ...prev, location_id: id }));
+        if (name) setMunicipalityName(name);
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setSaving(true);
         try {
-            // Map form data to API schema
             const payload = {
                 name: formData.name,
                 industry: formData.industry,
@@ -62,8 +78,11 @@ const CompanyOnboarding: React.FC = () => {
                 location_id: formData.location_id
             };
             await axios.patch('/org/settings', payload);
-            // Redirect to dashboard or show success
-            navigate('/dashboard');
+
+            // Show Reward instead of direct navigate
+            setShowReward(true);
+            setSaving(false); // Stop loading state so we can enjoy the modal
+
         } catch (err) {
             console.error("Failed to save", err);
             alert("Failed to save details");
@@ -71,10 +90,14 @@ const CompanyOnboarding: React.FC = () => {
         }
     };
 
+    const handleCloseReward = () => {
+        navigate('/dashboard');
+    };
+
     if (loading) return <div className="p-8">Loading company details...</div>;
 
     return (
-        <div className="max-w-2xl mx-auto p-6 bg-white rounded-xl shadow-lg mt-10">
+        <div className="max-w-2xl mx-auto p-6 bg-white rounded-xl shadow-lg mt-10 relative">
             <h1 className="text-3xl font-heading font-bold text-n900 mb-2">Company Profile</h1>
             <p className="text-gray-600 mb-8">Set up your organization's identity for the RuralMinds platform.</p>
 
@@ -84,7 +107,7 @@ const CompanyOnboarding: React.FC = () => {
                 <div className="bg-blue-50 p-4 rounded-lg border border-blue-100 mb-6">
                     <LocationSelector
                         value={formData.location_id}
-                        onChange={(id) => setFormData(prev => ({ ...prev, location_id: id }))}
+                        onChange={handleLocationChange}
                         label="Sede Principal / Municipio"
                         placeholder="Escribe para buscar tu municipio..."
                     />
@@ -176,6 +199,13 @@ const CompanyOnboarding: React.FC = () => {
                     </button>
                 </div>
             </form>
+
+            {showReward && (
+                <WelcomeRewardModal
+                    municipalityName={municipalityName || 'Rural Minds'}
+                    onClose={handleCloseReward}
+                />
+            )}
         </div>
     );
 };

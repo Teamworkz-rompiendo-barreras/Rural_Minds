@@ -16,6 +16,7 @@ import sqlalchemy.types as types
 # Both use `database.Base`.
 
 from models_location import Location
+from models_invitation import Invitation
 
 class GUID(types.TypeDecorator):
     """Platform-independent GUID type.
@@ -67,6 +68,8 @@ class Organization(Base):
     industry = Column(String, nullable=True)
     size = Column(String, nullable=True)
     subscription_plan = Column(String, default="starter")
+    validation_status = Column(String, default="pending") # pending, validated
+    seal_downloaded_at = Column(DateTime, nullable=True)
     
     # New fields for RuralMinds
     org_type = Column(String, default="enterprise") # enterprise, municipality
@@ -300,3 +303,33 @@ class OnboardingTask(Base):
     
     application = relationship("Application", backref="onboarding_tasks")
 
+
+class SystemConfig(Base):
+    __tablename__ = "system_config"
+    
+    key = Column(String, primary_key=True, index=True)
+    value = Column(String) # Stored as string, cast as needed
+    description = Column(String, nullable=True)
+    data_type = Column(String, default="string") # string, number, boolean, json
+    updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
+
+class EmailTemplate(Base):
+    __tablename__ = "email_templates"
+    
+    key = Column(String, primary_key=True, index=True) # e.g., "welcome", "invitation"
+    subject_template = Column(String, nullable=False)
+    body_html_template = Column(String, nullable=False)
+    variables_schema = Column(JSON, default=dict) # Description of {{variables}}
+    updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
+
+class MasterResource(Base):
+    __tablename__ = "master_resources"
+    
+    id = Column(GUID, primary_key=True, default=uuid.uuid4, index=True)
+    name = Column(String, nullable=False) # e.g., "Kit Bienvenida Ayuntamientos"
+    resource_type = Column(String, nullable=False) # pdf, image, doc
+    file_path = Column(String, nullable=False) # Relative to static/global-assets/
+    public_url = Column(String, nullable=False) # Full URL or absolute path
+    version = Column(String, default="1.0")
+    updated_by = Column(GUID, ForeignKey("users.id"), nullable=True)
+    updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)

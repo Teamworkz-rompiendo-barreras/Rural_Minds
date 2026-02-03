@@ -57,3 +57,39 @@ class Location(Base):
     # Optional: Lat/Lon for radius search later?
     # latitude = Column(Float, nullable=True)
     # longitude = Column(Float, nullable=True)
+
+class MunicipalityResource(Base):
+    __tablename__ = "municipality_resources"
+
+    id = Column(GUID, primary_key=True, default=uuid.uuid4, index=True)
+    location_id = Column(GUID, index=True) # Foreign key logic to be handled by app or implicit
+    landing_guide_url = Column(String, nullable=True)
+    adl_contact_email = Column(String, nullable=True)
+    
+    # Ideally define relationship if Locations were in same file or using string reference
+    # location = relationship("Location", back_populates="resources")
+
+class MunicipalityDetails(Base):
+    __tablename__ = "municipality_details"
+
+    id = Column(GUID, primary_key=True, default=uuid.uuid4, index=True)
+    location_id = Column(GUID, index=True) # Foreign App Key
+    
+    # Branding
+    slogan = Column(String, nullable=True)
+    description = Column(String, nullable=True)
+    
+    # Infrastructure (Semaphore)
+    internet_speed = Column(String, nullable=True) # e.g. "1Gbps Fibra"
+    connectivity_info = Column(String, nullable=True) # e.g. "45 min a Madrid"
+    climate_co2 = Column(String, nullable=True) # e.g. "Baja densidad"
+    
+    # Services JSON
+    # { "health": "...", "education": "...", "coworking": "...", "commerce": "..." }
+    services = Column(types.JSON, default=dict)
+    
+    # Gallery
+    gallery_urls = Column(types.JSON, default=list) # ["url1", "url2"]
+    
+    status = Column(String, default="draft") # draft, active
+

@@ -1,445 +1,379 @@
 import React, { useState, useEffect } from 'react';
 import axios from '../config/api';
 import { useAuth } from '../context/AuthContext';
+import SpainHeatmap from '../components/charts/SpainHeatmap';
 
-interface Municipality {
-    id: string;
-    name: string;
-    plan: string;
-    created_at: string | null;
-    admin: {
-        email: string;
-        name: string;
-        status: string;
-    } | null;
-    associated_companies: number;
+interface KPI {
+    rooting_index: number;
+    attraction_rate: number;
+    sealed_companies: number;
+    active_municipalities: number;
 }
 
-interface CreatedCredentials {
+interface HeatmapData {
+    id: string;
+    name: string;
+    value: number;
+    activity: 'high' | 'medium' | 'low';
+}
+
+interface Invitation {
+    id: string;
     email: string;
-    password: string;
-    login_url: string;
+    entity_name: string;
+    role: string;
+    status: 'pending' | 'active' | 'expired';
+    created_at: string;
+    expires_at: string;
+}
+
+interface AuditItem {
+    id: string;
+    type: string;
+    name: string;
+    status: string;
+    issues: string[];
+    preview_image: string | null;
+    created_at: string;
+}
+
+interface SuccessStory {
+    id: string;
+    candidate_name: string;
+    job_title: string;
+    company_name: string;
+    date: string;
 }
 
 const SuperAdminDashboard: React.FC = () => {
     const { token } = useAuth();
-    const [municipalities, setMunicipalities] = useState<Municipality[]>([]);
     const [loading, setLoading] = useState(true);
-    const [showCreateModal, setShowCreateModal] = useState(false);
-    const [createdCredentials, setCreatedCredentials] = useState<CreatedCredentials | null>(null);
-    const [creating, setCreating] = useState(false);
-    const [error, setError] = useState('');
 
-    // Form state
-    const [formData, setFormData] = useState({
-        name: '',
-        admin_email: '',
-        admin_name: '',
-        plan: 'enterprise',
-        send_email: false
-    });
+    // Data State
+    const [kpis, setKPIs] = useState<KPI | null>(null);
+    const [heatmapData, setHeatmapData] = useState<HeatmapData[]>([]);
+    const [invitations, setInvitations] = useState<Invitation[]>([]);
+    const [auditItems, setAuditItems] = useState<AuditItem[]>([]);
+    const [successStories, setSuccessStories] = useState<SuccessStory[]>([]);
+
+    // UI State
+    const [showInviteModal, setShowInviteModal] = useState(false);
+    const [inviteForm, setInviteForm] = useState({ email: '', entity_name: '', role: 'municipality' });
+    const [sendingInvite, setSendingInvite] = useState(false);
 
     useEffect(() => {
-        fetchMunicipalities();
+        fetchAllData();
     }, [token]);
 
-    const fetchMunicipalities = async () => {
+    const fetchAllData = async () => {
+        setLoading(true);
         try {
-            const res = await axios.get('/admin/municipalities');
-            setMunicipalities(res.data);
+            const [statsRes, heatmapRes, auditRes, matchesRes, invitesRes] = await Promise.all([
+                axios.get('/admin/stats/global'),
+                axios.get('/admin/heatmap'),
+                axios.get('/admin/quality-audit'),
+                axios.get('/admin/latest-matches'),
+                axios.get('/admin/invitations')
+            ]);
+
+            setKPIs(statsRes.data.kpis);
+            setHeatmapData(heatmapRes.data);
+            setAuditItems(auditRes.data);
+            setSuccessStories(matchesRes.data);
+            setInvitations(invitesRes.data);
         } catch (err) {
-            console.error('Error fetching municipalities:', err);
+            console.error("Error fetching dashboard data:", err);
         } finally {
             setLoading(false);
         }
     };
 
-    const handleCreateMunicipality = async (e: React.FormEvent) => {
+    const handleSendInvite = async (e: React.FormEvent) => {
         e.preventDefault();
-        setCreating(true);
-        setError('');
-
+        setSendingInvite(true);
         try {
-            const res = await axios.post('/admin/municipalities', formData);
-            setCreatedCredentials(res.data.credentials);
-            fetchMunicipalities();
-            // Don't close modal yet - show credentials first
-        } catch (err: any) {
-            setError(err.response?.data?.detail || 'Error al crear el ayuntamiento');
+            await axios.post('/admin/invite', inviteForm);
+            alert("Invitación enviada correctamente.");
+            setShowInviteModal(false);
+            setInviteForm({ email: '', entity_name: '', role: 'municipality' });
+            // Refresh invites
+            const res = await axios.get('/admin/invitations');
+            setInvitations(res.data);
+        } catch (err) {
+            alert("Error al enviar invitación.");
+            console.error(err);
         } finally {
-            setCreating(false);
+            setSendingInvite(false);
         }
     };
 
-    const closeModalAndReset = () => {
-        setShowCreateModal(false);
-        setCreatedCredentials(null);
-        setFormData({
-            name: '',
-            admin_email: '',
-            admin_name: '',
-            plan: 'enterprise',
-            send_email: false
-        });
-        setError('');
+    const handleResend = async (email: string) => {
+        // Logic to resend (reuse invite endpoint logic potentially)
+        // For now, simpler to explain.
+        alert(`Reenviando invitación a ${email}... (Simulación)`);
     };
 
-    const copyToClipboard = (text: string) => {
-        navigator.clipboard.writeText(text);
-        alert('Copiado al portapapeles');
-    };
+    if (loading) return <div className="p-10 text-center">Cargando Centro de Mando...</div>;
 
     return (
-        <div className="flex flex-col gap-8">
-            <header className="mb-6 border-b border-gray-200 pb-6">
-                <div className="flex items-center gap-4 mb-2">
-                    <span className="bg-gray-800 text-white px-3 py-1 text-xs font-bold rounded uppercase tracking-wider">Teamworkz</span>
-                    <h1 className="text-4xl font-heading font-bold text-n900">Global Dashboard</h1>
-                </div>
-                <p className="text-xl text-gray-600">Gobernanza global y soporte técnico del ecosistema Rural Minds.</p>
-            </header>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {/* Metrics */}
-                <div
-                    role="group"
-                    aria-labelledby="social-impact-title"
-                    className="bg-white p-8 rounded-xl shadow-md border-t-4 border-gray-800"
-                >
-                    <h3 id="social-impact-title" className="font-heading font-bold text-lg text-gray-500 uppercase tracking-wide">Impacto Social Global</h3>
-                    <div className="flex items-end gap-2 mt-2">
-                        <span className="text-5xl font-bold text-n900">1,240</span>
-                        <span className="text-green-600 font-bold mb-2 flex items-center gap-1">
-                            <span aria-hidden="true">▲</span>
-                            <span className="sr-only">Incremento del</span>
-                            12%
-                        </span>
+        <div className="flex flex-col gap-8 min-h-screen pb-20">
+            {/* Header */}
+            <header className="mb-0 border-b border-gray-200 pb-6 bg-white -mx-4 -mt-4 px-8 pt-6 shadow-sm sticky top-0 z-20">
+                <div className="flex justify-between items-center">
+                    <div>
+                        <div className="flex items-center gap-4 mb-2">
+                            <span className="bg-gray-900 text-white px-3 py-1 text-xs font-bold rounded uppercase tracking-wider">Teamworkz Admin</span>
+                            <h1 className="text-3xl font-heading font-bold text-n900">Visión Global</h1>
+                        </div>
+                        <p className="text-gray-500 text-sm">Monitorización estratégica del ecosistema Rural Minds España.</p>
                     </div>
-                    <p className="text-sm text-gray-400 mt-2">Inserciones exitosas este año</p>
-                </div>
-
-                <div
-                    role="group"
-                    aria-labelledby="ecosystem-health-title"
-                    className="bg-white p-8 rounded-xl shadow-md border-t-4 border-gray-800"
-                >
-                    <h3 id="ecosystem-health-title" className="font-heading font-bold text-lg text-gray-500 uppercase tracking-wide">Salud del Ecosistema</h3>
-                    <div className="mt-4">
-                        <div className="flex justify-between mb-1">
-                            <span id="label-active-munis" className="text-sm font-bold">Ayuntamientos Activos</span>
-                            <span aria-labelledby="label-active-munis" className="text-sm">{municipalities.length}</span>
-                        </div>
-                        <div
-                            className="w-full bg-gray-200 rounded-full h-2"
-                            role="progressbar"
-                            aria-valuenow={Math.min(municipalities.length * 2, 100)}
-                            aria-valuemin={0}
-                            aria-valuemax={100}
-                            aria-label="Progreso de Ayuntamientos Activos"
-                        >
-                            <div className="bg-p2 h-2 rounded-full" style={{ width: `${Math.min(municipalities.length * 2, 100)}%` }}></div>
-                        </div>
-
-                        <div className="flex justify-between mb-1 mt-4">
-                            <span id="label-participants" className="text-sm font-bold">Empresas Participantes</span>
-                            <span aria-labelledby="label-participants" className="text-sm">128</span>
-                        </div>
-                        <div
-                            className="w-full bg-gray-200 rounded-full h-2"
-                            role="progressbar"
-                            aria-valuenow={65}
-                            aria-valuemin={0}
-                            aria-valuemax={100}
-                            aria-label="Progreso de Empresas Participantes"
-                        >
-                            <div className="bg-accent h-2 rounded-full" style={{ width: '65%' }}></div>
-                        </div>
-                    </div>
-                </div>
-
-                <div
-                    role="group"
-                    aria-labelledby="audit-alerts-title"
-                    className="bg-white p-8 rounded-xl shadow-md border-t-4 border-red-500"
-                >
-                    <h3 id="audit-alerts-title" className="font-heading font-bold text-lg text-gray-500 uppercase tracking-wide">Alertas de Auditoría</h3>
-                    <p className="text-3xl font-bold text-n900 mt-2">3 <span className="text-base font-normal text-gray-500">Proyectos Flagged</span></p>
-                    <button className="text-red-600 font-bold text-sm mt-4 hover:underline">Revisar Auditoría d'Impacto</button>
-                </div>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-4">
-                {/* Municipality Management */}
-                <section className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
-                    <div className="flex justify-between items-center mb-6">
-                        <h2 className="text-2xl font-heading font-bold text-n900">Gestión de Ayuntamientos</h2>
+                    <div className="flex gap-4">
                         <button
-                            onClick={() => setShowCreateModal(true)}
-                            className="btn-primary text-sm"
+                            onClick={() => setShowInviteModal(true)}
+                            className="btn-primary shadow-lg flex items-center gap-2"
                         >
-                            + Nuevo Ayuntamiento
+                            <span>📨</span> Nueva Invitación
                         </button>
                     </div>
+                </div>
+            </header>
 
-                    {loading ? (
-                        <p className="text-gray-500">Cargando...</p>
-                    ) : municipalities.length === 0 ? (
-                        <div className="text-center py-8 text-gray-500">
-                            <p className="text-4xl mb-4">🏛️</p>
-                            <p>No hay ayuntamientos registrados</p>
-                            <p className="text-sm mt-2">Crea el primero haciendo clic en "+ Nuevo Ayuntamiento"</p>
+            {/* 1. The 4 Grandes (KPIs) */}
+            <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <KpiCard
+                    title="Índice de Arraigo"
+                    value={`${kpis?.rooting_index}%`}
+                    subtitle="Empleo local conseguido"
+                    icon="🌱"
+                    color="green"
+                />
+                <KpiCard
+                    title="Tasa de Atracción"
+                    value={`${kpis?.attraction_rate}%`}
+                    subtitle="Nuevos residentes captados"
+                    icon="🧳"
+                    color="blue"
+                />
+                <KpiCard
+                    title="Empresas con Sello"
+                    value={kpis?.sealed_companies || 0}
+                    subtitle="Excelencia validada"
+                    icon="🏅"
+                    color="yellow"
+                />
+                <KpiCard
+                    title="Municipios Activos"
+                    value={kpis?.active_municipalities || 0}
+                    subtitle="Ayuntamientos conectados"
+                    icon="🏛️"
+                    color="purple"
+                />
+            </section>
+
+            {/* 2. Heatmap & Audit Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                {/* Heatmap (2/3) */}
+                <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex flex-col">
+                    <div className="flex justify-between items-center mb-6">
+                        <h3 className="font-heading font-bold text-xl text-n900">🗺️ Mapa de Impacto Nacional</h3>
+                        <div className="flex gap-2 text-xs">
+                            <button className="px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded-full font-medium">Demanda Empleo</button>
+                            <button className="px-3 py-1 bg-p2 text-white rounded-full font-medium">Actividad General</button>
                         </div>
-                    ) : (
-                        <table className="w-full text-left border-collapse">
-                            <thead>
-                                <tr className="text-gray-500 text-sm border-b border-gray-100">
-                                    <th className="pb-3 font-bold">Nombre</th>
-                                    <th className="pb-3 font-bold">Admin</th>
-                                    <th className="pb-3 font-bold">Estado</th>
-                                    <th className="pb-3 font-bold text-right">Empresas</th>
-                                </tr>
-                            </thead>
-                            <tbody className="text-sm">
-                                {municipalities.map((muni) => (
-                                    <tr key={muni.id} className="border-b border-gray-50 last:border-0 hover:bg-gray-50">
-                                        <td className="py-4 font-bold text-n900">{muni.name}</td>
-                                        <td className="py-4 text-gray-600">{muni.admin?.email || 'Sin admin'}</td>
-                                        <td className="py-4">
-                                            <span className={`font-bold ${muni.admin?.status === 'active' ? 'text-green-600' : 'text-yellow-600'}`}>
-                                                {muni.admin?.status === 'active' ? 'Activo' : 'Pendiente'}
-                                            </span>
-                                        </td>
-                                        <td className="py-4 text-right text-gray-600">{muni.associated_companies}</td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    )}
-                </section>
-
-                <section className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
-                    <h2 className="text-2xl font-heading font-bold text-n900 mb-6">Auditoría de Proyectos (Últimos)</h2>
-                    <div className="space-y-4">
-                        {[1, 2].map(i => (
-                            <div key={i} className="flex gap-4 items-start p-4 bg-gray-50 rounded-lg">
-                                <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center font-bold text-gray-600">P{i}</div>
-                                <div>
-                                    <h4 className="font-bold text-n900">Proyecto Inclusivo {i}</h4>
-                                    <p className="text-xs text-gray-500">Creado por Empresa X en Municipio Y</p>
-                                    <div className="flex gap-2 mt-2">
-                                        <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded">Propósito OK</span>
-                                        <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">Accesibilidad AA</span>
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
                     </div>
-                </section>
+                    <div className="flex-grow flex items-center justify-center bg-gray-50 rounded-lg border border-gray-100 p-4">
+                        <SpainHeatmap data={heatmapData} />
+                    </div>
+                </div>
+
+                {/* Audit Feed (1/3) */}
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex flex-col max-h-[500px]">
+                    <h3 className="font-heading font-bold text-xl text-n900 mb-4 flex items-center gap-2">
+                        <span>🛡️</span> Auditoría de Calidad
+                        <span className="text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded-full ml-auto">Revisión pendiente</span>
+                    </h3>
+                    <div className="flex-grow overflow-y-auto space-y-4 pr-2 custom-scrollbar">
+                        {auditItems.length === 0 ? (
+                            <p className="text-gray-400 text-sm text-center py-10">Todo en orden ✅</p>
+                        ) : (
+                            auditItems.map((item) => (
+                                <div key={item.id} className="p-3 bg-gray-50 rounded-lg border-l-4 border-l-red-400 hover:bg-gray-100 transition-colors">
+                                    <div className="flex justify-between items-start mb-1">
+                                        <span className="text-xs font-bold uppercase text-gray-500">{item.type}</span>
+                                        <span className="text-xs text-gray-400">{new Date(item.created_at).toLocaleDateString()}</span>
+                                    </div>
+                                    <h4 className="font-bold text-n900 text-sm">{item.name}</h4>
+                                    {item.issues.length > 0 && (
+                                        <div className="mt-2 flex flex-wrap gap-1">
+                                            {item.issues.map((issue, idx) => (
+                                                <span key={idx} className="text-xs bg-red-100 text-red-700 px-1.5 py-0.5 rounded">⚠️ {issue}</span>
+                                            ))}
+                                        </div>
+                                    )}
+                                    <button className="text-xs text-p2 font-bold mt-2 hover:underline">Revisar Ficha →</button>
+                                </div>
+                            ))
+                        )}
+                    </div>
+                </div>
             </div>
 
-            {/* Create Municipality Modal */}
-            {showCreateModal && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
-                        <div className="p-6 border-b border-gray-100">
-                            <div className="flex justify-between items-center">
-                                <h3 className="text-2xl font-heading font-bold text-n900">
-                                    {createdCredentials ? '✅ Ayuntamiento Creado' : '🏛️ Nuevo Ayuntamiento'}
-                                </h3>
-                                <button
-                                    onClick={closeModalAndReset}
-                                    className="text-gray-400 hover:text-gray-600 text-2xl"
-                                >
-                                    ×
-                                </button>
+            {/* 3. Invitation Management (Sales Funnel) */}
+            <section className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                <div className="p-6 border-b border-gray-100 flex justify-between items-center">
+                    <h3 className="font-heading font-bold text-xl text-n900">📡 Gestión de Invitaciones</h3>
+                </div>
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left">
+                        <thead className="bg-gray-50 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                            <tr>
+                                <th className="px-6 py-3">Entidad</th>
+                                <th className="px-6 py-3">Email</th>
+                                <th className="px-6 py-3">Enviada</th>
+                                <th className="px-6 py-3">Estado</th>
+                                <th className="px-6 py-3 text-right">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100 text-sm">
+                            {invitations.map((inv) => (
+                                <tr key={inv.id} className="hover:bg-gray-50 transition-colors">
+                                    <td className="px-6 py-4 font-bold text-n900">{inv.entity_name}</td>
+                                    <td className="px-6 py-4 text-gray-600 font-mono text-xs">{inv.email}</td>
+                                    <td className="px-6 py-4 text-gray-500">{new Date(inv.created_at).toLocaleDateString()}</td>
+                                    <td className="px-6 py-4">
+                                        <StatusBadge status={inv.status} />
+                                    </td>
+                                    <td className="px-6 py-4 text-right">
+                                        {inv.status === 'expired' && (
+                                            <button
+                                                onClick={() => handleResend(inv.email)}
+                                                className="text-p2 font-bold hover:underline"
+                                            >
+                                                ↻ Reenviar
+                                            </button>
+                                        )}
+                                        {inv.status === 'pending' && <span className="text-gray-400 text-xs italic">Esperando...</span>}
+                                        {inv.status === 'active' && <span className="text-green-600 text-xs font-bold">✔ Completado</span>}
+                                    </td>
+                                </tr>
+                            ))}
+                            {invitations.length === 0 && (
+                                <tr>
+                                    <td colSpan={5} className="px-6 py-8 text-center text-gray-400">
+                                        No hay invitaciones recientes.
+                                    </td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            {/* 4. Success Stories (Denominación de Origen) */}
+            <section className="bg-gradient-to-r from-p2 to-p1 rounded-xl shadow-lg p-8 text-white relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-32 bg-white/10 rounded-full blur-3xl transform translate-x-1/2 -translate-y-1/2"></div>
+                <h3 className="font-heading font-bold text-2xl mb-6 relative z-10">🌟 Historias de Éxito Rural</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 relative z-10">
+                    {successStories.length > 0 ? successStories.map((story) => (
+                        <div key={story.id} className="bg-white/10 backdrop-blur-md p-4 rounded-lg border border-white/20 hover:bg-white/20 transition-all cursor-crosshair">
+                            <div className="flex items-center gap-3 mb-2">
+                                <div className="w-10 h-10 rounded-full bg-white text-p2 flex items-center justify-center font-bold text-lg">
+                                    {story.candidate_name.charAt(0)}
+                                </div>
+                                <div>
+                                    <p className="font-bold text-sm">{story.candidate_name}</p>
+                                    <p className="text-xs text-white/80">Contratado/a</p>
+                                </div>
+                            </div>
+                            <div className="mt-2 pt-2 border-t border-white/10">
+                                <p className="text-sm font-bold">💼 {story.job_title}</p>
+                                <p className="text-xs">en {story.company_name}</p>
                             </div>
                         </div>
+                    )) : (
+                        <div className="col-span-3 text-center py-8 opacity-80">
+                            <p className="text-lg">Aún no hay historias de éxito registradas... ¡pero pronto llegarán!</p>
+                        </div>
+                    )}
+                </div>
+            </section>
 
-                        {createdCredentials ? (
-                            // Success - Show credentials
-                            <div className="p-6">
-                                <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
-                                    <p className="text-green-800 font-bold">Ayuntamiento creado correctamente</p>
-                                    <p className="text-green-700 text-sm mt-1">Guarda estas credenciales para compartirlas con el administrador:</p>
-                                </div>
-
-                                <div className="bg-gray-50 rounded-lg p-6 space-y-4">
-                                    <div>
-                                        <label className="text-sm font-bold text-gray-500">Email</label>
-                                        <div className="flex items-center gap-2 mt-1">
-                                            <code className="flex-1 bg-white p-3 rounded border text-n900 font-mono">
-                                                {createdCredentials.email}
-                                            </code>
-                                            <button
-                                                onClick={() => copyToClipboard(createdCredentials.email)}
-                                                className="p-2 bg-gray-200 hover:bg-gray-300 rounded"
-                                                title="Copiar"
-                                            >
-                                                📋
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    <div>
-                                        <label className="text-sm font-bold text-gray-500">Contraseña</label>
-                                        <div className="flex items-center gap-2 mt-1">
-                                            <code className="flex-1 bg-white p-3 rounded border text-n900 font-mono text-lg">
-                                                {createdCredentials.password}
-                                            </code>
-                                            <button
-                                                onClick={() => copyToClipboard(createdCredentials.password)}
-                                                className="p-2 bg-gray-200 hover:bg-gray-300 rounded"
-                                                title="Copiar"
-                                            >
-                                                📋
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    <div>
-                                        <label className="text-sm font-bold text-gray-500">URL de Acceso</label>
-                                        <div className="flex items-center gap-2 mt-1">
-                                            <code className="flex-1 bg-white p-3 rounded border text-p2 font-mono text-sm">
-                                                {createdCredentials.login_url}
-                                            </code>
-                                            <button
-                                                onClick={() => copyToClipboard(createdCredentials.login_url)}
-                                                className="p-2 bg-gray-200 hover:bg-gray-300 rounded"
-                                                title="Copiar"
-                                            >
-                                                📋
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mt-6">
-                                    <p className="text-yellow-800 text-sm">
-                                        ⚠️ <strong>Importante:</strong> Esta contraseña solo se muestra una vez. Cópiala ahora y compártela de forma segura con el administrador del ayuntamiento.
-                                    </p>
-                                </div>
-
-                                <button
-                                    onClick={() => {
-                                        const text = `Credenciales Rural Minds\n\nEmail: ${createdCredentials.email}\nContraseña: ${createdCredentials.password}\nAcceso: ${createdCredentials.login_url}`;
-                                        copyToClipboard(text);
-                                    }}
-                                    className="w-full mt-6 bg-p2 text-white font-bold py-3 rounded-lg hover:bg-p2/90"
+            {/* Invitation Modal */}
+            {showInviteModal && (
+                <div className="fixed inset-0 bg-n900/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 animate-scale-up">
+                        <h3 className="text-xl font-bold mb-4">Enviar Invitación</h3>
+                        <form onSubmit={handleSendInvite} className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-bold mb-1">Nombre Entidad</label>
+                                <input
+                                    className="w-full p-2 border rounded"
+                                    required
+                                    value={inviteForm.entity_name}
+                                    onChange={e => setInviteForm({ ...inviteForm, entity_name: e.target.value })}
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-bold mb-1">Email Responsable</label>
+                                <input
+                                    type="email"
+                                    className="w-full p-2 border rounded"
+                                    required
+                                    value={inviteForm.email}
+                                    onChange={e => setInviteForm({ ...inviteForm, email: e.target.value })}
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-bold mb-1">Rol</label>
+                                <select
+                                    className="w-full p-2 border rounded"
+                                    value={inviteForm.role}
+                                    onChange={e => setInviteForm({ ...inviteForm, role: e.target.value })}
                                 >
-                                    📋 Copiar Todo
-                                </button>
-
-                                <button
-                                    onClick={closeModalAndReset}
-                                    className="w-full mt-3 bg-gray-100 text-gray-700 font-bold py-3 rounded-lg hover:bg-gray-200"
-                                >
-                                    Cerrar
+                                    <option value="municipality">Ayuntamiento</option>
+                                    <option value="enterprise">Empresa</option>
+                                </select>
+                            </div>
+                            <div className="flex gap-3 pt-2">
+                                <button type="button" onClick={() => setShowInviteModal(false)} className="flex-1 py-2 border rounded hover:bg-gray-50">Cancelar</button>
+                                <button type="submit" disabled={sendingInvite} className="flex-1 py-2 bg-p2 text-white rounded font-bold hover:bg-p2/90">
+                                    {sendingInvite ? 'Enviando...' : 'Enviar'}
                                 </button>
                             </div>
-                        ) : (
-                            // Form
-                            <form onSubmit={handleCreateMunicipality} className="p-6 space-y-5">
-                                {error && (
-                                    <div className="bg-red-50 border border-red-200 text-red-700 p-3 rounded-lg text-sm">
-                                        {error}
-                                    </div>
-                                )}
-
-                                <div>
-                                    <label className="block text-sm font-bold text-n900 mb-2">
-                                        Nombre del Ayuntamiento *
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={formData.name}
-                                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-p2 focus:border-p2 outline-none"
-                                        placeholder="Ej: Ayuntamiento de Villa Rural"
-                                        required
-                                    />
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-sm font-bold text-n900 mb-2">
-                                            Email Administrador *
-                                        </label>
-                                        <input
-                                            type="email"
-                                            value={formData.admin_email}
-                                            onChange={(e) => setFormData({ ...formData, admin_email: e.target.value })}
-                                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-p2 focus:border-p2 outline-none"
-                                            placeholder="admin@ayuntamiento.es"
-                                            required
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-bold text-n900 mb-2">
-                                            Nombre del Administrador
-                                        </label>
-                                        <input
-                                            type="text"
-                                            value={formData.admin_name}
-                                            onChange={(e) => setFormData({ ...formData, admin_name: e.target.value })}
-                                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-p2 focus:border-p2 outline-none"
-                                            placeholder="Juan García"
-                                        />
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-bold text-n900 mb-2">
-                                        Plan de Suscripción
-                                    </label>
-                                    <select
-                                        value={formData.plan}
-                                        onChange={(e) => setFormData({ ...formData, plan: e.target.value })}
-                                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-p2 focus:border-p2 outline-none"
-                                    >
-                                        <option value="starter">Starter (Gratuito)</option>
-                                        <option value="growth">Growth</option>
-                                        <option value="enterprise">Enterprise</option>
-                                    </select>
-                                </div>
-
-                                <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
-                                    <input
-                                        type="checkbox"
-                                        id="send_email"
-                                        checked={formData.send_email}
-                                        onChange={(e) => setFormData({ ...formData, send_email: e.target.checked })}
-                                        className="w-5 h-5 text-p2 rounded"
-                                    />
-                                    <label htmlFor="send_email" className="text-sm text-gray-700">
-                                        <strong>Enviar credenciales por email</strong>
-                                        <br />
-                                        <span className="text-gray-500">El administrador recibirá un email con sus datos de acceso</span>
-                                    </label>
-                                </div>
-
-                                <div className="flex gap-3 pt-4">
-                                    <button
-                                        type="button"
-                                        onClick={closeModalAndReset}
-                                        className="flex-1 py-3 px-6 border border-gray-300 text-gray-700 font-bold rounded-lg hover:bg-gray-50"
-                                    >
-                                        Cancelar
-                                    </button>
-                                    <button
-                                        type="submit"
-                                        disabled={creating}
-                                        className="flex-1 py-3 px-6 bg-p2 text-white font-bold rounded-lg hover:bg-p2/90 disabled:opacity-50"
-                                    >
-                                        {creating ? 'Creando...' : 'Crear Ayuntamiento'}
-                                    </button>
-                                </div>
-                            </form>
-                        )}
+                        </form>
                     </div>
                 </div>
             )}
         </div>
     );
 };
+
+// UI Components
+const KpiCard: React.FC<{ title: string, value: string | number, subtitle: string, icon: string, color: string }> = ({ title, value, subtitle, icon, color }) => {
+    const colors: { [key: string]: string } = {
+        green: 'border-green-500 text-green-600',
+        blue: 'border-blue-500 text-blue-600',
+        yellow: 'border-yellow-500 text-yellow-600',
+        purple: 'border-purple-500 text-purple-600',
+    };
+
+    return (
+        <div className={`bg-white p-6 rounded-xl shadow-sm border-t-4 ${colors[color] || 'border-gray-500'} flex flex-col`}>
+            <div className="flex justify-between items-start mb-2">
+                <h4 className="text-gray-500 text-xs font-bold uppercase tracking-wider">{title}</h4>
+                <span className="text-2xl">{icon}</span>
+            </div>
+            <span className="text-4xl font-heading font-bold text-n900 mb-1">{value}</span>
+            <p className="text-xs text-gray-400">{subtitle}</p>
+        </div>
+    );
+};
+
+const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
+    if (status === 'active') return <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold">Activo</span>;
+    if (status === 'pending') return <span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs font-bold">Pendiente</span>;
+    if (status === 'expired') return <span className="px-2 py-1 bg-red-100 text-red-700 rounded-full text-xs font-bold">Expirado</span>;
+    return <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded-full text-xs">{status}</span>;
+}
 
 export default SuperAdminDashboard;

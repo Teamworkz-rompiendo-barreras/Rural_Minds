@@ -70,6 +70,16 @@ from routers import locations
 app.include_router(locations.router)
 from routers import organizations
 app.include_router(organizations.router)
+from routers import municipality
+app.include_router(municipality.router)
+
+from fastapi.staticfiles import StaticFiles
+# Ensure static directory exists
+os.makedirs("static", exist_ok=True)
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+from routers import config
+app.include_router(config.router)
 
 
 

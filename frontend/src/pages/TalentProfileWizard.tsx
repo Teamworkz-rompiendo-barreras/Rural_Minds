@@ -33,6 +33,14 @@ const TalentProfileWizard: React.FC = () => {
     const [step, setStep] = useState(0);
     const [saving, setSaving] = useState(false);
 
+    // Toast State
+    const [toast, setToast] = useState<{ message: string; visible: boolean }>({ message: '', visible: false });
+
+    const showToast = (municipalityName: string) => {
+        setToast({ message: municipalityName, visible: true });
+        setTimeout(() => setToast(prev => ({ ...prev, visible: false })), 5000);
+    };
+
     // Data States
     const [accessibilityPrefs, setAccessibilityPrefs] = useState<AccessibilityPrefs>({
         high_contrast: false,
@@ -406,9 +414,10 @@ const TalentProfileWizard: React.FC = () => {
                             <LocationSelector
                                 label=""
                                 placeholder="Añadir municipio de interés..."
-                                onChange={(id) => {
+                                onChange={(id, name) => {
                                     if (!profileData.target_locations.includes(id)) {
                                         setProfileData(prev => ({ ...prev, target_locations: [...prev.target_locations, id] }));
+                                        if (name) showToast(name);
                                     }
                                 }}
                             />
@@ -509,6 +518,25 @@ const TalentProfileWizard: React.FC = () => {
 
                 {steps[step]()}
             </div>
+
+            {/* Custom Toast Notification */}
+            {toast.visible && (
+                <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 bg-n900 text-white px-6 py-4 rounded-xl shadow-2xl z-50 flex items-center gap-4 animate-fade-in-up max-w-md w-full border-l-4 border-p2">
+                    <span className="text-2xl">🌱</span>
+                    <div>
+                        <h4 className="font-bold text-lg">¡Buena elección!</h4>
+                        <p className="text-sm opacity-90">
+                            El Ayuntamiento de <span className="font-bold text-p2">{toast.message}</span> ha sido notificado y te enviará información de apoyo pronto.
+                        </p>
+                    </div>
+                    <button
+                        onClick={() => setToast({ ...toast, visible: false })}
+                        className="ml-auto text-white/50 hover:text-white"
+                    >
+                        ×
+                    </button>
+                </div>
+            )}
         </div>
     );
 };

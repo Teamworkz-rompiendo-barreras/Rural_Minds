@@ -9,6 +9,7 @@ import SensoryProfile from './pages/SensoryProfile';
 import SolutionsCatalog from './pages/SolutionsCatalog';
 import MyAdjustments from './pages/MyAdjustments';
 import AdminDashboard from './pages/AdminDashboard';
+import SuperAdminConfig from './pages/SuperAdminConfig';
 import MunicipalityDashboard from './pages/MunicipalityDashboard';
 import EnterpriseDashboard from './pages/EnterpriseDashboard';
 import CreateProject from './pages/CreateProject';
@@ -30,6 +31,11 @@ import {
   UserSettings, NotFound
 } from './pages/ScaffoldedPages';
 
+import MunicipalityProfile from './pages/MunicipalityProfile';
+import RegisterMunicipality from './pages/RegisterMunicipality';
+import MunicipalityOnboarding from './pages/MunicipalityOnboarding';
+import MunicipalitySuccess from './pages/MunicipalitySuccess';
+
 function App() {
   return (
     <Layout>
@@ -39,6 +45,10 @@ function App() {
         <Route path="/create-project" element={<CreateProject />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/register/company" element={<Register />} /> {/* Alias for companies with ref */}
+        <Route path="/register-municipality" element={<RegisterMunicipality />} /> {/* Invitation Flow */}
+        <Route path="/municipality-onboarding" element={<MunicipalityOnboarding />} /> {/* Phase 8 Wizard */}
+        <Route path="/municipality-success" element={<MunicipalitySuccess />} /> {/* Phase 9 Success */}
         <Route path="/contact" element={<Contact />} />
         <Route path="/verify-email" element={<VerifyEmail />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -49,7 +59,9 @@ function App() {
         <Route path="/talent-dashboard" element={<TalentDashboard />} />
         <Route path="/municipality-dashboard" element={<MunicipalityDashboard />} />
         <Route path="/enterprise-dashboard" element={<EnterpriseDashboard />} />
+        <Route path="/municipality/:id" element={<MunicipalityProfile />} /> {/* New Route */}
         <Route path="/admin" element={<AdminDashboard />} /> {/* Superadmin */}
+        <Route path="/admin/config" element={<SuperAdminConfig />} /> {/* Phase 14 */}
         <Route path="/project/:id" element={<ProjectDetail />} />
         <Route path="/chat/:applicationId" element={<Chat />} />
 

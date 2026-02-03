@@ -1,12 +1,16 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import axios from '../config/api';
 
 const Register: React.FC = () => {
+    const [searchParams] = useSearchParams();
+    const refParam = searchParams.get('ref');
+
+    // Default role to enterprise if ref is present (assumption based on usage)
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
-    const [role, setRole] = useState('enterprise');
+    const [role, setRole] = useState(refParam ? 'enterprise' : 'enterprise'); // Defaulting
     const [orgName, setOrgName] = useState('');
     const [error, setError] = useState('');
     const [success, setSuccess] = useState(false);
@@ -20,7 +24,8 @@ const Register: React.FC = () => {
         const payload = {
             org_data: {
                 name: role === 'enterprise' ? orgName : `Freelance - ${email}`,
-                subscription_plan: 'starter'
+                subscription_plan: 'starter',
+                municipality_id: role === 'enterprise' ? refParam : undefined
             },
             user_data: {
                 email: email,

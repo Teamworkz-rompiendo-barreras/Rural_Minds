@@ -178,3 +178,57 @@ def update_org_details(
     db.commit()
     db.refresh(org)
     return org
+
+@router.put("/municipalities/me/details")
+def update_my_municipality_details(
+    payload: dict,
+    db: Session = Depends(database.get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    """
+    Update details for the logged-in municipality admin.
+    """
+    if current_user.role != "territory_admin":
+        raise HTTPException(status_code=403, detail="Permission denied")
+    
+    org_id = current_user.organization_id
+    
+    # 1. Update Details
+    details = db.query(models.MunicipalityDetails).filter(
+        models.MunicipalityDetails.location_id == org_id
+    ).first()
+    
+    if not details:
+        details = models.MunicipalityDetails(
+            id=uuid.uuid4(),
+            location_id=org_id
+        )
+        db.add(details)
+    
+    if "slogan" in payload: details.slogan = payload["slogan"]
+    if "description" in payload: details.description = payload["description"]
+    if "internet_speed" in payload: details.internet_speed = payload["internet_speed"]
+    if "connectivity_info" in payload: details.connectivity_info = payload["connectivity_info"]
+    if "climate_co2" in payload: details.climate_co2 = payload["climate_co2"]
+    if "services" in payload: details.services = payload["services"]
+    if "gallery_urls" in payload: details.gallery_urls = payload["gallery_urls"]
+    if "status" in payload: details.status = payload["status"]
+    
+    # 2. Update Resources
+    resource = db.query(models.MunicipalityResource).filter(
+        models.MunicipalityResource.location_id == org_id
+    ).first()
+    
+    if not resource:
+        resource = models.MunicipalityResource(
+            id=uuid.uuid4(),
+            location_id=org_id
+        )
+        db.add(resource)
+        
+    if "landing_guide_url" in payload: resource.landing_guide_url = payload["landing_guide_url"]
+    if "adl_contact_email" in payload: resource.adl_contact_email = payload["adl_contact_email"]
+    
+    db.commit()
+    
+    return {"message": "Details updated successfully"}
