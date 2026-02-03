@@ -75,8 +75,14 @@ app.include_router(municipality.router)
 
 from fastapi.staticfiles import StaticFiles
 # Ensure static directory exists
-os.makedirs("static", exist_ok=True)
-app.mount("/static", StaticFiles(directory="static"), name="static")
+try:
+    os.makedirs("static", exist_ok=True)
+except OSError:
+    pass # Read-only file system
+    
+# Only mount if directory exists or we are not in read-only mode to avoid errors
+if os.path.exists("static"):
+    app.mount("/static", StaticFiles(directory="static"), name="static")
 
 from routers import config
 app.include_router(config.router)

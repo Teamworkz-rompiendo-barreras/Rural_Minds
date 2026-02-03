@@ -14,7 +14,20 @@ router = APIRouter(
 )
 
 GLOBAL_ASSETS_DIR = "static/global-assets"
-os.makedirs(GLOBAL_ASSETS_DIR, exist_ok=True)
+try:
+    os.makedirs(GLOBAL_ASSETS_DIR, exist_ok=True)
+except OSError:
+    # Likely read-only file system (Vercel)
+    # Use /tmp for temporary storage if absolutely needed, 
+    # but for now we just suppress the crash to allow startup.
+    if os.getenv("VERCEL"):
+        GLOBAL_ASSETS_DIR = "/tmp/global-assets"
+        try:
+            os.makedirs(GLOBAL_ASSETS_DIR, exist_ok=True)
+        except:
+            pass
+    else:
+        print(f"Warning: Could not create {GLOBAL_ASSETS_DIR}")
 
 # Helper for standardizing URLs
 def get_asset_url(filename: str):
