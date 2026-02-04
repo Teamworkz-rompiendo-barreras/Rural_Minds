@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from '../config/api';
 import { useAuth } from '../context/AuthContext';
 import SpainHeatmap from '../components/charts/SpainHeatmap';
@@ -47,6 +48,7 @@ interface SuccessStory {
 
 const SuperAdminDashboard: React.FC = () => {
     const { token } = useAuth();
+    const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
 
     // Data State
@@ -129,7 +131,7 @@ const SuperAdminDashboard: React.FC = () => {
                     </div>
                     <div className="flex gap-4">
                         <button
-                            onClick={() => window.location.href = '/admin/config'}
+                            onClick={() => navigate('/admin/config')}
                             className="bg-white border border-gray-300 text-n700 font-bold py-2 px-4 rounded-lg shadow-sm hover:bg-gray-50 flex items-center gap-2"
                         >
                             <span>🧠</span> Cerebro Operativo
