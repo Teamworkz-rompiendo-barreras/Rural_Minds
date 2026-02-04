@@ -69,7 +69,7 @@ const MatchCard: React.FC<MatchCardProps> = ({ candidateName, matchScore, adjust
                         )}
                         {adjustments.length === 0 && (
                             <p className="text-sm text-green-700 italic flex items-center gap-2">
-                                <span aria-hidden="true">🎉</span> Sin ajustes requeridos. ¡Ready to work!
+                                <span aria-hidden="true">🎉</span> Sin ajustes requeridos. ¡Listo para trabajar!
                             </p>
                         )}
                     </div>

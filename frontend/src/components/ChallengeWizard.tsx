@@ -137,8 +137,8 @@ const ChallengeWizard: React.FC = () => {
                 <div className="bg-white p-8 rounded-xl shadow-lg max-w-md w-full text-center">
                     <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">✓</div>
                     <h2 className="text-2xl font-bold font-heading mb-2 text-primary">Reto Publicado con éxito</h2>
-                    <p className="text-gray-600 mb-6">Your challenge has been successfully created.</p>
-                    <button onClick={() => navigate('/')} className="px-6 py-2 bg-primary text-white font-bold rounded hover:bg-opacity-90">Go Home</button>
+                    <p className="text-gray-600 mb-6">Tu reto ha sido creado exitosamente.</p>
+                    <button onClick={() => navigate('/')} className="px-6 py-2 bg-primary text-white font-bold rounded hover:bg-opacity-90">Ir al Inicio</button>
                 </div>
             </div>
         );
@@ -386,12 +386,12 @@ const ChallengeWizard: React.FC = () => {
 
                 {/* Footer Navigation */}
                 <div className="flex justify-between mt-8 pt-4 border-t border-gray-100">
-                    <button onClick={handleBack} className="px-6 py-2 text-gray-600 font-bold hover:text-text-main rounded disabled:opacity-50" disabled={isSubmitting}>Back</button>
+                    <button onClick={handleBack} className="px-6 py-2 text-gray-600 font-bold hover:text-text-main rounded disabled:opacity-50" disabled={isSubmitting}>Atrás</button>
                     {currentStep < 5 ? (
-                        <button onClick={handleNext} className="px-6 py-2 bg-primary text-white font-bold rounded hover:bg-opacity-90">Next Step</button>
+                        <button onClick={handleNext} className="px-6 py-2 bg-primary text-white font-bold rounded hover:bg-opacity-90">Siguiente</button>
                     ) : (
                         <button onClick={submitChallenge} disabled={isSubmitting} className="px-6 py-2 bg-accent text-text-main font-bold rounded hover:bg-yellow-400 flex items-center gap-2">
-                            {isSubmitting ? 'Submitting...' : 'Submit Challenge'}
+                            {isSubmitting ? 'Enviando...' : 'Enviar Reto'}
                         </button>
                     )}
                 </div>

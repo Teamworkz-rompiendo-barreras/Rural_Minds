@@ -94,7 +94,7 @@ const SuperAdminConfig: React.FC = () => {
             <header className="bg-white shadow-sm sticky top-0 z-20">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
                     <div className="flex items-center gap-4">
-                        <button onClick={() => navigate('/admin-dashboard')} className="text-gray-500 hover:text-gray-900">
+                        <button onClick={() => navigate('/admin')} className="text-gray-500 hover:text-gray-900">
                             ← Volver
                         </button>
                         <h1 className="text-2xl font-bold text-n900">🧠 Cerebro Operativo</h1>

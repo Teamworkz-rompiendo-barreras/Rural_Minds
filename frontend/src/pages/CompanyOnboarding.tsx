@@ -85,7 +85,7 @@ const CompanyOnboarding: React.FC = () => {
 
         } catch (err) {
             console.error("Failed to save", err);
-            alert("Failed to save details");
+            alert("Error al guardar detalles");
             setSaving(false);
         }
     };
@@ -195,7 +195,7 @@ const CompanyOnboarding: React.FC = () => {
                         disabled={saving}
                         className="px-8 py-3 bg-p2 text-white font-bold rounded-lg hover:bg-opacity-90 transition-all disabled:opacity-50"
                     >
-                        {saving ? 'Saving...' : 'Save & Continue'}
+                        {saving ? 'Guardando...' : 'Guardar y Continuar'}
                     </button>
                 </div>
             </form>

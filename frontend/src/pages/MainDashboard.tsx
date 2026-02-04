@@ -72,7 +72,7 @@ const MainDashboard: React.FC = () => {
     };
 
     if (loading) return <div className="p-8">Calculando métricas...</div>;
-    if (!metrics) return <div>Error loading dashboard</div>;
+    if (!metrics) return <div>Error al cargar el panel</div>;
 
     const activation_metrics = metrics.activation_metrics || {
         brand_setup: false,
@@ -85,7 +85,7 @@ const MainDashboard: React.FC = () => {
         <div className="max-w-7xl mx-auto p-6 space-y-8">
             <header className="flex justify-between items-center bg-white p-6 rounded-xl shadow-sm border border-gray-100">
                 <div>
-                    <h1 className="text-3xl font-heading font-bold text-gray-900">Activation Dashboard</h1>
+                    <h1 className="text-3xl font-heading font-bold text-gray-900">Panel de Activación</h1>
                     <p className="text-gray-500">Monitoriza cómo la neurodiversidad se convierte en ventaja competitiva.</p>
                 </div>
                 <div className="flex gap-2 items-center">
@@ -125,10 +125,10 @@ const MainDashboard: React.FC = () => {
                     <h3 className="text-gray-500 text-xs font-bold uppercase tracking-wider mb-2">Setup de Marca</h3>
                     <div className="flex items-center gap-3">
                         <span className={`text-4xl font-bold font-mono ${activation_metrics.brand_setup ? 'text-teal-600' : 'text-gray-300'}`}>
-                            {activation_metrics.brand_setup ? 'Ready' : 'Pending'}
+                            {activation_metrics.brand_setup ? 'Listo' : 'Pendiente'}
                         </span>
                         {activation_metrics.brand_setup && (
-                            <span className="bg-teal-100 text-teal-800 text-xs px-2 py-1 rounded-full">AA Compliant</span>
+                            <span className="bg-teal-100 text-teal-800 text-xs px-2 py-1 rounded-full">AA Cumplido</span>
                         )}
                     </div>
                     <p className="text-xs text-gray-400 mt-2">Identidad visual accesible</p>
@@ -188,7 +188,7 @@ const MainDashboard: React.FC = () => {
                         ))}
                     </div>
                     <div className="flex justify-between text-xs text-gray-400 mt-2 px-4">
-                        <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+                        <span>Lun</span><span>Mar</span><span>Mié</span><span>Jue</span><span>Vie</span><span>Sáb</span><span>Dom</span>
                     </div>
                 </div>
 

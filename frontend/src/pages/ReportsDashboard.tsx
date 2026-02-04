@@ -22,7 +22,7 @@ const ReportsDashboard: React.FC = () => {
         }
     };
 
-    if (loading) return <div className="p-8">Generating evidence report...</div>;
+    if (loading) return <div className="p-8">Generando reporte de evidencias...</div>;
 
     // Helper for Accessible Donut
     const DonutChart = ({ percent, color, label }: { percent: number, color: string, label: string }) => {
@@ -84,9 +84,9 @@ const ReportsDashboard: React.FC = () => {
                 </div>
                 {/* 3. Well-being (S3 Orange) */}
                 <div className="bg-white p-6 rounded-xl shadow-sm border-t-4 border-orange-500">
-                    <div className="text-gray-500 text-xs font-bold uppercase mb-1 font-heading">Well-being Level</div>
+                    <div className="text-gray-500 text-xs font-bold uppercase mb-1 font-heading">Nivel de Bienestar</div>
                     <div className="text-4xl font-bold text-gray-900 font-heading">{stats?.wellbeing_level}/10</div>
-                    <div className="text-orange-600 text-xs mt-2 font-bold">Avg. User Feedback</div>
+                    <div className="text-orange-600 text-xs mt-2 font-bold">Feedback Promedio</div>
                 </div>
                 {/* 4. ROI (Teal) */}
                 <div className="bg-white p-6 rounded-xl shadow-sm border-t-4 border-teal-600">

@@ -37,7 +37,7 @@ const SolutionsCatalog: React.FC = () => {
 
     const categories = ['all', 'software', 'hardware', 'environment', 'protocol'];
 
-    if (loading) return <div className="p-8 text-center text-gray-500">Loading catalog...</div>;
+    if (loading) return <div className="p-8 text-center text-gray-500">Cargando catálogo...</div>;
 
     return (
         <div className="max-w-6xl mx-auto p-6">

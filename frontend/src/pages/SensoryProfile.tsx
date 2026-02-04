@@ -54,7 +54,7 @@ const SensoryProfile: React.FC = () => {
         }
     };
 
-    if (loading) return <div className="p-8">Loading profile...</div>;
+    if (loading) return <div className="p-8">Cargando perfil...</div>;
 
     return (
         <div className="max-w-4xl mx-auto p-6">
@@ -137,7 +137,7 @@ const SensoryProfile: React.FC = () => {
                     onClick={handleSave}
                     className="px-8 py-3 bg-primary text-white font-bold rounded-lg shadow-lg hover:opacity-90 transition-all"
                 >
-                    {saved ? 'Saved!' : 'Save Preferences'}
+                    {saved ? '¡Guardado!' : 'Guardar Preferencias'}
                 </button>
             </div>
         </div>

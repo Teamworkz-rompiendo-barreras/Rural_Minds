@@ -42,7 +42,7 @@ const MyAdjustments: React.FC = () => {
         try {
             await axios.post(`/accessibility/adjustments/${id}/feedback`, {
                 score: score,
-                notes: "User submitted feedback"
+                notes: "Usuario envió valoración"
             });
             alert("¡Gracias! Tu feedback nos ayuda a medir el impacto.");
             setActiveFeedbackId(null);

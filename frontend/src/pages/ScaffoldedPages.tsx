@@ -5,7 +5,7 @@ const PlaceholderPage: React.FC<{ title: string }> = ({ title }) => (
         <div className="text-6xl mb-4">🚧</div>
         <h1 className="text-3xl font-heading font-bold text-primary mb-2">{title}</h1>
         <p className="text-gray-600 max-w-md">
-            This module is currently under development. Detailed implementation is scheduled for the next sprint.
+            Este módulo está actualmente en desarrollo. La implementación detallada está programada para el próximo sprint.
         </p>
     </div>
 );
