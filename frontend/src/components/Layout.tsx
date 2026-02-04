@@ -80,7 +80,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                     </button>
 
                     <nav className={`${isMenuOpen ? 'flex' : 'hidden'} md:flex flex-col md:flex-row w-full md:w-auto items-center gap-4 mt-4 md:mt-0 transition-all`}>
-                        <Link to="/" className="text-gray-600 hover:text-primary font-bold transition-colors">Inicio</Link>
+                        <Link to="/" className={isActive('/')}>Inicio</Link>
 
                         {isAuthenticated && user ? (
                             <div className="flex flex-col md:flex-row items-center gap-4 w-full md:w-auto">
@@ -137,7 +137,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                             </div>
                         ) : (
                             <div className="flex flex-col md:flex-row items-center gap-3 w-full md:w-auto">
-                                <Link to="/login" className="text-gray-600 hover:text-primary font-bold">Acceder</Link>
+                                <Link to="/login" className={isActive('/login')}>Acceder</Link>
                                 <Link to="/register" className="px-4 py-2 bg-primary text-white rounded font-bold hover:bg-opacity-90">Registrarse</Link>
                             </div>
                         )}
