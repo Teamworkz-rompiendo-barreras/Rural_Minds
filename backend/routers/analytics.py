@@ -28,8 +28,27 @@ def get_engagement_stats(
 @router.get("/impact")
 def get_impact_report(
     db: Session = Depends(database.get_db), 
-    current_user: models.User = Depends(auth.get_current_user)
+    current_user: models.User = Depends(auth.get_current_user_optional)
 ):
+    # Handle Public/Demo Access (No User)
+    if not current_user:
+        return {
+            "inclusion_score": 88,
+            "adequacy_index": "82%",
+            "wellbeing_level": 8.5,
+            "activation_rate": "70%",
+            "roi_estimated": "$50,000",
+            "neurodivergent_hires": 150,
+            "retention_rate": "95%",
+            "hiring_velocity": "12 days",
+            "activation_metrics": {
+                "brand_setup": True,
+                "sensory_adoption": 70,
+                "accessibility_health": 85,
+                "learning_usage": 450
+            }
+        }
+
     org_id = current_user.organization_id
     if not org_id:
         # Return empty/default if no organization context

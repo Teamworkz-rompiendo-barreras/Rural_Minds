@@ -40,13 +40,8 @@ def create_prod_tables():
     print("🔧 Patching 'organizations' table columns...")
     with engine.connect() as conn:
         columns_to_add = [
-            ("validation_status", "VARCHAR DEFAULT 'pending'"),
-            ("branding_logo_url", "VARCHAR NULL"),
-            ("municipality_id", "UUID NULL"),
-            ("org_type", "VARCHAR DEFAULT 'enterprise'"),
             ("seal_downloaded_at", "TIMESTAMP NULL"),
-            ("location_id", "UUID NULL"),
-            ("primary_color_override", "VARCHAR DEFAULT '#0F5C2E'")
+            ("location_id", "UUID NULL")
         ]
         
         for col_name, col_def in columns_to_add:
