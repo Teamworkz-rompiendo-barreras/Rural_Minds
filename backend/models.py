@@ -334,5 +334,18 @@ class MasterResource(Base):
     updated_by = Column(GUID, ForeignKey("users.id"), nullable=True)
     updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
 
+class SuccessStory(Base):
+    """Success stories for display on landing page and admin panel."""
+    __tablename__ = "success_stories"
+    
+    id = Column(GUID, primary_key=True, default=uuid.uuid4, index=True)
+    title = Column(String, nullable=False) # Max 18 words enforced in API
+    description = Column(String, nullable=True)
+    image_url = Column(String, nullable=True)
+    municipality_name = Column(String, nullable=True)
+    
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
+
 # Import from models_location to make them available via models module
 from models_location import MunicipalityDetails, MunicipalityResource, Location

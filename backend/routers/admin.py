@@ -112,6 +112,271 @@ def get_global_stats(
 
 # --- New Endpoints Phase 13 ---
 
+# --- CEREBRO OPERATIVO: Motor de Matching ---
+@router.get("/matching")
+def get_matching_data(
+    province: Optional[str] = None,
+    sector: Optional[str] = None,
+    db: Session = Depends(database.get_db),
+    _: models.User = Depends(require_super_admin)
+):
+    """
+    Returns candidates and job offers for matching.
+    Filters by province and sector if provided.
+    """
+    from models_location import Location
+    
+    # Get candidates (talents with profiles)
+    candidates_query = db.query(models.User).filter(models.User.role == "talent")
+    
+    # Get challenges (job offers)
+    challenges_query = db.query(models.Challenge).filter(models.Challenge.status == "published")
+    
+    candidates = []
+    for user in candidates_query.limit(50).all():
+        profile = db.query(models.TalentProfile).filter(models.TalentProfile.user_id == user.id).first()
+        location = None
+        if profile and profile.residence_location_id:
+            loc = db.query(Location).filter(Location.id == profile.residence_location_id).first()
+            if loc:
+                location = {"province": loc.province, "municipality": loc.municipality}
+        
+        candidates.append({
+            "id": str(user.id),
+            "name": user.full_name or user.email.split("@")[0],
+            "email": user.email,
+            "location": location,
+            "skills": profile.skills if profile else [],
+            "is_willing_to_move": profile.is_willing_to_move if profile else False
+        })
+    
+    offers = []
+    for challenge in challenges_query.limit(50).all():
+        org = db.query(models.Organization).filter(models.Organization.id == challenge.organization_id).first()
+        location = None
+        if org and org.location_id:
+            loc = db.query(Location).filter(Location.id == org.location_id).first()
+            if loc:
+                location = {"province": loc.province, "municipality": loc.municipality}
+        
+        offers.append({
+            "id": str(challenge.id),
+            "title": challenge.title,
+            "company": org.name if org else "Empresa",
+            "location": location,
+            "sector": challenge.category if hasattr(challenge, 'category') else None,
+            "applications_count": db.query(models.Application).filter(models.Application.challenge_id == challenge.id).count()
+        })
+    
+    return {
+        "candidates": candidates,
+        "offers": offers
+    }
+
+@router.post("/matching/link")
+def link_candidate_to_offer(
+    payload: dict,
+    db: Session = Depends(database.get_db),
+    admin_user: models.User = Depends(require_super_admin)
+):
+    """
+    Creates an application linking a candidate to a job offer.
+    payload: { "user_id": "...", "challenge_id": "..." }
+    """
+    user_id = payload.get("user_id")
+    challenge_id = payload.get("challenge_id")
+    
+    if not user_id or not challenge_id:
+        raise HTTPException(status_code=400, detail="user_id y challenge_id son obligatorios")
+    
+    # Check if already linked
+    existing = db.query(models.Application).filter(
+        models.Application.user_id == uuid.UUID(user_id),
+        models.Application.challenge_id == uuid.UUID(challenge_id)
+    ).first()
+    
+    if existing:
+        raise HTTPException(status_code=400, detail="Este candidato ya tiene una solicitud para esta oferta")
+    
+    # Create application
+    app = models.Application(
+        id=uuid.uuid4(),
+        user_id=uuid.UUID(user_id),
+        challenge_id=uuid.UUID(challenge_id),
+        status="pending"
+    )
+    db.add(app)
+    
+    # Audit log
+    log = models.AuditLog(
+        event_type="admin_matching",
+        message=f"Admin linked candidate to offer",
+        user_id=admin_user.id,
+        details={"candidate_id": user_id, "challenge_id": challenge_id}
+    )
+    db.add(log)
+    
+    db.commit()
+    
+    return {"message": "Candidato vinculado correctamente", "application_id": str(app.id)}
+
+# --- CEREBRO OPERATIVO: Audit Approval ---
+@router.post("/audit/approve/{org_id}")
+def approve_organization_seal(
+    org_id: uuid.UUID,
+    db: Session = Depends(database.get_db),
+    admin_user: models.User = Depends(require_super_admin)
+):
+    """
+    Approves an organization's seal (validation_status -> validated).
+    This increments the 'Empresas con Sello' widget.
+    """
+    org = db.query(models.Organization).filter(models.Organization.id == org_id).first()
+    if not org:
+        raise HTTPException(status_code=404, detail="Organización no encontrada")
+    
+    org.validation_status = "validated"
+    
+    # Audit log
+    log = models.AuditLog(
+        event_type="seal_approved",
+        message=f"Seal approved for organization {org.name}",
+        organization_id=org_id,
+        user_id=admin_user.id,
+        details={"organization_name": org.name}
+    )
+    db.add(log)
+    
+    db.commit()
+    
+    return {"message": f"Sello aprobado para {org.name}", "organization_id": str(org_id)}
+
+@router.post("/audit/reject/{org_id}")
+def reject_organization_seal(
+    org_id: uuid.UUID,
+    reason: str = "Sin especificar",
+    db: Session = Depends(database.get_db),
+    admin_user: models.User = Depends(require_super_admin)
+):
+    """
+    Rejects an organization's seal request.
+    """
+    org = db.query(models.Organization).filter(models.Organization.id == org_id).first()
+    if not org:
+        raise HTTPException(status_code=404, detail="Organización no encontrada")
+    
+    org.validation_status = "rejected"
+    
+    # Audit log
+    log = models.AuditLog(
+        event_type="seal_rejected",
+        message=f"Seal rejected for organization {org.name}: {reason}",
+        organization_id=org_id,
+        user_id=admin_user.id,
+        details={"organization_name": org.name, "reason": reason}
+    )
+    db.add(log)
+    
+    db.commit()
+    
+    return {"message": f"Sello rechazado para {org.name}", "reason": reason}
+
+# --- CEREBRO OPERATIVO: Success Stories ---
+@router.get("/stories")
+def list_success_stories(
+    db: Session = Depends(database.get_db),
+    _: models.User = Depends(require_super_admin)
+):
+    """
+    Returns all success stories for the admin panel.
+    """
+    stories = db.query(models.SuccessStory).order_by(models.SuccessStory.created_at.desc()).all()
+    return [
+        {
+            "id": str(s.id),
+            "title": s.title,
+            "description": s.description,
+            "image_url": s.image_url,
+            "municipality_name": s.municipality_name,
+            "created_at": s.created_at.isoformat() if s.created_at else None
+        }
+        for s in stories
+    ]
+
+@router.post("/stories")
+def create_success_story(
+    payload: dict,
+    db: Session = Depends(database.get_db),
+    admin_user: models.User = Depends(require_super_admin)
+):
+    """
+    Creates a new success story.
+    payload: { "title": "...", "description": "...", "image_url": "...", "municipality_name": "..." }
+    """
+    title = payload.get("title", "").strip()
+    description = payload.get("description", "").strip()
+    image_url = payload.get("image_url", "")
+    municipality_name = payload.get("municipality_name", "")
+    
+    # Validate title (max 18 words)
+    if len(title.split()) > 18:
+        raise HTTPException(status_code=400, detail="El título no puede exceder 18 palabras")
+    
+    if not title:
+        raise HTTPException(status_code=400, detail="El título es obligatorio")
+    
+    story = models.SuccessStory(
+        id=uuid.uuid4(),
+        title=title,
+        description=description,
+        image_url=image_url,
+        municipality_name=municipality_name
+    )
+    db.add(story)
+    
+    # Audit log
+    log = models.AuditLog(
+        event_type="story_created",
+        message=f"Success story created: {title}",
+        user_id=admin_user.id,
+        details={"title": title, "municipality": municipality_name}
+    )
+    db.add(log)
+    
+    db.commit()
+    db.refresh(story)
+    
+    return {"message": "Historia de éxito creada", "id": str(story.id)}
+
+@router.delete("/stories/{story_id}")
+def delete_success_story(
+    story_id: uuid.UUID,
+    db: Session = Depends(database.get_db),
+    admin_user: models.User = Depends(require_super_admin)
+):
+    """
+    Deletes a success story.
+    """
+    story = db.query(models.SuccessStory).filter(models.SuccessStory.id == story_id).first()
+    if not story:
+        raise HTTPException(status_code=404, detail="Historia no encontrada")
+    
+    title = story.title
+    db.delete(story)
+    
+    # Audit log
+    log = models.AuditLog(
+        event_type="story_deleted",
+        message=f"Success story deleted: {title}",
+        user_id=admin_user.id,
+        details={"story_id": str(story_id), "title": title}
+    )
+    db.add(log)
+    
+    db.commit()
+    
+    return {"message": f"Historia '{title}' eliminada"}
+
 @router.get("/heatmap")
 def get_heatmap_data(
     db: Session = Depends(database.get_db),
