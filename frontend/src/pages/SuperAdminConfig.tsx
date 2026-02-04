@@ -172,8 +172,8 @@ const SuperAdminConfig: React.FC = () => {
         setLoading(true);
         try {
             const res = await axios.get('/config/resources');
-            setResources(res.data);
-        } catch (err) { console.error(err); }
+            setResources(Array.isArray(res.data) ? res.data : []);
+        } catch (err) { console.error(err); setResources([]); }
         finally { setLoading(false); }
     };
 
@@ -181,8 +181,8 @@ const SuperAdminConfig: React.FC = () => {
         setLoading(true);
         try {
             const res = await axios.get('/config/emails');
-            setEmails(res.data);
-        } catch (err) { console.error(err); }
+            setEmails(Array.isArray(res.data) ? res.data : []);
+        } catch (err) { console.error(err); setEmails([]); }
         finally { setLoading(false); }
     };
 
@@ -190,8 +190,8 @@ const SuperAdminConfig: React.FC = () => {
         setLoading(true);
         try {
             const res = await axios.get('/config/system');
-            setSystemConfig(res.data);
-        } catch (err) { console.error(err); }
+            setSystemConfig(Array.isArray(res.data) ? res.data : []);
+        } catch (err) { console.error(err); setSystemConfig([]); }
         finally { setLoading(false); }
     };
 
