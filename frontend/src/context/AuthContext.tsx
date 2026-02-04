@@ -38,18 +38,18 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const [user, setUser] = useState<User | null>(null);
-    const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
+    const [token, setToken] = useState<string | null>(sessionStorage.getItem('token'));
 
     useEffect(() => {
         // If token exists, set default header and fetch user
         if (token) {
             // Type assertion for custom property if needed, or just rely on interceptor
             // axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-            localStorage.setItem('token', token);
+            sessionStorage.setItem('token', token);
             fetchUser();
         } else {
             // delete axios.defaults.headers.common['Authorization'];
-            localStorage.removeItem('token');
+            sessionStorage.removeItem('token');
             setUser(null);
         }
     }, [token]);
