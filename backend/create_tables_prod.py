@@ -63,8 +63,9 @@ def create_prod_tables():
                     print(f"   ⚠️ Failed to add {col_name}: {e}")
             except Exception as e:
                  print(f"   ⚠️ General Error adding {col_name}: {e}")
-                 
-             
+        
+        print("💾 Committing changes...")
+        conn.commit()
     # --- Check for AuditLog & AdjustmentsLog ---
             
     # --- Check for AuditLog & AdjustmentsLog ---

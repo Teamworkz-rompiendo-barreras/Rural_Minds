@@ -302,106 +302,99 @@ def register_invitation(
     if not token or not password:
         raise HTTPException(status_code=400, detail="Faltan datos requeridos")
         
-    try:
-        # 1. Validate Invitation
-        invitation = db.query(models.Invitation).filter(
-            models.Invitation.token == token,
-            models.Invitation.status == "pending"
-        ).first()
+    # 1. Validate Invitation
+    invitation = db.query(models.Invitation).filter(
+        models.Invitation.token == token,
+        models.Invitation.status == "pending"
+    ).first()
+    
+    if not invitation:
+        raise HTTPException(status_code=400, detail="Invitación inválida o expirada")
         
-        if not invitation:
-            raise HTTPException(status_code=400, detail="Invitación inválida o expirada")
-            
-        if invitation.expires_at < datetime.datetime.utcnow():
-            invitation.status = "expired"
-            db.commit()
-            raise HTTPException(status_code=400, detail="Invitación expirada")
-            
-        # 2. Check if email somehow got registered in the meantime
-        existing_user = db.query(models.User).filter(models.User.email == invitation.email).first()
-        if existing_user:
-            raise HTTPException(status_code=400, detail="El email ya está registrado")
-            
-        # 3. Create Organization (if role is municipality/enterprise)
-        new_org = models.Organization(
-            id=uuid.uuid4(),
-            name=invitation.entity_name,
-            org_type=invitation.role,
-            subscription_plan="enterprise" # Default for invited entities
-        )
-        db.add(new_org)
-        db.commit() # Commit to get ID for FKs
-        
-        # 4. Create Municipality Placeholders (if municipality)
-        if invitation.role == "municipality":
-            # Details
-            details = models.MunicipalityDetails(
-                id=uuid.uuid4(),
-                location_id=new_org.id, # Mapping org Key for now, ideally Location table key
-                slogan="Tu slogan aquí"
-            )
-            # We need a Location record for this to work fully with the LocationSelector?
-            # Actually, in the current model, Location is a separate table seeded with real data.
-            # The Organization represents the "Account" managing that Location.
-            # Ideally, we should link Organization -> Location.
-            # For now, let's create the Organization. The wizard will likely ask them to "Claim" a location or create one.
-            # Based on user request: "Paso 1: Identidad Local... Fotos... Slogan". This populates MunicipalityDetails.
-            
-            db.add(details)
-            
-            # Resources
-            resource = models.MunicipalityResource(
-                id=uuid.uuid4(),
-                location_id=new_org.id, # Using Org ID as proxy for now until linked to Location Table
-                adl_contact_email=invitation.email
-            )
-            db.add(resource)
-            
-        # 5. Create User
-        hashed_pwd = auth.get_password_hash(password)
-        user_role = "territory_admin" if invitation.role == "municipality" else "enterprise_admin"
-        
-        new_user = models.User(
-            id=uuid.uuid4(),
-            email=invitation.email,
-            full_name=full_name or invitation.entity_name,
-            hashed_password=hashed_pwd,
-            role=user_role,
-            organization_id=new_org.id,
-            status="active",
-            email_verified=True # Verified by invitation
-        )
-        db.add(new_user)
-        
-        # 6. Mark Invitation Accepted
-        invitation.status = "accepted"
-        invitation.accepted_at = datetime.datetime.utcnow()
-        
+    if invitation.expires_at < datetime.datetime.utcnow():
+        invitation.status = "expired"
         db.commit()
+        raise HTTPException(status_code=400, detail="Invitación expirada")
         
-        # 7. Send Welcome
-        background_tasks.add_task(
-            send_welcome_email,
-            to_email=new_user.email,
-            user_name=new_user.full_name
+    # 2. Check if email somehow got registered in the meantime
+    existing_user = db.query(models.User).filter(models.User.email == invitation.email).first()
+    if existing_user:
+        raise HTTPException(status_code=400, detail="El email ya está registrado")
+        
+    # 3. Create Organization (if role is municipality/enterprise)
+    new_org = models.Organization(
+        id=uuid.uuid4(),
+        name=invitation.entity_name,
+        org_type=invitation.role,
+        subscription_plan="enterprise" # Default for invited entities
+    )
+    db.add(new_org)
+    db.commit() # Commit to get ID for FKs
+    
+    # 4. Create Municipality Placeholders (if municipality)
+    if invitation.role == "municipality":
+        # Details
+        details = models.MunicipalityDetails(
+            id=uuid.uuid4(),
+            location_id=new_org.id, # Mapping org Key for now, ideally Location table key
+            slogan="Tu slogan aquí"
         )
+        # We need a Location record for this to work fully with the LocationSelector?
+        # Actually, in the current model, Location is a separate table seeded with real data.
+        # The Organization represents the "Account" managing that Location.
+        # Ideally, we should link Organization -> Location.
+        # For now, let's create the Organization. The wizard will likely ask them to "Claim" a location or create one.
+        # Based on user request: "Paso 1: Identidad Local... Fotos... Slogan". This populates MunicipalityDetails.
         
-        # Generate Token for immediate login
-        access_token = auth.create_access_token(data={"sub": new_user.email})
+        db.add(details)
         
-        return {
-            "message": "Registro completado con éxito",
-            "access_token": access_token, 
-            "token_type": "bearer",
-            "user": {
-                "email": new_user.email,
-                "role": new_user.role,
-                "org_id": str(new_org.id)
-            }
+        # Resources
+        resource = models.MunicipalityResource(
+            id=uuid.uuid4(),
+            location_id=new_org.id, # Using Org ID as proxy for now until linked to Location Table
+            adl_contact_email=invitation.email
+        )
+        db.add(resource)
+        
+    # 5. Create User
+    hashed_pwd = auth.get_password_hash(password)
+    user_role = "territory_admin" if invitation.role == "municipality" else "enterprise_admin"
+    
+    new_user = models.User(
+        id=uuid.uuid4(),
+        email=invitation.email,
+        full_name=full_name or invitation.entity_name,
+        hashed_password=hashed_pwd,
+        role=user_role,
+        organization_id=new_org.id,
+        status="active",
+        email_verified=True # Verified by invitation
+    )
+    db.add(new_user)
+    
+    # 6. Mark Invitation Accepted
+    invitation.status = "accepted"
+    invitation.accepted_at = datetime.datetime.utcnow()
+    
+    db.commit()
+    
+    # 7. Send Welcome
+    background_tasks.add_task(
+        send_welcome_email,
+        to_email=new_user.email,
+        user_name=new_user.full_name
+    )
+    
+    # Generate Token for immediate login
+    access_token = auth.create_access_token(data={"sub": new_user.email})
+    
+    return {
+        "message": "Registro completado con éxito",
+        "access_token": access_token, 
+        "token_type": "bearer",
+        "user": {
+            "email": new_user.email,
+            "role": new_user.role,
+            "org_id": str(new_org.id)
         }
-    except Exception as e:
-        import traceback
-        traceback.print_exc()
-        # Return error logic for debugging (WARNING: exposes stack trace potentially so use carefully)
-        # For now, just stringify the error
-        raise HTTPException(status_code=500, detail=f"Registration Error: {str(e)}")
+    }
