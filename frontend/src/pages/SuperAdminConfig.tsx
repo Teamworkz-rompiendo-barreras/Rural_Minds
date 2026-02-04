@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import axios from '../config/api';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 
 // Types
 interface Candidate {
@@ -43,7 +43,9 @@ interface SuccessStory {
 
 const SuperAdminConfig: React.FC = () => {
     const navigate = useNavigate();
-    const [activeTab, setActiveTab] = useState<'matching' | 'audit' | 'stories' | 'resources' | 'emails' | 'system'>('matching');
+    const [searchParams] = useSearchParams();
+    const tabFromUrl = searchParams.get('tab') as 'matching' | 'audit' | 'stories' | 'resources' | 'emails' | 'system' | null;
+    const [activeTab, setActiveTab] = useState<'matching' | 'audit' | 'stories' | 'resources' | 'emails' | 'system'>(tabFromUrl || 'matching');
 
     // Matching State
     const [candidates, setCandidates] = useState<Candidate[]>([]);
