@@ -4,26 +4,26 @@ import axios from '../config/api';
 import InclusionManualPDF from '../components/InclusionManualPDF';
 import { useAuth } from '../context/AuthContext';
 import { Link } from 'react-router-dom';
-import MatchCard from '../components/MatchCard';
-import OnboardingRoadmap from '../components/OnboardingRoadmap';
 import LocalSeal from '../components/badges/LocalSeal';
 
 const EnterpriseDashboard: React.FC = () => {
     const { user } = useAuth();
-    const [activeOnboardingAppId, setActiveOnboardingAppId] = useState<string | null>(null);
-    const [acceptedCandidateName, setAcceptedCandidateName] = useState<string>("");
+    const [challenges, setChallenges] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
 
-    const handleAcceptMatch = async (applicationId: string, candidateName: string) => {
-        try {
-            await axios.put(`/api/applications/${applicationId}/status`, { status: 'accepted' });
-            alert(`Has aceptado el match con ${candidateName}. Iniciando proceso de adecuación.`);
-            setActiveOnboardingAppId(applicationId);
-            setAcceptedCandidateName(candidateName);
-        } catch (error) {
-            console.error("Error accepting match", error);
-            alert("Error al aceptar el match.");
-        }
-    };
+    React.useEffect(() => {
+        const fetchChallenges = async () => {
+            try {
+                const res = await axios.get('/api/my-challenges');
+                setChallenges(res.data);
+            } catch (error) {
+                console.error("Error fetching challenges", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchChallenges();
+    }, []);
 
     return (
         <div className="min-h-screen bg-n50 pb-12">
@@ -44,15 +44,7 @@ const EnterpriseDashboard: React.FC = () => {
                     </div>
                 </header>
 
-                {/* Active Onboarding Section */}
-                {activeOnboardingAppId && (
-                    <section className="mb-12 animate-fade-in-up">
-                        <OnboardingRoadmap
-                            applicationId={activeOnboardingAppId}
-                            candidateName={acceptedCandidateName}
-                        />
-                    </section>
-                )}
+                {/* Active Onboarding Section - Placeholder for now if needed or removed */}
 
                 {/* Manual de Inclusión - Destacado (Contextual Resource) */}
                 <section className="bg-indigo-50 border border-indigo-100 p-8 rounded-xl flex flex-col md:flex-row items-start md:items-center justify-between shadow-sm gap-8 transition-transform hover:shadow-md mb-8">
@@ -131,38 +123,38 @@ const EnterpriseDashboard: React.FC = () => {
                             <span>Mis Proyectos Activos</span>
                         </h3>
 
-                        <div className="space-y-4 flex-grow flex flex-col justify-start">
-                            {/* Mock Active Project */}
-                            <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                                <div className="flex justify-between items-start mb-2">
-                                    <h4 className="font-bold text-lg text-n900">Desarrollador Full Stack (Remoto)</h4>
-                                    <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded font-bold">Activo</span>
+                        <div className="space-y-4 flex-grow flex flex-col justify-start overflow-y-auto max-h-[600px] pr-2 custom-scrollbar">
+                            {loading ? (
+                                <p className="text-gray-500 text-center py-10">Cargando proyectos...</p>
+                            ) : challenges.length === 0 ? (
+                                <div className="text-center py-10 bg-gray-50 rounded-lg border border-dashed border-gray-300">
+                                    <p className="text-gray-500 mb-2">No tienes proyectos activos.</p>
+                                    <Link to="/create-project" className="text-p2 font-bold hover:underline">
+                                        ¡Publica tu primera vacante!
+                                    </Link>
                                 </div>
-                                <p className="text-sm text-gray-600 mb-4">Publicado: hace 2 días • 12 vistas</p>
+                            ) : (
+                                challenges.map((challenge) => (
+                                    <div key={challenge.id} className="p-4 bg-gray-50 rounded-lg border border-gray-200 hover:border-p2 transition-colors">
+                                        <div className="flex justify-between items-start mb-2">
+                                            <div>
+                                                <h4 className="font-bold text-lg text-n900">{challenge.title}</h4>
+                                                <p className="text-xs text-gray-500">{challenge.location_type} • {challenge.compensation}</p>
+                                            </div>
+                                            <span className={`text-xs px-2 py-1 rounded font-bold ${challenge.status === 'open' ? 'bg-green-100 text-green-800' : 'bg-gray-200 text-gray-600'}`}>
+                                                {challenge.status === 'open' ? 'Activo' : 'Cerrado'}
+                                            </span>
+                                        </div>
+                                        <p className="text-sm text-gray-600 mb-4 line-clamp-2">{challenge.description}</p>
 
-                                {/* New Applicants Section (MatchCards) */}
-                                <div className="mt-4 border-t border-gray-200 pt-4">
-                                    <h5 className="text-sm font-bold text-gray-500 uppercase tracking-wide mb-3">Nuevos Candidatos (Match Inteligente):</h5>
-                                    <div className="space-y-4">
-                                        <MatchCard
-                                            candidateName="María G. (Talento Local)"
-                                            matchScore={92}
-                                            adjustments={["Auriculares cancelación ruido", "Comunicación escrita", "Luz natural"]}
-                                            isLocal={true}
-                                            onAccept={() => handleAcceptMatch("mock-app-001", "María G.")}
-                                            onContact={() => alert("Abriendo chat seguro...")}
-                                        />
-                                        <MatchCard
-                                            candidateName="Javier R."
-                                            matchScore={74}
-                                            adjustments={["Flexibilidad horaria", "Instrucciones claras y directas"]}
-                                            isLocal={false}
-                                            onAccept={() => handleAcceptMatch("mock-app-002", "Javier R.")}
-                                            onContact={() => alert("Abriendo chat seguro...")}
-                                        />
+                                        {/* Matches Section would go here - simplified for now */}
+                                        <div className="mt-2 pt-2 border-t border-gray-200 flex justify-between items-center">
+                                            <span className="text-xs text-gray-500">Publicado: {new Date(challenge.created_at).toLocaleDateString()}</span>
+                                            <button className="text-xs text-p2 font-bold hover:underline">Ver Candidatos →</button>
+                                        </div>
                                     </div>
-                                </div>
-                            </div>
+                                ))
+                            )}
                         </div>
                     </div>
 
