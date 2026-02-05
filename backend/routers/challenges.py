@@ -11,7 +11,7 @@ router = APIRouter(
 @router.post("/api/challenges", response_model=schemas.Challenge)
 def create_challenge(challenge: schemas.ChallengeCreate, db: Session = Depends(database.get_db), current_user: models.User = Depends(auth.get_current_user)):
     # Limit Check (MVP: Enterprise = Unlimited, Others = 3)
-    if current_user.role not in ["enterprise", "super_admin"]:
+    if current_user.role not in ["enterprise", "enterprise_admin", "super_admin"]:
         count = len(current_user.challenges_created)
         if count >= 3:
             raise HTTPException(status_code=403, detail="Subscription limit reached. Upgrade to Enterprise for unlimited challenges.")
@@ -40,7 +40,7 @@ def read_challenges(skip: int = 0, limit: int = 100, db: Session = Depends(datab
     query = db.query(models.Challenge)
     
     # Validation: Multi-tenancy enforcement and Visibility
-    if current_user.role == "enterprise" and current_user.organization_id:
+    if current_user.role in ["enterprise", "enterprise_admin"] and current_user.organization_id:
         # Enterprise sees their own challenges (or all public ones? Usually their own for management)
         # If they want to see public ones from others, we might need a different endpoint or param.
         # For now, let's assume this endpoint is for "Marketplace" view if param says so, or "My Challenges" if not?
@@ -67,7 +67,7 @@ def read_challenges(skip: int = 0, limit: int = 100, db: Session = Depends(datab
 
 @router.get("/api/my-challenges", response_model=List[schemas.Challenge])
 def read_my_challenges(current_user: models.User = Depends(auth.get_current_user), db: Session = Depends(database.get_db)):
-    if current_user.role != "enterprise" and current_user.role != "super_admin":
+    if current_user.role not in ["enterprise", "enterprise_admin", "super_admin"]:
         raise HTTPException(status_code=403, detail="Only enterprises can view their challenges")
     return current_user.challenges_created
 

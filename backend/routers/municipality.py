@@ -21,7 +21,7 @@ def invite_companies(
     db: Session = Depends(database.get_db),
     current_user: models.User = Depends(auth.get_current_user)
 ):
-    if current_user.role != "territory_admin":
+    if current_user.role not in ["territory_admin", "municipality"]:
         raise HTTPException(status_code=403, detail="Permission denied")
     
     if not current_user.organization_id:
@@ -98,7 +98,7 @@ def get_companies_status(
     db: Session = Depends(database.get_db),
     current_user: models.User = Depends(auth.get_current_user)
 ):
-    if current_user.role != "territory_admin":
+    if current_user.role not in ["territory_admin", "municipality"]:
         raise HTTPException(status_code=403, detail="Permission denied")
         
     org_id = current_user.organization_id
@@ -135,7 +135,7 @@ def get_municipality_stats(
     """
     Returns KPIs for the Municipality Dashboard.
     """
-    if current_user.role != "territory_admin":
+    if current_user.role not in ["territory_admin", "municipality"]:
         raise HTTPException(status_code=403, detail="Permission denied")
         
     org = db.query(models.Organization).filter(models.Organization.id == current_user.organization_id).first()

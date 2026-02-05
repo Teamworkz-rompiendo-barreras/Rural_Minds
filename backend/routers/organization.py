@@ -63,7 +63,7 @@ def invite_user(
     if not current_user.organization_id:
         raise HTTPException(status_code=400, detail="User is not associated with any organization")
     
-    if current_user.role not in ["enterprise", "super_admin", "territory_admin"]:
+    if current_user.role not in ["enterprise", "enterprise_admin", "super_admin", "territory_admin", "municipality"]:
         raise HTTPException(status_code=403, detail="Not authorized to invite users")
 
     # --- USER LIMIT ENFORCEMENT ---
@@ -112,7 +112,7 @@ def remove_user(
     if not current_user.organization_id:
         raise HTTPException(status_code=400, detail="User is not associated with any organization")
         
-    if current_user.role not in ["enterprise", "super_admin"]:
+    if current_user.role not in ["enterprise", "enterprise_admin", "super_admin", "territory_admin", "municipality"]:
         raise HTTPException(status_code=403, detail="Not authorized to remove users")
         
     user_to_remove = db.query(models.User).filter(models.User.id == user_id, models.User.organization_id == current_user.organization_id).first()
@@ -150,7 +150,7 @@ def update_org_details(
     if not current_user.organization_id:
         raise HTTPException(status_code=400, detail="User is not associated with any organization")
         
-    if current_user.role not in ["enterprise", "super_admin", "territory_admin"]:
+    if current_user.role not in ["enterprise", "enterprise_admin", "super_admin", "territory_admin", "municipality"]:
         raise HTTPException(status_code=403, detail="Not authorized to update organization details")
         
     org = db.query(models.Organization).filter(models.Organization.id == current_user.organization_id).first()
@@ -190,7 +190,7 @@ def update_my_municipality_details(
     """
     Update details for the logged-in municipality admin.
     """
-    if current_user.role != "territory_admin":
+    if current_user.role not in ["territory_admin", "municipality", "super_admin"]:
         raise HTTPException(status_code=403, detail="Permission denied")
     
     org_id = current_user.organization_id
