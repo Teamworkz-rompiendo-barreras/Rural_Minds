@@ -18,9 +18,42 @@ const OrganizationSettings: React.FC = () => {
     const [inviteSuccess, setInviteSuccess] = useState('');
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
+    // Sensory Commitment State
+    const [sensoryCommitment, setSensoryCommitment] = useState<any>({
+        quietSpaces: false,
+        adjustableLighting: false,
+        fullRemote: false,
+        flexibleHours: false,
+        mentorshipProgram: false
+    });
+    const [savingSensory, setSavingSensory] = useState(false);
+
     useEffect(() => {
-        if (token) fetchUsers();
-    }, [token]);
+        if (token) {
+            fetchUsers();
+            if (user?.organization?.sensory_commitment) {
+                setSensoryCommitment({
+                    ...sensoryCommitment,
+                    ...user.organization.sensory_commitment
+                });
+            }
+        }
+    }, [token, user]);
+
+    const handleSaveSensory = async () => {
+        setSavingSensory(true);
+        try {
+            await axios.put('/org/details', {
+                sensory_commitment: sensoryCommitment
+            });
+            alert("Perfil de compromiso sensorial actualizado.");
+        } catch (err) {
+            console.error(err);
+            alert("Error al guardar el perfil sensorial.");
+        } finally {
+            setSavingSensory(false);
+        }
+    };
 
     const fetchUsers = async () => {
         try {
@@ -87,8 +120,61 @@ const OrganizationSettings: React.FC = () => {
     if (loading) return <div>Cargando...</div>;
 
     return (
-        <div className="max-w-4xl mx-auto p-6">
-            <h1 className="text-3xl font-heading font-bold text-primary mb-6">Gestión del Equipo</h1>
+        <div className="max-w-4xl mx-auto p-6 space-y-12">
+            <header>
+                <h1 className="text-4xl font-heading font-bold text-p2 mb-2">Configuración de la Organización</h1>
+                <p className="text-n900 text-lg">{user?.organization?.name || 'Mi Perfil Corporativo'}</p>
+            </header>
+
+            {/* Sensory Commitment Profile */}
+            {(user?.role === 'enterprise' || user?.role === 'enterprise_admin') && (
+                <section className="bg-white p-8 rounded-xl shadow-sm border border-gray-200">
+                    <div className="flex items-center gap-3 mb-6 border-b pb-4">
+                        <div className="bg-p2/10 p-2 rounded-lg text-2xl">🌿</div>
+                        <h2 className="text-2xl font-heading font-bold text-n900">Perfil de Compromiso Sensorial</h2>
+                    </div>
+                    <p className="text-gray-600 mb-6">
+                        Define las condiciones de adaptabilidad que ofrece tu organización. Esta información ayudará a conectar con el mejor talento.
+                    </p>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+                        {[
+                            { id: 'quietSpaces', label: '🔇 Espacios de trabajo silenciosos', desc: 'Zonas libres de ruidos estridentes o distracciones.' },
+                            { id: 'adjustableLighting', label: '💡 Iluminación regulable', desc: 'Opción de luz natural o control de intensidad.' },
+                            { id: 'fullRemote', label: '🏠 Teletrabajo 100% disponible', desc: 'Posibilidad de trabajo remoto total.' },
+                            { id: 'flexibleHours', label: '⏰ Flexibilidad Horaria', desc: 'Gestión autónoma del tiempo.' },
+                            { id: 'mentorshipProgram', label: '🤝 Mentoría Inclusiva', desc: 'Apoyo personalizado para nuevos ingresos.' },
+                        ].map((item) => (
+                            <label key={item.id} className={`flex items-start gap-4 p-4 rounded-xl border-2 transition-all cursor-pointer ${sensoryCommitment[item.id] ? 'border-p2 bg-p2/5' : 'border-gray-100 hover:border-gray-200'}`}>
+                                <input
+                                    type="checkbox"
+                                    className="mt-1 w-5 h-5 accent-p2"
+                                    checked={sensoryCommitment[item.id]}
+                                    onChange={(e) => setSensoryCommitment({ ...sensoryCommitment, [item.id]: e.target.checked })}
+                                />
+                                <div>
+                                    <span className="block font-bold text-n900">{item.label}</span>
+                                    <span className="text-xs text-gray-500">{item.desc}</span>
+                                </div>
+                            </label>
+                        ))}
+                    </div>
+
+                    <div className="flex justify-end">
+                        <button
+                            onClick={handleSaveSensory}
+                            disabled={savingSensory}
+                            className="bg-p2 text-white font-bold py-3 px-8 rounded-lg hover:bg-p2/90 transition-all shadow-md disabled:opacity-50"
+                        >
+                            {savingSensory ? 'Guardando...' : 'Guardar Compromiso'}
+                        </button>
+                    </div>
+                </section>
+            )}
+
+            <section>
+                <h1 className="text-3xl font-heading font-bold text-primary mb-6">Gestión del Equipo</h1>
+            </section>
 
             {/* Invite Section */}
             <div className="bg-white p-6 rounded-xl shadow-md mb-8 border-t-4 border-accent">

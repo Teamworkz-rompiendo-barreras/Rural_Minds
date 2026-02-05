@@ -70,6 +70,7 @@ class Organization(Base):
     subscription_plan = Column(String, default="starter")
     validation_status = Column(String, default="pending") # pending, validated
     seal_downloaded_at = Column(DateTime, nullable=True)
+    sensory_commitment = Column(JSON, default=dict) # Noise, light, flexibility, etc.
     
     # New fields for RuralMinds
     org_type = Column(String, default="enterprise") # enterprise, municipality

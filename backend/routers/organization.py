@@ -174,6 +174,8 @@ def update_org_details(
         org.size = org_update.size
     if org_update.subscription_plan is not None:
         org.subscription_plan = org_update.subscription_plan
+    if org_update.sensory_commitment is not None:
+        org.sensory_commitment = org_update.sensory_commitment
         
     db.commit()
     db.refresh(org)

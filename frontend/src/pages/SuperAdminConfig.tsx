@@ -195,7 +195,18 @@ const SuperAdminConfig: React.FC = () => {
 
     const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (!e.target.files || e.target.files.length === 0) return;
-        const file = e.target.files[0];
+        let file = e.target.files[0];
+
+        // Automatic Compression for images
+        if (file.type.startsWith('image/')) {
+            try {
+                const compressedBlob = await compressImage(file);
+                file = new File([compressedBlob], file.name, { type: 'image/jpeg' });
+            } catch (err) {
+                console.warn("Compression failed, uploading original", err);
+            }
+        }
+
         const formData = new FormData();
         formData.append('file', file);
         formData.append('name', file.name);
@@ -287,6 +298,7 @@ const SuperAdminConfig: React.FC = () => {
                                                 style={{ borderColor: '#D1D5DB', '--tw-ring-color': '#8095F2' } as React.CSSProperties}
                                                 value={selectedCandidate || ''}
                                                 onChange={e => setSelectedCandidate(e.target.value || null)}
+                                                aria-label="Seleccionar candidato"
                                             >
                                                 <option value="">Selecciona un candidato</option>
                                                 {candidates.map(c => (
@@ -303,6 +315,7 @@ const SuperAdminConfig: React.FC = () => {
                                                 style={{ borderColor: '#D1D5DB', '--tw-ring-color': '#8095F2' } as React.CSSProperties}
                                                 value={selectedOffer || ''}
                                                 onChange={e => setSelectedOffer(e.target.value || null)}
+                                                aria-label="Seleccionar oferta"
                                             >
                                                 <option value="">Selecciona una oferta</option>
                                                 {offers.map(o => (
@@ -553,7 +566,7 @@ const SuperAdminConfig: React.FC = () => {
                         <div className="bg-white p-6 rounded-xl shadow-sm" style={{ border: '1px solid #D1D5DB', borderRadius: '12px' }}>
                             <h3 className="font-bold text-lg mb-4" style={{ fontFamily: 'Futura, sans-serif' }}>Subir Nuevo Recurso</h3>
                             <div className="border-2 border-dashed rounded-lg p-8 text-center bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer relative" style={{ borderColor: '#D1D5DB' }}>
-                                <input type="file" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" onChange={handleUpload} />
+                                <input type="file" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" onChange={handleUpload} aria-label="Subir archivo de recurso" />
                                 <span className="text-4xl block mb-2">📤</span>
                                 <p className="font-medium text-gray-600">Arrastra archivos aquí o haz clic para subir</p>
                                 <p className="text-xs text-gray-400 mt-1">PDF, Imágenes, ZIP (Máx 10MB)</p>
@@ -616,6 +629,8 @@ const SuperAdminConfig: React.FC = () => {
 };
 
 // === UI COMPONENTS ===
+
+import { compressImage } from '../utils/imageCompression';
 
 const TabButton: React.FC<{ active: boolean, onClick: () => void, label: string }> = ({ active, onClick, label }) => (
     <button

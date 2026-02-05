@@ -41,14 +41,17 @@ const Login: React.FC = () => {
                 const role = userRes.data.role;
 
                 // Role-based redirect
+                console.log('User Role:', role); // Debug role
                 switch (role) {
                     case 'super_admin':
                         navigate('/admin');
                         break;
                     case 'territory_admin':
+                    case 'municipality': // Fix: Add municipality
                         navigate('/municipality-dashboard');
                         break;
                     case 'enterprise':
+                    case 'enterprise_admin': // Fix: Add enterprise_admin
                         navigate('/enterprise-dashboard');
                         break;
                     case 'talent':
@@ -56,7 +59,8 @@ const Login: React.FC = () => {
                         navigate('/talent-dashboard');
                         break;
                 }
-            } catch {
+            } catch (error) {
+                console.error('Error fetching user profile:', error);
                 navigate('/dashboard');
             }
         } catch (err: any) {

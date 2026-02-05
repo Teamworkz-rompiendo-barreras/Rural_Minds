@@ -21,6 +21,7 @@ class OrganizationBase(BaseModel):
     subscription_plan: Optional[str] = "starter"
     org_type: Optional[str] = "enterprise"
     municipality_id: Optional[uuid.UUID] = None
+    sensory_commitment: Optional[dict] = {}
 
 class OrganizationCreate(OrganizationBase):
     pass
@@ -34,13 +35,14 @@ class OrganizationUpdate(BaseModel):
     subscription_plan: Optional[str] = None
     org_type: Optional[str] = None
     municipality_id: Optional[uuid.UUID] = None
+    sensory_commitment: Optional[dict] = None
 
 class Organization(OrganizationBase):
     id: uuid.UUID
-    created_at: datetime
+    created_at: Optional[datetime] = None
     
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 # --- Users ---
 class UserBase(BaseModel):
@@ -59,7 +61,7 @@ class UserPublic(UserBase):
     organization: Optional[Organization] = None
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 # --- Accessibility Profiles (formerly TalentProfile) ---
 class AccessibilityProfileBase(BaseModel):
@@ -76,7 +78,7 @@ class AccessibilityProfile(AccessibilityProfileBase):
     user_id: uuid.UUID
     
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 # --- Articles (Learning) ---
 class ArticleBase(BaseModel):
@@ -93,10 +95,10 @@ class ArticleCreate(ArticleBase):
 
 class Article(ArticleBase):
     id: uuid.UUID
-    created_at: datetime
+    created_at: Optional[datetime] = None
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 # --- Adjustments/Analytics ---
 class MetricResponse(BaseModel):
@@ -130,10 +132,7 @@ class TalentProfile(TalentProfileBase):
     user_id: uuid.UUID
     
     class Config:
-        orm_mode = True
-
-    class Config:
-        orm_mode = True
+        from_attributes = True
 
 # --- Municipality Details ---
 class MunicipalityDetailsBase(BaseModel):
@@ -142,6 +141,7 @@ class MunicipalityDetailsBase(BaseModel):
     internet_speed: Optional[str] = None
     connectivity_info: Optional[str] = None
     climate_co2: Optional[str] = None
+    landing_guide_url: Optional[str] = None
     services: Optional[dict] = {}
     gallery_urls: Optional[List[str]] = []
 
@@ -150,10 +150,7 @@ class MunicipalityDetails(MunicipalityDetailsBase):
     location_id: uuid.UUID
     
     class Config:
-        orm_mode = True
-
-    class Config:
-        orm_mode = True
+        from_attributes = True
 
 # --- Invitations ---
 class InvitationBase(BaseModel):
@@ -167,11 +164,11 @@ class InvitationCreate(InvitationBase):
 class Invitation(InvitationBase):
     id: uuid.UUID
     status: str
-    expires_at: datetime
-    created_at: datetime
+    expires_at: Optional[datetime] = None
+    created_at: Optional[datetime] = None
     
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 # --- Challenges ---
 class ChallengeBase(BaseModel):
@@ -203,14 +200,14 @@ class Challenge(ChallengeBase):
     status: str = "open"
     creator_id: Optional[uuid.UUID] = None
     tenant_id: Optional[uuid.UUID] = None
-    created_at: datetime
+    created_at: Optional[datetime] = None
     
     # Matching Output
     match_score: Optional[float] = None
     adjustments: Optional[List[str]] = None
     
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 # --- Applications ---
 class ApplicationBase(BaseModel):
@@ -227,10 +224,10 @@ class Application(ApplicationBase):
     user_id: uuid.UUID
     challenge_id: uuid.UUID
     status: str = "pending"
-    created_at: datetime
+    created_at: Optional[datetime] = None
     
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 # --- Solutions (Accessibility Catalog) ---
 class SolutionBase(BaseModel):
@@ -247,10 +244,10 @@ class SolutionCreate(SolutionBase):
 
 class Solution(SolutionBase):
     id: uuid.UUID
-    created_at: datetime
+    created_at: Optional[datetime] = None
     
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 # --- Messages ---
 class MessageBase(BaseModel):
@@ -267,11 +264,11 @@ class Message(MessageBase):
     application_id: uuid.UUID
     sender_id: uuid.UUID
     is_read: bool
-    created_at: datetime
+    created_at: Optional[datetime] = None
     read_at: Optional[datetime] = None
     
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 # --- Legal Consents ---
 class LegalConsentBase(BaseModel):
@@ -287,10 +284,10 @@ class LegalConsentCreate(LegalConsentBase):
 class LegalConsent(LegalConsentBase):
     id: uuid.UUID
     user_id: uuid.UUID
-    accepted_at: datetime
+    accepted_at: Optional[datetime] = None
     
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 # --- Onboarding Tasks ---
 class OnboardingTaskBase(BaseModel):
@@ -306,8 +303,8 @@ class OnboardingTaskUpdate(BaseModel):
 class OnboardingTask(OnboardingTaskBase):
     id: uuid.UUID
     application_id: uuid.UUID
-    created_at: datetime
+    created_at: Optional[datetime] = None
     completed_at: Optional[datetime] = None
     
     class Config:
-        orm_mode = True
+        from_attributes = True

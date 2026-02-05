@@ -224,22 +224,61 @@ const MunicipalityDashboard: React.FC = () => {
                     </ul>
                 </div>
 
-                {/* Resources Sidebar (Existing) */}
+                {/* Resources Sidebar */}
                 <div className="space-y-6">
                     <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
                         <h3 className="font-heading font-bold text-lg text-n900 mb-4 pb-3 border-b">
-                            📚 Recursos para Empresas
+                            📚 Centro de Recursos
                         </h3>
-                        <PDFDownloadLink document={<InclusionManualPDF municipalityName={user?.organization?.name} />} fileName="Manual_Inclusion_RuralMinds.pdf">
-                            {({ loading }) => (
+
+                        {/* Landing Guide Management */}
+                        <div className="mb-6">
+                            <label className="block text-sm font-bold text-gray-700 mb-2">Mi Guía de Aterrizaje (URL)</label>
+                            <div className="flex gap-2">
+                                <input
+                                    type="url"
+                                    className="input-field text-sm flex-1"
+                                    placeholder="https://ejemplo.es/guia.pdf"
+                                    value={user?.organization?.location_id ? (invitationStatus as any).landing_guide_url || '' : ''}
+                                    onChange={(e) => {
+                                        // Simplified local state update for demo or use a dedicated state
+                                        setInvitationStatus((prev: any) => ({ ...prev, landing_guide_url: e.target.value }));
+                                    }}
+                                />
                                 <button
-                                    disabled={loading}
-                                    className="w-full bg-p2 text-white font-bold py-3 px-4 rounded-lg hover:bg-p2/90 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                                    onClick={async () => {
+                                        try {
+                                            await axios.put('/org/municipalities/me/details', {
+                                                landing_guide_url: (invitationStatus as any).landing_guide_url
+                                            });
+                                            alert("Guía de aterrizaje actualizada.");
+                                        } catch (err) {
+                                            alert("Error al guardar la guía.");
+                                        }
+                                    }}
+                                    className="bg-accent text-white px-3 py-1 rounded text-sm font-bold hover:bg-accent/90"
+                                    aria-label="Guardar URL de la guía"
                                 >
-                                    {loading ? 'Generando...' : 'Descargar Manual PDF'}
+                                    💾
                                 </button>
-                            )}
-                        </PDFDownloadLink>
+                            </div>
+                            <p className="text-[10px] text-gray-500 mt-1">Este enlace se enviará automáticamente a los nuevos talentos interesados.</p>
+                        </div>
+
+                        <div className="border-t pt-4">
+                            <p className="text-sm font-bold text-gray-700 mb-3 text-center">Manual de Inclusión Municipal</p>
+                            <PDFDownloadLink document={<InclusionManualPDF municipalityName={user?.organization?.name} />} fileName="Manual_Inclusion_RuralMinds.pdf">
+                                {({ loading }) => (
+                                    <button
+                                        disabled={loading}
+                                        className="w-full bg-p2/10 text-p2 border-2 border-p2 font-bold py-3 px-4 rounded-lg hover:bg-p2 hover:text-white transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                                        aria-label={loading ? "Generando PDF" : "Descargar Manual de Inclusión en PDF"}
+                                    >
+                                        {loading ? 'Generando...' : '📄 Descargar Manual PDF'}
+                                    </button>
+                                )}
+                            </PDFDownloadLink>
+                        </div>
                     </div>
                 </div>
             </div>

@@ -23,11 +23,10 @@ if os.getenv("VERCEL") != "1":
 app = FastAPI(title="RuralMinds API")
 
 # Configure CORS
-allowed_origins = [
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
-    "https://rural-minds.vercel.app",
-]
+# Configure CORS
+# Allow all origins for production testing to ensure connectivity
+allowed_origins = ["*"]
+
 # Add any additional origins from environment variable
 extra_origins = os.getenv("ALLOWED_ORIGINS", "")
 if extra_origins:
@@ -35,7 +34,7 @@ if extra_origins:
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=allowed_origins,
+    allow_origins=["*"], # Explicitly allow all
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

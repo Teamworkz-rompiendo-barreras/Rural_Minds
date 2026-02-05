@@ -127,8 +127,9 @@ const MunicipalityOnboarding: React.FC = () => {
                                 <h2 className="text-2xl font-heading font-bold text-n900 mb-6">Identidad Local</h2>
                                 <div className="space-y-6">
                                     <div>
-                                        <label className="block font-bold text-n700 mb-2">Slogan Municipal</label>
+                                        <label htmlFor="slogan" className="block font-bold text-n700 mb-2">Slogan Municipal</label>
                                         <input
+                                            id="slogan"
                                             type="text"
                                             className="input-field w-full"
                                             placeholder="Ej: Tradición y Futuro"
@@ -138,8 +139,9 @@ const MunicipalityOnboarding: React.FC = () => {
                                         <p className="text-xs text-n500 mt-1">Frase corta que defina el espíritu de tu pueblo.</p>
                                     </div>
                                     <div>
-                                        <label className="block font-bold text-n700 mb-2">Descripción General</label>
+                                        <label htmlFor="description" className="block font-bold text-n700 mb-2">Descripción General</label>
                                         <textarea
+                                            id="description"
                                             className="input-field w-full h-32"
                                             placeholder="Describe tu municipio en un párrafo..."
                                             value={formData.description}
@@ -159,8 +161,9 @@ const MunicipalityOnboarding: React.FC = () => {
                                 <h2 className="text-2xl font-heading font-bold text-n900 mb-6">Conectividad y Servicios</h2>
                                 <div className="space-y-6">
                                     <div>
-                                        <label className="block font-bold text-n700 mb-2">Velocidad de Internet</label>
+                                        <label htmlFor="internet_speed" className="block font-bold text-n700 mb-2">Velocidad de Internet</label>
                                         <select
+                                            id="internet_speed"
                                             className="input-field w-full"
                                             value={formData.internet_speed}
                                             onChange={e => handleChange('internet_speed', e.target.value)}
@@ -223,8 +226,9 @@ const MunicipalityOnboarding: React.FC = () => {
                                 <h2 className="text-2xl font-heading font-bold text-n900 mb-6">Guía de Bienvenida</h2>
                                 <div className="space-y-6">
                                     <div>
-                                        <label className="block font-bold text-n700 mb-2">URL de la Guía de Aterrizaje (PDF)</label>
+                                        <label htmlFor="landing_guide_url" className="block font-bold text-n700 mb-2">URL de la Guía de Aterrizaje (PDF)</label>
                                         <input
+                                            id="landing_guide_url"
                                             type="url"
                                             className="input-field w-full"
                                             placeholder="https://..."

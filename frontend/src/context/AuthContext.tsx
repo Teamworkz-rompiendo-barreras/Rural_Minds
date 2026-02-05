@@ -7,6 +7,7 @@ interface Organization {
     org_type?: string;
     municipality_id?: string;
     location_id?: string;
+    sensory_commitment?: any;
 }
 
 interface User {

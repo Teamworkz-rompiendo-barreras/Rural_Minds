@@ -4,7 +4,7 @@ from jose import JWTError, jwt
 from passlib.context import CryptContext
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 import database, models, schemas
 
 # SECRET_KEY should be in env var
@@ -47,11 +47,10 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
     except JWTError:
         raise credentials_exception
         
-    user = db.query(models.User).filter(models.User.email == token_data.username).first()
+    # Eagerly load organization to allow Pydantic serialization of UserPublic
+    user = db.query(models.User).options(joinedload(models.User.organization)).filter(models.User.email == token_data.username).first()
     if user is None:
         raise credentials_exception
-    return user
-
     return user
 
 def get_current_user_optional(token: Optional[str] = Depends(oauth2_scheme_optional), db: Session = Depends(database.get_db)):
@@ -71,7 +70,8 @@ def get_current_user_optional(token: Optional[str] = Depends(oauth2_scheme_optio
     except JWTError:
         return None
         
-    user = db.query(models.User).filter(models.User.email == token_data.username).first()
+    # Eagerly load for optional auth as well
+    user = db.query(models.User).options(joinedload(models.User.organization)).filter(models.User.email == token_data.username).first()
     return user
 
 def require_super_admin(current_user: models.User = Depends(get_current_user)):

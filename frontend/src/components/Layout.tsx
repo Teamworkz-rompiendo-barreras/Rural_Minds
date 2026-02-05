@@ -137,8 +137,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                             </div>
                         ) : (
                             <div className="flex flex-col md:flex-row items-center gap-3 w-full md:w-auto">
-                                <Link to="/login" className={isActive('/login')}>Acceder</Link>
-                                <Link to="/register" className="px-4 py-2 bg-primary text-white rounded font-bold hover:bg-opacity-90">Registrarse</Link>
+                                <Link to="/login" className={isActive('/login')} aria-label="Acceder a mi cuenta">Acceder</Link>
+                                <Link to="/register" className="px-4 py-2 bg-primary text-white rounded font-bold hover:bg-opacity-90" aria-label="Crear una nueva cuenta">Registrarse</Link>
                             </div>
                         )}
 
