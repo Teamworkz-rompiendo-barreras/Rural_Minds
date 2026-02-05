@@ -126,8 +126,8 @@ const OrganizationSettings: React.FC = () => {
                 <p className="text-n900 text-lg">{user?.organization?.name || 'Mi Perfil Corporativo'}</p>
             </header>
 
-            {/* Sensory Commitment Profile */}
-            {(user?.role === 'enterprise' || user?.role === 'enterprise_admin') && (
+            {/* Sensory Commitment Profile - Case insensitive check for robustness */}
+            {(user?.role?.toLowerCase().includes('enterprise')) && (
                 <section className="bg-white p-8 rounded-xl shadow-sm border border-gray-200">
                     <div className="flex items-center gap-3 mb-6 border-b pb-4">
                         <div className="bg-p2/10 p-2 rounded-lg text-2xl">🌿</div>

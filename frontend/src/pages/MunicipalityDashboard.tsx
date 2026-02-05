@@ -239,7 +239,7 @@ const MunicipalityDashboard: React.FC = () => {
                                     type="url"
                                     className="input-field text-sm flex-1"
                                     placeholder="https://ejemplo.es/guia.pdf"
-                                    value={user?.organization?.location_id ? (invitationStatus as any).landing_guide_url || '' : ''}
+                                    value={(invitationStatus as any).landing_guide_url || ''}
                                     onChange={(e) => {
                                         // Simplified local state update for demo or use a dedicated state
                                         setInvitationStatus((prev: any) => ({ ...prev, landing_guide_url: e.target.value }));

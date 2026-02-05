@@ -38,8 +38,13 @@ if extra_origins:
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins if os.getenv("VERCEL") != "1" else ["*"], # Use * in Vercel if we don't have specific list, but with credentials=False
-    allow_credentials=True if os.getenv("VERCEL") != "1" else False, # Credentials False for * in production
+    allow_origins=[
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "https://rural-minds.vercel.app",
+        "https://rural-minds-git-main-lerele1s-projects.vercel.app",
+    ],
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
