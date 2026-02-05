@@ -58,13 +58,13 @@ const SensoryProfile: React.FC = () => {
 
     return (
         <div className="max-w-4xl mx-auto p-6">
-            <h1 className="text-3xl font-heading font-bold text-primary mb-2">Sensory & Accessibility Profile</h1>
-            <p className="text-gray-600 mb-8">Customize your work environment needs to get better matches.</p>
+            <h1 className="text-3xl font-heading font-bold text-primary mb-2">Perfil Sensorial y Accesibilidad</h1>
+            <p className="text-gray-600 mb-8">Personaliza tus necesidades de entorno laboral para obtener mejores compatibilidades.</p>
 
             <div className="grid gap-6 md:grid-cols-2">
                 {/* Visual Environment */}
                 <div className="bg-white p-6 rounded-xl shadow-md border-l-4 border-accent">
-                    <h3 className="text-xl font-bold mb-4">Visual Environment (Light)</h3>
+                    <h3 className="text-xl font-bold mb-4">Entorno Visual (Luz)</h3>
                     <div className="space-y-4">
                         {['low', 'medium', 'high'].map((level) => (
                             <label key={level} className="flex items-center space-x-3 cursor-pointer">
@@ -75,7 +75,7 @@ const SensoryProfile: React.FC = () => {
                                     onChange={() => setPreferences({ ...preferences, light_sensitivity: level })}
                                     className="form-radio text-primary h-5 w-5"
                                 />
-                                <span className="capitalize text-gray-700">{level} Sensitivity</span>
+                                <span className="capitalize text-gray-700">{level === 'low' ? 'Baja' : level === 'medium' ? 'Media' : 'Alta'} sensibilidad</span>
                             </label>
                         ))}
                     </div>
@@ -83,7 +83,7 @@ const SensoryProfile: React.FC = () => {
 
                 {/* Auditory Environment */}
                 <div className="bg-white p-6 rounded-xl shadow-md border-l-4 border-accent">
-                    <h3 className="text-xl font-bold mb-4">Auditory Environment (Sound)</h3>
+                    <h3 className="text-xl font-bold mb-4">Entorno Auditivo (Sonido)</h3>
                     <div className="space-y-4">
                         {['low', 'medium', 'high'].map((level) => (
                             <label key={level} className="flex items-center space-x-3 cursor-pointer">
@@ -94,7 +94,7 @@ const SensoryProfile: React.FC = () => {
                                     onChange={() => setPreferences({ ...preferences, sound_sensitivity: level })}
                                     className="form-radio text-primary h-5 w-5"
                                 />
-                                <span className="capitalize text-gray-700">{level} Sensitivity</span>
+                                <span className="capitalize text-gray-700">{level === 'low' ? 'Baja' : level === 'medium' ? 'Media' : 'Alta'} sensibilidad</span>
                             </label>
                         ))}
                     </div>
@@ -102,21 +102,21 @@ const SensoryProfile: React.FC = () => {
 
                 {/* Social Interaction */}
                 <div className="bg-white p-6 rounded-xl shadow-md border-l-4 border-primary">
-                    <h3 className="text-xl font-bold mb-4">Social Interaction Style</h3>
+                    <h3 className="text-xl font-bold mb-4">Estilo de Interacción Social</h3>
                     <select
                         value={preferences.social_interaction}
                         onChange={(e) => setPreferences({ ...preferences, social_interaction: e.target.value })}
                         className="w-full p-3 border rounded-lg bg-gray-50 focus:ring-2 focus:ring-primary outline-none"
                     >
-                        <option value="async">Async First (Written)</option>
-                        <option value="minimal">Minimal Scheduled Meetings</option>
-                        <option value="collaborative">Open Collaboration</option>
+                        <option value="async">Asíncrono primero (Escrito)</option>
+                        <option value="minimal">Reuniones mínimas programadas</option>
+                        <option value="collaborative">Colaboración abierta</option>
                     </select>
                 </div>
 
                 {/* Breaks */}
                 <div className="bg-white p-6 rounded-xl shadow-md border-l-4 border-primary">
-                    <h3 className="text-xl font-bold mb-4">Break Frequency</h3>
+                    <h3 className="text-xl font-bold mb-4">Frecuencia de Descansos</h3>
                     <input
                         type="range"
                         min="15"
@@ -127,7 +127,7 @@ const SensoryProfile: React.FC = () => {
                         className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
                     />
                     <div className="mt-2 text-center text-primary font-bold">
-                        Every {preferences.break_frequency} minutes
+                        Cada {preferences.break_frequency} minutos
                     </div>
                 </div>
             </div>

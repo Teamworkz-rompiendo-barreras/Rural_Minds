@@ -411,7 +411,7 @@ const SuperAdminConfig: React.FC = () => {
                                     <div key={item.id} className="bg-white p-5 rounded-xl shadow-sm flex flex-col" style={{ border: '1px solid #D1D5DB', borderRadius: '12px' }}>
                                         <div className="flex items-center gap-3 mb-3">
                                             {item.preview_image ? (
-                                                <img src={item.preview_image} alt="" className="w-12 h-12 rounded-lg object-cover" />
+                                                <img src={item.preview_image} alt={`Vista previa de ${item.name}`} className="w-12 h-12 rounded-lg object-cover" />
                                             ) : (
                                                 <div className="w-12 h-12 rounded-lg bg-gray-200 flex items-center justify-center text-xl">
                                                     {item.type === 'municipality' ? '🏛️' : '🏢'}
@@ -525,7 +525,7 @@ const SuperAdminConfig: React.FC = () => {
                                 {stories.map(story => (
                                     <div key={story.id} className="bg-white rounded-xl shadow-sm overflow-hidden" style={{ border: '1px solid #D1D5DB', borderRadius: '12px' }}>
                                         {story.image_url && (
-                                            <img src={story.image_url} alt="" className="w-full h-40 object-cover" />
+                                            <img src={story.image_url} alt={`Imagen de historia: ${story.title}`} className="w-full h-40 object-cover" />
                                         )}
                                         <div className="p-4">
                                             <h4 className="font-bold text-sm mb-2">{story.title}</h4>
