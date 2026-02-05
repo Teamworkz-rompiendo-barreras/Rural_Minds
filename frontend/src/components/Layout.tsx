@@ -180,11 +180,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                             Rural Minds. <em>Innovación con denominación de origen</em> © 2026
                         </p>
                         <Link to="/learning" className="text-sm text-p2 hover:underline font-bold">
-                            Learning Center
+                            Centro de Aprendizaje
                         </Link>
                     </div>
                     <p className="text-sm text-gray-500">
-                        Powered by <strong className="text-p2">Teamworkz</strong>
+                        Desarrollado por <strong className="text-p2">Teamworkz</strong>
                     </p>
                 </div>
             </footer>

@@ -15,5 +15,5 @@ const PlaceholderPage: React.FC<{ title: string }> = ({ title }) => (
 // LearningCenter is now a real page exported from its own file
 // ReportsDashboard is now a real page exported from its own file
 // SubscriptionSettings is now a real page exported from its own file
-export const UserSettings = () => <PlaceholderPage title="User Settings" />;
-export const NotFound = () => <PlaceholderPage title="404 - Page Not Found" />;
+export const UserSettings = () => <PlaceholderPage title="Configuración de Usuario" />;
+export const NotFound = () => <PlaceholderPage title="404 - Página No Encontrada" />;

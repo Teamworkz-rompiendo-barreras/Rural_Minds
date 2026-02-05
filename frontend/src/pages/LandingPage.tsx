@@ -65,7 +65,7 @@ const LandingPage: React.FC = () => {
                             <div className="font-bold text-primary">- TechFlow Solutions</div>
                         </div>
                         <div className="bg-white p-6 rounded-xl shadow-md border-t-4 border-primary">
-                            <p className="italic text-gray-600 mb-4">"El perfil sensorial cambió nuestra forma de hacer onboarding. La retención subió un 40%."</p>
+                            <p className="italic text-gray-600 mb-4">"El perfil sensorial cambió nuestra forma de hacer la incorporación. La retención subió un 40%."</p>
                             <div className="font-bold text-primary">- GreenLeaf Co-op</div>
                         </div>
                         <div className="bg-white p-6 rounded-xl shadow-md border-t-4 border-accent">
