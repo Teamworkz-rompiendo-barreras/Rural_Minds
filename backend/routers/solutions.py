@@ -13,7 +13,7 @@ router = APIRouter(
 
 @router.get("/adjustments/catalog", response_model=List[schemas.Solution]) 
 def list_adjustments_catalog(db: Session = Depends(database.get_db)):
-    return read_solutions(db)
+    return read_solutions(db=db)
 
 # --- Lifecycle Endpoints ---
 

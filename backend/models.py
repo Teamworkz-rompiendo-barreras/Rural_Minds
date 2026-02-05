@@ -246,6 +246,7 @@ class Solution(Base):
     implementation_guide = Column(String) # Markdown/Text
     impact_level = Column(String) # low, medium, high
     cost_estimate = Column(String) # $, $$, $$$
+    image_url = Column(String, nullable=True)
     
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
 

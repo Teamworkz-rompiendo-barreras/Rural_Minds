@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from '../config/api';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import AuditDrawer from '../components/AuditDrawer';
 
 // Types
 interface Candidate {
@@ -61,6 +62,14 @@ const SuperAdminConfig: React.FC = () => {
     const [stories, setStories] = useState<SuccessStory[]>([]);
     const [newStory, setNewStory] = useState({ title: '', description: '', image_url: '', municipality_name: '' });
 
+    // Drawer State
+    const auditOrgIdFromUrl = searchParams.get('audit_org_id');
+    const [selectedAuditOrgId, setSelectedAuditOrgId] = useState<string | null>(auditOrgIdFromUrl);
+
+    useEffect(() => {
+        if (auditOrgIdFromUrl) setSelectedAuditOrgId(auditOrgIdFromUrl);
+    }, [auditOrgIdFromUrl]);
+
     // Config State (existing)
     const [resources, setResources] = useState<any[]>([]);
     const [emails, setEmails] = useState<any[]>([]);
@@ -116,26 +125,13 @@ const SuperAdminConfig: React.FC = () => {
         finally { setLoading(false); }
     };
 
-    const handleApprove = async (orgId: string) => {
-        try {
-            await axios.post(`/admin/audit/approve/${orgId}`);
-            fetchAudit();
-            alert('Sello aprobado');
-        } catch (err: any) {
-            alert(`Error: ${err.response?.data?.detail || 'Error'}`);
-        }
-    };
-
-    const handleReject = async (orgId: string) => {
-        const reason = prompt('Motivo del rechazo:');
-        if (!reason) return;
-        try {
-            await axios.post(`/admin/audit/reject/${orgId}?reason=${encodeURIComponent(reason)}`);
-            fetchAudit();
-            alert('Sello rechazado');
-        } catch (err: any) {
-            alert(`Error: ${err.response?.data?.detail || 'Error'}`);
-        }
+    // Audit Handlers moved to Drawer, but we keep fetch logic.
+    const handleDrawerClose = () => {
+        setSelectedAuditOrgId(null);
+        // Clean URL
+        const newParams = new URLSearchParams(searchParams);
+        newParams.delete('audit_org_id');
+        navigate({ search: newParams.toString() }, { replace: true });
     };
 
     // === STORIES ===
@@ -437,24 +433,22 @@ const SuperAdminConfig: React.FC = () => {
 
                                         <div className="mt-auto pt-4 flex gap-2">
                                             <button
-                                                onClick={() => handleApprove(item.id)}
-                                                className="flex-1 py-2 rounded-lg font-bold text-white text-sm transition-colors"
-                                                style={{ backgroundColor: '#10B981' }}
+                                                onClick={() => setSelectedAuditOrgId(item.id)}
+                                                className="w-full py-2 rounded-lg font-bold text-p2 text-sm transition-colors border-2 border-p2 hover:bg-p2 hover:text-white"
                                             >
-                                                ✅ Aprobar Sello
-                                            </button>
-                                            <button
-                                                onClick={() => handleReject(item.id)}
-                                                className="flex-1 py-2 rounded-lg font-bold text-white text-sm transition-colors"
-                                                style={{ backgroundColor: '#EF4444' }}
-                                            >
-                                                ❌ Rechazar
+                                                Revisar Ficha →
                                             </button>
                                         </div>
                                     </div>
                                 ))}
                             </div>
                         )}
+                        <AuditDrawer
+                            orgId={selectedAuditOrgId || ''}
+                            isOpen={!!selectedAuditOrgId}
+                            onClose={handleDrawerClose}
+                            onStatusChange={fetchAudit}
+                        />
                     </div>
                 )}
 

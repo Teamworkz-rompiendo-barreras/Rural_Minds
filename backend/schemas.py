@@ -240,6 +240,7 @@ class SolutionBase(BaseModel):
     implementation_guide: Optional[str] = None
     impact_level: Optional[str] = "medium"
     cost_estimate: Optional[str] = "$"
+    image_url: Optional[str] = None
 
 class SolutionCreate(SolutionBase):
     pass

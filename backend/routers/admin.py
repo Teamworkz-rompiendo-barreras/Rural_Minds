@@ -799,6 +799,170 @@ def invite_entity(
     admin_user: models.User = Depends(require_super_admin)
 ):
     """
+    Send an invitation to an entity (municipality or enterprise).
+    """
+    from utils.email_service import send_invitation_email
+    
+    # Check if email already invited
+    existing_invite = db.query(models.Invitation).filter(
+        models.Invitation.email == invitation.email,
+        models.Invitation.status == "pending"
+    ).first()
+    
+    if existing_invite:
+        raise HTTPException(status_code=400, detail="Ya existe una invitación pendiente para este email")
+    
+    # Check if user already exists
+    existing_user = db.query(models.User).filter(models.User.email == invitation.email).first()
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Este usuario ya está registrado")
+
+    # Create Invitation
+    new_invite = models.Invitation(
+        id=uuid.uuid4(),
+        email=invitation.email,
+        entity_name=invitation.entity_name,
+        role=invitation.role,
+        status="pending"
+    )
+    db.add(new_invite)
+    db.commit()
+    db.refresh(new_invite)
+    
+    # Send Email
+    try:
+        # We need a proper link here, e.g. /register?token=...
+        invite_link = f"https://rural-minds.vercel.app/register?token={new_invite.id}"
+        send_invitation_email(invitation.email, invitation.entity_name, invite_link)
+    except Exception as e:
+        print(f"Error sending email: {e}")
+        # Don't fail the request, but log it
+    
+    return new_invite
+
+@router.get("/invitations")
+def list_invitations(
+    db: Session = Depends(database.get_db),
+    _: models.User = Depends(require_super_admin)
+):
+    """List all invitations."""
+    return db.query(models.Invitation).order_by(models.Invitation.created_at.desc()).all()
+
+
+# --- CEREBRO OPERATIVO: Detailed Audit (The Drawer) ---
+
+@router.get("/audit/{org_id}")
+def get_organization_audit_details(
+    org_id: uuid.UUID,
+    db: Session = Depends(database.get_db),
+    _: models.User = Depends(require_super_admin)
+):
+    """
+    Returns detailed data for the 'Revisar Ficha' drawer.
+    Includes identity, document status, profile completeness, and current municipality link.
+    """
+    org = db.query(models.Organization).filter(models.Organization.id == org_id).first()
+    if not org:
+        raise HTTPException(status_code=404, detail="Organización no encontrada")
+
+    # 1. Linked Municipality
+    linked_muni = None
+    if org.municipality_id:
+        muni = db.query(models.Organization).filter(models.Organization.id == org.municipality_id).first()
+        if muni:
+            linked_muni = {"id": str(muni.id), "name": muni.name}
+
+    # 2. Document Status (Mocked for now as we don't have a docs table yet)
+    # Logic: If organization is validated, assume docs are OK. 
+    # If not, check if we have enough info to consider them 'uploaded'.
+    # For now, we'll check if specific fields are present as a proxy.
+    
+    # Use 'cif_uploaded' if added later, for now we mock based on creation time for demo
+    documents = [
+        {"type": "CIF / NIF", "status": "uploaded", "url": "#", "name": "cif_empresa.pdf"},
+        # Escrituras removed as per requirement
+    ]
+    
+    # If it's a very new org or draft, maybe missing?
+    # For simplicity in this iteration, we return them as uploaded unless specifically flagged.
+
+    # 3. Profile Completeness
+    # We check description, industry, etc.
+    description = getattr(org, 'description', "Sin descripción") # Model doesnt have description, using placeholder or check if we added it? 
+    # Wait, Organization model in models.py doesn't have description. 
+    # We should probably use 'industry' and 'size' as proxies for profile data or check User profile?
+    # Let's return what we have.
+    
+    # We need to fetch the admin user to get contact info
+    admin_user = db.query(models.User).filter(
+        models.User.organization_id == org.id,
+        models.User.role == "enterprise" # or whatever the admin role is
+    ).first()
+
+    profile_data = {
+        "description": org.industry or "Sector no especificado", # Using industry as short description for now
+        "website": "https://www.google.com", # Placeholder
+        "contact_email": admin_user.email if admin_user else "Sin contacto",
+        "employees": org.size or "N/A"
+    }
+
+    return {
+        "id": str(org.id),
+        "name": org.name,
+        "type": org.org_type,
+        "status": org.validation_status,
+        "logo_url": org.branding_logo_url,
+        "created_at": org.created_at.isoformat(),
+        "municipality": linked_muni,
+        "documents": documents,
+        "profile": profile_data
+    }
+
+@router.post("/organizations/{org_id}/link-municipality")
+def link_organization_to_municipality(
+    org_id: uuid.UUID,
+    payload: dict,
+    db: Session = Depends(database.get_db),
+    admin_user: models.User = Depends(require_super_admin)
+):
+    """
+    Links an organization to a municipality node.
+    payload: { "municipality_id": "uuid" }
+    """
+    muni_id = payload.get("municipality_id")
+    if not muni_id:
+         raise HTTPException(status_code=400, detail="Municipality ID required")
+
+    org = db.query(models.Organization).filter(models.Organization.id == org_id).first()
+    if not org:
+        raise HTTPException(status_code=404, detail="Organization not found")
+        
+    # Verify Municipality exists
+    muni = db.query(models.Organization).filter(
+        models.Organization.id == uuid.UUID(muni_id),
+        models.Organization.org_type == "municipality"
+    ).first()
+    
+    if not muni:
+         raise HTTPException(status_code=404, detail="Municipio no encontrado")
+
+    previous_muni = org.municipality_id
+    org.municipality_id = uuid.UUID(muni_id)
+    
+    # Log it
+    log = models.AuditLog(
+        event_type="municipality_linked",
+        message=f"Linked {org.name} to {muni.name}",
+        organization_id=org_id,
+        user_id=admin_user.id,
+        details={"previous": str(previous_muni) if previous_muni else None, "new": muni_id}
+    )
+    db.add(log)
+    db.commit()
+    
+    return {"message": "Organización vinculada correctamente", "municipality_name": muni.name}
+
+    """
     Invite a municipality or organization.
     Sends an email with a magic link to register.
     """

@@ -219,7 +219,7 @@ const SuperAdminDashboard: React.FC = () => {
                                         </div>
                                     )}
                                     <button
-                                        onClick={() => navigate('/admin/config?tab=audit')}
+                                        onClick={() => navigate(`/admin/config?tab=audit&audit_org_id=${item.id}`)}
                                         className="text-xs text-p2 font-bold mt-2 hover:underline"
                                     >
                                         Revisar Ficha →
