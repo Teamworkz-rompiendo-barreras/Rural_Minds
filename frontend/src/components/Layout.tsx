@@ -64,7 +64,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 <div className="container mx-auto flex items-center justify-between flex-wrap">
                     {/* Logo */}
                     <Link to="/" className="flex items-center gap-3">
-                        <img src="/logo.png" alt="Rural Minds Logo" className="h-16 w-auto object-contain" />
+                        <img src="/logo.png" alt="Logotipo de Rural Minds" className="h-16 w-auto object-contain" />
                     </Link>
 
                     {/* Hamburger Button for Mobile/Zoom 400% */}
