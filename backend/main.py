@@ -23,19 +23,23 @@ if os.getenv("VERCEL") != "1":
 app = FastAPI(title="RuralMinds API")
 
 # Configure CORS
-# Configure CORS
-# Allow all origins for production testing to ensure connectivity
-allowed_origins = ["*"]
+# Allow both local and production origins
+origins = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "https://rural-minds.vercel.app",
+    "https://rural-minds-git-main-lerele1s-projects.vercel.app", # Example preview URL
+]
 
-# Add any additional origins from environment variable
+# Allow any vercel.app subdomain for flexibility
 extra_origins = os.getenv("ALLOWED_ORIGINS", "")
 if extra_origins:
-    allowed_origins.extend(extra_origins.split(","))
+    origins.extend(extra_origins.split(","))
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # Explicitly allow all
-    allow_credentials=True,
+    allow_origins=origins if os.getenv("VERCEL") != "1" else ["*"], # Use * in Vercel if we don't have specific list, but with credentials=False
+    allow_credentials=True if os.getenv("VERCEL") != "1" else False, # Credentials False for * in production
     allow_methods=["*"],
     allow_headers=["*"],
 )
