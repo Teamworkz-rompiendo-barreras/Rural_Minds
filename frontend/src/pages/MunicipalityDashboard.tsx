@@ -231,7 +231,7 @@ const MunicipalityDashboard: React.FC = () => {
         <div className="min-h-screen bg-n100 font-sans">
             <div className="flex flex-col lg:flex-row max-w-[1600px] mx-auto">
                 {/* Fixed Sidebar Navigation */}
-                <aside className="lg:w-64 lg:fixed lg:h-screen bg-white border-r border-gray-200 z-30 flex flex-col pt-8">
+                <aside className="lg:w-64 lg:sticky lg:top-0 lg:h-screen bg-white border-r border-gray-200 z-30 flex flex-col pt-8">
                     <div className="px-6 mb-10">
                         <h2 className="text-xl font-heading font-extrabold text-p2 flex items-center gap-2">
                             Rural Minds
@@ -272,7 +272,7 @@ const MunicipalityDashboard: React.FC = () => {
                 </aside>
 
                 {/* Main Content Area */}
-                <main className="flex-1 lg:ml-64 p-4 md:p-8 lg:p-12 animate-in fade-in duration-500">
+                <main className="flex-1 p-4 md:p-8 lg:p-12 animate-in fade-in duration-500">
                     {/* Header */}
                     <header className="border-b border-gray-100 pb-6 mb-8">
                         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
