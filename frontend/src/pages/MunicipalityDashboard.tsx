@@ -521,84 +521,125 @@ const MunicipalityDashboard: React.FC = () => {
                             )}
 
                             {activeTab === 'talent' && (
-                                <div className="space-y-8 animate-in slide-in-from-bottom-4 duration-500">
-                                    {/* Radar KM 0 */}
-                                    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-                                        <div className="flex justify-between items-center mb-6">
-                                            <h2 className="text-2xl font-heading font-bold text-n900">📍 Radar de Talento Local (KM 0)</h2>
-                                            <span className="text-xs bg-p2/10 text-p2 px-3 py-1 rounded-full font-bold">Residencial</span>
-                                        </div>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-                                            <div className="bg-p2/5 p-4 rounded-xl border border-p2/10 text-center">
-                                                <p className="text-4xl font-bold text-p2 mb-1">{localTalent.length}</p>
-                                                <p className="text-xs text-gray-500 font-bold uppercase">Vecinos Registrados</p>
+                                <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-500">
+                                    <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+                                        <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/30">
+                                            <div>
+                                                <h2 className="text-2xl font-heading font-bold text-n900 flex items-center gap-2">
+                                                    👥 Gestión de Talento (Vista Ayuntamiento)
+                                                </h2>
+                                                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">Clasificación Arraigo vs Atracción</p>
                                             </div>
-                                            <div className="bg-accent/5 p-4 rounded-xl border border-accent/10 text-center">
-                                                <p className="text-4xl font-bold text-accent mb-1">{[...new Set(localTalent.flatMap(t => t.skills))].length}</p>
-                                                <p className="text-xs text-gray-500 font-bold uppercase">Habilidades en el Municipio</p>
+                                            <div className="flex gap-2">
+                                                <span className="px-3 py-1 bg-p2/10 text-p2 text-[10px] font-bold rounded-full uppercase border border-p2/20">Arraigo: {localTalent.length}</span>
+                                                <span className="px-3 py-1 bg-emerald-50 text-emerald-700 text-[10px] font-bold rounded-full uppercase border border-emerald-100">Atracción: {attractionTalent.length}</span>
                                             </div>
                                         </div>
 
-                                        <div className="space-y-3">
-                                            <h4 className="text-sm font-bold text-gray-700 uppercase tracking-wider mb-2">Composición del Pool Académico/Profesional:</h4>
-                                            {localTalent.slice(0, 5).map((t, i) => (
-                                                <div key={i} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-100 text-sm">
-                                                    <span className="text-xl">👤</span>
-                                                    <div>
-                                                        <p className="font-bold text-n900">Perfil Anónimo #{i + 1}</p>
-                                                        <div className="flex flex-wrap gap-1 mt-1">
-                                                            {t.skills.map((s: string, idx: number) => (
-                                                                <span key={idx} className="px-2 py-0.5 bg-white border text-[10px] rounded-full text-gray-500">{s}</span>
-                                                            ))}
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                            {localTalent.length > 5 && <p className="text-xs text-gray-400 text-center py-2">+ {localTalent.length - 5} perfiles adicionales</p>}
-                                        </div>
-                                    </div>
+                                        <div className="overflow-x-auto">
+                                            <table className="w-full text-left border-collapse">
+                                                <thead className="bg-gray-50/50 border-b border-gray-100">
+                                                    <tr>
+                                                        <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Perfil (Seudónimo)</th>
+                                                        <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Origen / Estado</th>
+                                                        <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Match Promedio</th>
+                                                        <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Necesidades Clave</th>
+                                                        <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-right">Acción Recomendada</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody className="divide-y divide-gray-50">
+                                                    {/* Arraigo Talent */}
+                                                    {localTalent.map((t, i) => (
+                                                        <tr key={`local-${i}`} className="hover:bg-gray-50/50 transition-colors">
+                                                            <td className="px-6 py-4">
+                                                                <div className="flex items-center gap-2">
+                                                                    <span className="font-bold text-n900 text-sm">RM-{429 + i}</span>
+                                                                    <span className="text-[9px] bg-p2 text-white px-1.5 py-0.5 rounded font-black uppercase tracking-tighter">Local</span>
+                                                                </div>
+                                                            </td>
+                                                            <td className="px-6 py-4">
+                                                                <span className="text-xs text-gray-600 font-medium flex items-center gap-1">
+                                                                    <span className="text-p2">📍</span> Municipio
+                                                                </span>
+                                                            </td>
+                                                            <td className="px-6 py-4">
+                                                                <div className="flex items-center gap-2">
+                                                                    <div className="w-16 h-1 bg-gray-100 rounded-full overflow-hidden">
+                                                                        <div className="h-full bg-p2" style={{ width: '85%' }}></div>
+                                                                    </div>
+                                                                    <span className="text-xs font-bold text-n900">85%</span>
+                                                                </div>
+                                                            </td>
+                                                            <td className="px-6 py-4">
+                                                                <span className="text-xs text-gray-500 flex items-center gap-1.5 grayscale hover:grayscale-0 transition-all cursor-help" title="Preferencia Sensorial Detectada">
+                                                                    <span className="bg-gray-100 w-6 h-6 flex items-center justify-center rounded-lg text-xs">🔇</span>
+                                                                    Baja acústica
+                                                                </span>
+                                                            </td>
+                                                            <td className="px-6 py-4 text-right">
+                                                                <button className="text-[10px] font-bold bg-white border border-p2 text-p2 px-4 py-2 rounded-xl hover:bg-p2 hover:text-white transition-all shadow-sm">
+                                                                    Validar Residencia
+                                                                </button>
+                                                            </td>
+                                                        </tr>
+                                                    ))}
 
-                                    {/* Attraction Management */}
-                                    <div className="bg-white p-6 rounded-xl shadow-sm border border-emerald-100 bg-gradient-to-br from-white to-emerald-50/30">
-                                        <div className="flex justify-between items-center mb-6">
-                                            <h2 className="text-2xl font-heading font-bold text-n900">🧭 Gestor de "Nuevos Residentes"</h2>
-                                            <span className="text-xs bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full font-bold">Atracción</span>
+                                                    {/* Atracción Talent */}
+                                                    {attractionTalent.map((t, i) => (
+                                                        <tr key={`attr-${i}`} className="hover:bg-emerald-50/30 transition-colors">
+                                                            <td className="px-6 py-4">
+                                                                <div className="flex items-center gap-2">
+                                                                    <span className="font-bold text-n900 text-sm">RM-{102 + i}</span>
+                                                                    <span className="text-[9px] bg-emerald-600 text-white px-1.5 py-0.5 rounded font-black uppercase tracking-tighter">Externo</span>
+                                                                </div>
+                                                            </td>
+                                                            <td className="px-6 py-4">
+                                                                <span className="text-xs text-gray-600 font-medium flex items-center gap-1">
+                                                                    <span className="text-emerald-500">🏙️</span> {t.from_location || 'Madrid'} -&gt; Mudanza
+                                                                </span>
+                                                            </td>
+                                                            <td className="px-6 py-4">
+                                                                <div className="flex items-center gap-2">
+                                                                    <div className="w-16 h-1 bg-gray-100 rounded-full overflow-hidden">
+                                                                        <div className="h-full bg-emerald-600" style={{ width: '92%' }}></div>
+                                                                    </div>
+                                                                    <span className="text-xs font-bold text-n900">92%</span>
+                                                                </div>
+                                                            </td>
+                                                            <td className="px-6 py-4">
+                                                                <span className="text-xs text-gray-500 flex items-center gap-1.5 grayscale hover:grayscale-0 transition-all cursor-help" title="Necesidad de Accesibilidad">
+                                                                    <span className="bg-gray-100 w-6 h-6 flex items-center justify-center rounded-lg text-xs">💡</span>
+                                                                    Luz Natural
+                                                                </span>
+                                                            </td>
+                                                            <td className="px-6 py-4 text-right">
+                                                                <div className="flex justify-end gap-2 text-[10px] font-black uppercase tracking-tighter">
+                                                                    <button
+                                                                        onClick={() => handleContactTalent(t.id)}
+                                                                        className="text-gray-400 hover:text-n900 underline decoration-gray-200 transition-colors"
+                                                                    >
+                                                                        Contactar
+                                                                    </button>
+                                                                    <button
+                                                                        onClick={() => handleSendWelcome(t.id)}
+                                                                        className="bg-emerald-600 text-white px-4 py-2 rounded-xl hover:bg-emerald-700 transition-all shadow-md shadow-emerald-600/20"
+                                                                    >
+                                                                        Enviar Guía Acogida
+                                                                    </button>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
                                         </div>
-                                        <div className="space-y-4">
-                                            {attractionTalent.length > 0 ? (
-                                                attractionTalent.map((t, i) => (
-                                                    <div key={i} className="flex items-center justify-between p-4 bg-white rounded-xl border border-emerald-100 shadow-sm">
-                                                        <div className="flex items-center gap-3">
-                                                            <div className="w-10 h-10 bg-emerald-600 text-white rounded-full flex items-center justify-center font-bold">
-                                                                {t.full_name[0]}
-                                                            </div>
-                                                            <div>
-                                                                <p className="font-bold text-n900">{t.full_name}</p>
-                                                                <p className="text-xs text-gray-500">Actualmente en: <span className="font-bold text-emerald-600">{t.from_location}</span></p>
-                                                            </div>
-                                                        </div>
-                                                        <div className="flex gap-2">
-                                                            <button
-                                                                onClick={() => handleContactTalent(t.id)}
-                                                                className="px-4 py-2 bg-white border border-emerald-600 text-emerald-700 text-xs font-bold rounded-lg hover:bg-emerald-50 transition-colors shadow-sm"
-                                                            >
-                                                                💬 Contactar
-                                                            </button>
-                                                            <button
-                                                                onClick={() => handleSendWelcome(t.id)}
-                                                                className="px-4 py-2 bg-emerald-600 text-white text-xs font-bold rounded-lg hover:bg-emerald-700 transition-colors flex items-center gap-2"
-                                                            >
-                                                                🚀 Enviar Bienvenida
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                ))
-                                            ) : (
-                                                <div className="text-center py-10 text-gray-400 border-2 border-dashed border-gray-200 rounded-xl">
-                                                    No hay personas de fuera interesadas en mudarse hoy.
-                                                </div>
-                                            )}
-                                        </div>
+
+                                        {(localTalent.length === 0 && attractionTalent.length === 0) && (
+                                            <div className="p-16 text-center text-gray-400 italic">
+                                                <span className="text-4xl block mb-4 opacity-20">👤</span>
+                                                No hay registros de talento disponibles todavía.
+                                            </div>
+                                        )}
                                     </div>
 
                                     {/* Sensory Needs Analysis */}
