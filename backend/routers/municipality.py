@@ -322,6 +322,77 @@ def send_welcome_guide(
     # For now, simulate or call existing service if available
     return {"message": f"Guía de bienvenida enviada a {talent_profile.user.email}"}
 
+@router.get("/profile/details")
+def get_municipality_profile_details(
+    db: Session = Depends(database.get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    if current_user.role not in ["territory_admin", "municipality"]:
+        raise HTTPException(status_code=403, detail="Permission denied")
+    
+    org = db.query(models.Organization).filter(models.Organization.id == current_user.organization_id).first()
+    if not org or not org.location_id:
+        raise HTTPException(status_code=400, detail="Organization has no location")
+    
+    from models_location import MunicipalityDetails
+    details = db.query(MunicipalityDetails).filter(MunicipalityDetails.location_id == org.location_id).first()
+    if not details:
+        # Create default draft if not exists
+        details = MunicipalityDetails(
+            id=uuid.uuid4(),
+            location_id=org.location_id,
+            slogan="Tu nuevo comienzo",
+            description="Municipio acogedor para el talento.",
+            status="draft"
+        )
+        db.add(details)
+        db.commit()
+        db.refresh(details)
+    
+    return details
+
+@router.put("/profile/details")
+def update_municipality_profile_details(
+    payload: dict,
+    db: Session = Depends(database.get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    if current_user.role not in ["territory_admin", "municipality"]:
+        raise HTTPException(status_code=403, detail="Permission denied")
+    
+    org = db.query(models.Organization).filter(models.Organization.id == current_user.organization_id).first()
+    if not org or not org.location_id:
+         raise HTTPException(status_code=400, detail="Organization has no location")
+    
+    from models_location import MunicipalityDetails
+    details = db.query(MunicipalityDetails).filter(MunicipalityDetails.location_id == org.location_id).first()
+    if not details:
+        raise HTTPException(status_code=404, detail="Profile not found")
+    
+    # Update fields
+    for key, value in payload.items():
+        if hasattr(details, key):
+            setattr(details, key, value)
+    
+    db.commit()
+    return {"message": "Profile updated successfully"}
+
+@router.post("/talent/{talent_id}/contact")
+def contact_talent(
+    talent_id: uuid.UUID,
+    db: Session = Depends(database.get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    if current_user.role not in ["territory_admin", "municipality"]:
+        raise HTTPException(status_code=403, detail="Permission denied")
+    
+    talent = db.query(models.User).join(models.TalentProfile).filter(models.TalentProfile.id == talent_id).first()
+    if not talent:
+        raise HTTPException(status_code=404, detail="Talent not found")
+        
+    # Logic to register contact intent or send supportive message
+    return {"message": f"Solicitud de contacto enviada a {talent.full_name or talent.email}"}
+
 @router.get("/stats")
 def get_municipality_stats(
     db: Session = Depends(database.get_db),

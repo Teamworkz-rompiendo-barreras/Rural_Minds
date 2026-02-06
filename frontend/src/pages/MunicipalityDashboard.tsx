@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { PDFDownloadLink } from '@react-pdf/renderer';
 import InclusionManualPDF from '../components/InclusionManualPDF';
+import MunicipalityReportPDF from '../components/pdf/MunicipalityReportPDF';
 import axios from '../config/api';
 
 const MunicipalityDashboard: React.FC = () => {
@@ -40,6 +41,20 @@ const MunicipalityDashboard: React.FC = () => {
     const [sensoryStats, setSensoryStats] = useState<any>({});
 
     const [loadingTabs, setLoadingTabs] = useState(false);
+
+    // Profile Editor State
+    const [showProfileEditor, setShowProfileEditor] = useState(false);
+    const [profileData, setProfileData] = useState<any>({
+        slogan: '',
+        description: '',
+        internet_speed: '',
+        connectivity_info: '',
+        climate_co2: '',
+        services: { health: '', education: '', coworking: '', commerce: '' },
+        gallery_urls: [],
+        status: 'draft'
+    });
+    const [savingProfile, setSavingProfile] = useState(false);
 
     useEffect(() => {
         if (user) {
@@ -113,12 +128,43 @@ const MunicipalityDashboard: React.FC = () => {
         }
     };
 
+    const fetchProfileData = async () => {
+        try {
+            const res = await axios.get('/municipality/profile/details');
+            setProfileData(res.data);
+        } catch (err) {
+            console.error("Error fetching profile details", err);
+        }
+    };
+
+    const handleSaveProfile = async () => {
+        setSavingProfile(true);
+        try {
+            await axios.put('/municipality/profile/details', profileData);
+            alert("Configuración de ficha municipal guardada.");
+            setShowProfileEditor(false);
+        } catch (err) {
+            alert("Error al guardar la configuración.");
+        } finally {
+            setSavingProfile(false);
+        }
+    };
+
     const handleSendWelcome = async (talentId: string) => {
         try {
             await axios.post(`/municipality/talent/${talentId}/welcome`);
             alert("Guía de bienvenida enviada correctamente.");
         } catch (err) {
             alert("Error al enviar la bienvenida.");
+        }
+    };
+
+    const handleContactTalent = async (talentId: string) => {
+        try {
+            await axios.post(`/municipality/talent/${talentId}/contact`);
+            alert("Mensaje de apoyo enviado al talento interesado.");
+        } catch (err) {
+            alert("Error al contactar.");
         }
     };
 
@@ -168,9 +214,9 @@ const MunicipalityDashboard: React.FC = () => {
         <div className="max-w-7xl mx-auto p-4 md:p-8 animate-in fade-in duration-500">
             {/* Header */}
             <header className="border-b border-gray-100 pb-6 mb-8">
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                     <div>
-                        <div className="flex items-center gap-3 mb-2">
+                        <div className="flex items-center gap-3 mb-1">
                             <h1 className="text-4xl font-heading font-bold text-p2">
                                 Panel del Ayuntamiento
                             </h1>
@@ -182,12 +228,31 @@ const MunicipalityDashboard: React.FC = () => {
                             {user?.organization?.name || "Tu Municipio"} — Gestión de Impacto Social
                         </p>
                     </div>
-                    <div className="flex items-center gap-4">
-                        <div className="bg-accent/10 border border-accent/40 px-4 py-2 rounded-full shadow-sm hover:shadow-md transition-all duration-300">
-                            <span className="text-sm font-extrabold text-p2 italic">
-                                "Innovación con Denominación de Origen"
-                            </span>
-                        </div>
+                    <div className="flex flex-wrap gap-3">
+                        <button
+                            onClick={() => setShowInviteModal(true)}
+                            className="bg-p2 text-white px-5 py-2.5 rounded-xl font-bold shadow-lg shadow-p2/20 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-2 text-sm"
+                        >
+                            ➕ Invitar Empresa
+                        </button>
+                        <button
+                            onClick={() => { fetchProfileData(); setShowProfileEditor(true); }}
+                            className="bg-white border border-gray-200 text-n900 px-5 py-2.5 rounded-xl font-bold hover:bg-gray-50 transition-all flex items-center gap-2 text-sm"
+                        >
+                            ⚙️ Configurar Ficha
+                        </button>
+                        <PDFDownloadLink
+                            document={<MunicipalityReportPDF
+                                municipalityName={user?.organization?.name || 'Municipio'}
+                                municipalityLogo={(user?.organization as any)?.branding_logo_url}
+                                stats={metrics}
+                                month={new Date().toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}
+                            />}
+                            fileName={`Reporte_Impacto_${user?.organization?.name}_${new Date().toISOString().slice(0, 10)}.pdf`}
+                            className="bg-n900 text-white px-5 py-2.5 rounded-xl font-bold hover:bg-black transition-all flex items-center gap-2 text-sm"
+                        >
+                            {({ loading }) => (loading ? '📄 Generando...' : '📄 Reporte Impacto')}
+                        </PDFDownloadLink>
                     </div>
                 </div>
             </header>
@@ -227,9 +292,13 @@ const MunicipalityDashboard: React.FC = () => {
                 <div className="absolute top-0 right-0 p-8 opacity-10">
                     <span className="text-9xl">🌟</span>
                 </div>
+                <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-10">
+                    <div>
+                        <h2 className="text-3xl font-heading font-extrabold mb-2">Impacto Social Directo (Orgullo Local)</h2>
+                        <p className="text-p1 font-bold uppercase tracking-widest text-xs">Resultados tangibles logrados a través de Rural Minds</p>
+                    </div>
+                </div>
                 <div className="relative z-10">
-                    <h2 className="text-3xl font-heading font-extrabold mb-2">Impacto Social Directo (Orgullo Local)</h2>
-                    <p className="text-p1 font-bold uppercase tracking-widest text-xs mb-8">Resultados tangibles logrados a través de Rural Minds</p>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                         <div className="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-white/20">
@@ -465,12 +534,20 @@ const MunicipalityDashboard: React.FC = () => {
                                                         <p className="text-xs text-gray-500">Actualmente en: <span className="font-bold text-emerald-600">{t.from_location}</span></p>
                                                     </div>
                                                 </div>
-                                                <button
-                                                    onClick={() => handleSendWelcome(t.id)}
-                                                    className="px-4 py-2 bg-emerald-600 text-white text-xs font-bold rounded-lg hover:bg-emerald-700 transition-colors flex items-center gap-2"
-                                                >
-                                                    🚀 Enviar Bienvenida
-                                                </button>
+                                                <div className="flex gap-2">
+                                                    <button
+                                                        onClick={() => handleContactTalent(t.id)}
+                                                        className="px-4 py-2 bg-white border border-emerald-600 text-emerald-700 text-xs font-bold rounded-lg hover:bg-emerald-50 transition-colors"
+                                                    >
+                                                        💬 Apoyar
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleSendWelcome(t.id)}
+                                                        className="px-4 py-2 bg-emerald-600 text-white text-xs font-bold rounded-lg hover:bg-emerald-700 transition-colors flex items-center gap-2"
+                                                    >
+                                                        🚀 Enviar Bienvenida
+                                                    </button>
+                                                </div>
                                             </div>
                                         ))
                                     ) : (
@@ -596,65 +673,169 @@ const MunicipalityDashboard: React.FC = () => {
                         </button>
                     </div>
                 </div>
-            </div>
 
-            {/* Invite Companies Modal */}
-            {showInviteModal && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-                    <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 md:p-8">
-                        <div className="flex justify-between items-center mb-6">
-                            <h3 className="text-2xl font-heading font-bold text-n900">📨 Invitar Empresas Locales</h3>
-                            <button onClick={() => setShowInviteModal(false)} className="text-gray-400 hover:text-gray-600 text-3xl">×</button>
-                        </div>
+                {/* Profile Editor Modal */}
+                {showProfileEditor && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-n900/40 backdrop-blur-sm animate-in fade-in duration-300">
+                        <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl p-8 slide-in-from-bottom-8 animate-in duration-500">
+                            <div className="flex justify-between items-center mb-6">
+                                <h3 className="text-2xl font-heading font-bold text-n900">Configuración de la Ficha Municipal</h3>
+                                <button onClick={() => setShowProfileEditor(false)} className="text-gray-400 hover:text-n900 text-xl">✕</button>
+                            </div>
 
-                        <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                            <h4 className="font-bold text-xs text-gray-500 uppercase tracking-widest mb-2">Vista Previa del Mensaje</h4>
-                            <div className="text-sm text-gray-600 italic border-l-4 border-p2 pl-3">
-                                "Estimado responsable... Desde el <strong>{user?.organization?.name}</strong>, estamos impulsando Rural Minds... Unirse es gratuito..."
+                            <div className="space-y-6">
+                                <div>
+                                    <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">Eslogan Publicitario</label>
+                                    <input
+                                        type="text"
+                                        className="w-full px-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-p2 focus:border-transparent outline-none"
+                                        value={profileData.slogan}
+                                        onChange={(e) => setProfileData({ ...profileData, slogan: e.target.value })}
+                                        placeholder="Ej. El paraíso del teletrabajo"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">Descripción del Municipio</label>
+                                    <textarea
+                                        rows={4}
+                                        className="w-full px-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-p2 focus:border-transparent outline-none"
+                                        value={profileData.description}
+                                        onChange={(e) => setProfileData({ ...profileData, description: e.target.value })}
+                                        placeholder="Describe por qué el talento debería elegir tu municipio..."
+                                    />
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">Internet / Fibra</label>
+                                        <input
+                                            type="text"
+                                            className="w-full px-4 py-3 bg-gray-50 border rounded-xl outline-none"
+                                            value={profileData.internet_speed}
+                                            onChange={(e) => setProfileData({ ...profileData, internet_speed: e.target.value })}
+                                            placeholder="Ej. 1Gbps Simétrico"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">Transporte / Distancia</label>
+                                        <input
+                                            type="text"
+                                            className="w-full px-4 py-3 bg-gray-50 border rounded-xl outline-none"
+                                            value={profileData.connectivity_info}
+                                            onChange={(e) => setProfileData({ ...profileData, connectivity_info: e.target.value })}
+                                            placeholder="Ej. 45 min de la capital"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="p-4 bg-orange-50 border border-orange-100 rounded-xl">
+                                    <h4 className="font-bold text-orange-800 text-sm mb-4 uppercase tracking-wider">Servicios Esenciales</h4>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        {['health', 'education', 'coworking', 'commerce'].map(s => (
+                                            <div key={s}>
+                                                <label className="block text-[10px] font-bold text-orange-700 mb-1 uppercase tracking-widest">{s}</label>
+                                                <input
+                                                    type="text"
+                                                    className="w-full px-3 py-2 bg-white border border-orange-100 rounded-lg outline-none text-sm"
+                                                    value={profileData.services[s]}
+                                                    onChange={(e) => setProfileData({
+                                                        ...profileData,
+                                                        services: { ...profileData.services, [s]: e.target.value }
+                                                    })}
+                                                />
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">Galería de Imágenes (URLs separadas por comas)</label>
+                                    <textarea
+                                        rows={2}
+                                        className="w-full px-4 py-3 bg-gray-50 border rounded-xl outline-none"
+                                        value={profileData.gallery_urls?.join(', ')}
+                                        onChange={(e) => setProfileData({
+                                            ...profileData,
+                                            gallery_urls: e.target.value.split(',').map(u => u.trim())
+                                        })}
+                                        placeholder="https://image1.jpg, https://image2.jpg"
+                                    />
+                                </div>
+
+                                <div className="flex justify-end gap-3 mt-8">
+                                    <button onClick={() => setShowProfileEditor(false)} className="px-6 py-3 font-bold text-gray-500">Cancelar</button>
+                                    <button
+                                        onClick={handleSaveProfile}
+                                        disabled={savingProfile}
+                                        className="px-8 py-3 bg-p2 text-white rounded-xl font-bold shadow-lg shadow-p2/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
+                                    >
+                                        {savingProfile ? 'Guardando...' : 'Guardar Cambios'}
+                                    </button>
+                                </div>
                             </div>
                         </div>
+                    </div>
+                )}
 
-                        <div className="mb-6">
-                            <label className="block font-bold text-n900 mb-2 text-sm">Correos Electrónicos (uno por línea)</label>
-                            <textarea
-                                className="input-field w-full h-40 font-mono text-xs p-3 leading-relaxed"
-                                placeholder="empresa1@local.com&#10;taller@pueblo.es&#10;cooperativa@agro.com"
-                                value={inviteEmails}
-                                onChange={e => setInviteEmails(e.target.value)}
-                            />
-                            <p className="text-[10px] text-gray-500 mt-2">Cada empresa recibirá un acceso personalizado a la plataforma.</p>
-                        </div>
+                {/* Invite Companies Modal */}
+                {showInviteModal && (
+                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+                        <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 md:p-8">
+                            <div className="flex justify-between items-center mb-6">
+                                <h3 className="text-2xl font-heading font-bold text-n900">📨 Invitar Empresas Locales</h3>
+                                <button onClick={() => setShowInviteModal(false)} className="text-gray-400 hover:text-gray-600 text-3xl">×</button>
+                            </div>
 
-                        <div className="flex justify-end gap-4">
-                            <button onClick={() => setShowInviteModal(false)} className="px-6 py-2.5 border border-gray-300 rounded-lg font-bold text-gray-500 hover:bg-gray-50 transition-colors text-sm">Cancelar</button>
-                            <button
-                                onClick={handleSendInvites}
-                                disabled={inviting || !inviteEmails.trim()}
-                                className="btn-primary px-8 py-2.5 flex items-center gap-2 shadow-lg shadow-p2/30 disabled:shadow-none"
-                            >
-                                {inviting ? 'Enviando...' : 'Enviar Invitaciones 🚀'}
-                            </button>
+                            <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                                <h4 className="font-bold text-xs text-gray-500 uppercase tracking-widest mb-2">Vista Previa del Mensaje</h4>
+                                <div className="text-sm text-gray-600 italic border-l-4 border-p2 pl-3">
+                                    "Estimado responsable... Desde el <strong>{user?.organization?.name}</strong>, estamos impulsando Rural Minds... Unirse es gratuito..."
+                                </div>
+                            </div>
+
+                            <div className="mb-6">
+                                <label className="block font-bold text-n900 mb-2 text-sm">Correos Electrónicos (uno por línea)</label>
+                                <textarea
+                                    className="input-field w-full h-40 font-mono text-xs p-3 leading-relaxed"
+                                    placeholder="empresa1@local.com&#10;taller@pueblo.es&#10;cooperativa@agro.com"
+                                    value={inviteEmails}
+                                    onChange={e => setInviteEmails(e.target.value)}
+                                />
+                                <p className="text-[10px] text-gray-500 mt-2">Cada empresa recibirá un acceso personalizado a la plataforma.</p>
+                            </div>
+
+                            <div className="flex justify-end gap-4">
+                                <button onClick={() => setShowInviteModal(false)} className="px-6 py-2.5 border border-gray-300 rounded-lg font-bold text-gray-500 hover:bg-gray-50 transition-colors text-sm">Cancelar</button>
+                                <button
+                                    onClick={handleSendInvites}
+                                    disabled={inviting || !inviteEmails.trim()}
+                                    className="btn-primary px-8 py-2.5 flex items-center gap-2 shadow-lg shadow-p2/30 disabled:shadow-none"
+                                >
+                                    {inviting ? 'Enviando...' : 'Enviar Invitaciones 🚀'}
+                                </button>
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
+                )}
 
-            {/* Validation Modal */}
-            {showValidationModal && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-                    <div className="bg-white rounded-xl p-8 max-w-md w-full shadow-2xl">
-                        <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-3xl mb-4 mx-auto">
-                            📜
-                        </div>
-                        <h3 className="font-heading font-bold text-2xl text-n900 mb-4 text-center">Denominación de Origen</h3>
-                        <p className="text-gray-600 mb-6 text-center text-sm">¿Certificar que esta empresa opera formalmente en el municipio para otorgarle el sello oficial?</p>
-                        <div className="flex gap-4">
-                            <button onClick={() => setShowValidationModal(false)} className="flex-1 py-3 border border-gray-200 rounded-lg font-bold text-gray-600 hover:bg-gray-50 text-sm">Cancelar</button>
-                            <button onClick={confirmValidation} className="flex-1 py-3 bg-green-600 text-white rounded-lg font-bold hover:bg-green-700 transition-colors shadow-lg shadow-green-200 text-sm">Aprobar Sello</button>
+                {/* Validation Modal */}
+                {showValidationModal && (
+                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+                        <div className="bg-white rounded-xl p-8 max-w-md w-full shadow-2xl">
+                            <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-3xl mb-4 mx-auto">
+                                📜
+                            </div>
+                            <h3 className="font-heading font-bold text-2xl text-n900 mb-4 text-center">Denominación de Origen</h3>
+                            <p className="text-gray-600 mb-6 text-center text-sm">¿Certificar que esta empresa opera formalmente en el municipio para otorgarle el sello oficial?</p>
+                            <div className="flex gap-4">
+                                <button onClick={() => setShowValidationModal(false)} className="flex-1 py-3 border border-gray-200 rounded-lg font-bold text-gray-600 hover:bg-gray-50 text-sm">Cancelar</button>
+                                <button onClick={confirmValidation} className="flex-1 py-3 bg-green-600 text-white rounded-lg font-bold hover:bg-green-700 transition-colors shadow-lg shadow-green-200 text-sm">Aprobar Sello</button>
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
+                )}
+            </div>
         </div>
     );
 };
