@@ -57,6 +57,22 @@ const MunicipalityDashboard: React.FC = () => {
     });
     const [savingProfile, setSavingProfile] = useState(false);
 
+    const logoUrl = React.useMemo(() => {
+        const rawUrl = (user?.organization as any)?.branding_logo_url;
+        if (!rawUrl) return null;
+        if (rawUrl.startsWith('http') || rawUrl.startsWith('data:')) return rawUrl;
+        return `${window.location.origin}${rawUrl.startsWith('/') ? '' : '/'}${rawUrl}`;
+    }, [(user?.organization as any)?.branding_logo_url]);
+
+    const reportDocument = React.useMemo(() => (
+        <MunicipalityReportPDF
+            municipalityName={user?.organization?.name || 'Municipio'}
+            municipalityLogo={logoUrl}
+            stats={metrics}
+            month={new Date().toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}
+        />
+    ), [user?.organization?.name, logoUrl, metrics]);
+
     useEffect(() => {
         if (user) {
             fetchData();
@@ -243,13 +259,8 @@ const MunicipalityDashboard: React.FC = () => {
                             🧭 Contactar Talento Entrante
                         </button>
                         <PDFDownloadLink
-                            document={<MunicipalityReportPDF
-                                municipalityName={user?.organization?.name || 'Municipio'}
-                                municipalityLogo={(user?.organization as any)?.branding_logo_url}
-                                stats={metrics}
-                                month={new Date().toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}
-                            />}
-                            fileName={`Reporte_Impacto_${user?.organization?.name}_${new Date().toISOString().slice(0, 10)}.pdf`}
+                            document={reportDocument}
+                            fileName={`Reporte_Impacto_${(user?.organization?.name || 'Municipio').replace(/[^a-z0-9]/gi, '_')}_${new Date().toISOString().slice(0, 10)}.pdf`}
                             className="bg-n900 text-white px-4 py-2.5 rounded-xl font-bold hover:bg-black transition-all flex items-center gap-2 text-xs shadow-md"
                         >
                             {({ loading }) => (loading ? '📄 Generando...' : '📄 Generar Reporte de Impacto')}

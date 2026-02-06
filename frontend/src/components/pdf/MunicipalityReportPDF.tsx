@@ -133,89 +133,102 @@ interface ReportProps {
     month: string;
 }
 
-const MunicipalityReportPDF: React.FC<ReportProps> = ({ municipalityName, municipalityLogo, stats, month }) => (
-    <Document>
-        <Page size="A4" style={styles.page}>
-            {/* Header */}
-            <View style={styles.header}>
-                <View style={styles.logoContainer}>
-                    {/* RuralMinds Logo (Placeholder or absolute URL needed for production) */}
-                    <Text style={{ color: '#0F5C2E', fontWeight: 'bold', fontSize: 16 }}>Rural Minds</Text>
-                    <Text style={{ color: '#9ca3af', fontSize: 16 }}>|</Text>
-                    {municipalityLogo ? (
-                        <Image src={municipalityLogo} style={styles.logo} />
-                    ) : (
-                        <Text style={{ fontSize: 12, fontWeight: 'bold' }}>{municipalityName}</Text>
-                    )}
-                </View>
-                <View>
-                    <Text style={styles.reportTitle}>Reporte de Impacto Social</Text>
-                    <Text style={{ fontSize: 10, color: '#6b7280', textAlign: 'right' }}>{month}</Text>
-                </View>
-            </View>
+const MunicipalityReportPDF: React.FC<ReportProps> = ({ municipalityName, municipalityLogo, stats, month }) => {
+    const s = {
+        insertionRate: stats?.insertionRate || 0,
+        companiesValidated: stats?.companiesValidated || 0,
+        activeProjects: stats?.activeProjects || 0,
+        localCandidates: stats?.localCandidates || 0,
+        fixedPopulation: stats?.fixedPopulation || 0,
+        newResidents: stats?.newResidents || 0,
+        jobsGeneratedQuarter: stats?.jobsGeneratedQuarter || 0,
+        impactScore: stats?.impactScore || 0,
+    };
 
-            {/* Pride Section */}
-            <View style={styles.prideSection}>
-                <Text style={styles.prideTitle}>Resumen de Resultados Directos (Orgullo Municipal)</Text>
-                <View style={styles.prideGrid}>
-                    <View style={styles.prideItem}>
-                        <Text style={styles.prideValue}>{stats.fixedPopulation}</Text>
-                        <Text style={styles.prideLabel}>Población Fijada</Text>
+    return (
+        <Document>
+            <Page size="A4" style={styles.page}>
+                {/* Header */}
+                <View style={styles.header}>
+                    <View style={styles.logoContainer}>
+                        {/* RuralMinds Logo */}
+                        <Text style={{ color: '#0F5C2E', fontWeight: 'bold', fontSize: 16 }}>Rural Minds</Text>
+                        <Text style={{ color: '#9ca3af', fontSize: 16 }}>|</Text>
+                        {municipalityLogo ? (
+                            <Image src={municipalityLogo} style={styles.logo} />
+                        ) : (
+                            <Text style={{ fontSize: 12, fontWeight: 'bold' }}>{municipalityName}</Text>
+                        )}
                     </View>
-                    <View style={styles.prideItem}>
-                        <Text style={styles.prideValue}>{stats.newResidents}</Text>
-                        <Text style={styles.prideLabel}>Nuevos Vecinos</Text>
-                    </View>
-                    <View style={styles.prideItem}>
-                        <Text style={styles.prideValue}>{stats.jobsGeneratedQuarter}</Text>
-                        <Text style={styles.prideLabel}>Empleos (Trimestre)</Text>
+                    <View>
+                        <Text style={styles.reportTitle}>Reporte de Impacto Social</Text>
+                        <Text style={{ fontSize: 10, color: '#6b7280', textAlign: 'right' }}>{month}</Text>
                     </View>
                 </View>
-            </View>
 
-            {/* General Stats */}
-            <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Indicadores de Ecosistema</Text>
-                <View style={styles.grid}>
-                    <View style={styles.kpiCard}>
-                        <Text style={styles.kpiValue}>{stats.companiesValidated}</Text>
-                        <Text style={styles.kpiLabel}>Empresas Validadas</Text>
-                    </View>
-                    <View style={styles.kpiCard}>
-                        <Text style={styles.kpiValue}>{stats.activeProjects}</Text>
-                        <Text style={styles.kpiLabel}>Proyectos Activos</Text>
-                    </View>
-                    <View style={styles.kpiCard}>
-                        <Text style={styles.kpiValue}>{stats.localCandidates}</Text>
-                        <Text style={styles.kpiLabel}>Pool de Talento</Text>
-                    </View>
-                    <View style={styles.kpiCard}>
-                        <Text style={styles.kpiValue}>{stats.insertionRate}%</Text>
-                        <Text style={styles.kpiLabel}>Tasa de Inserción</Text>
-                    </View>
-                    <View style={styles.kpiCard}>
-                        <Text style={styles.kpiValue}>{stats.impactScore}/100</Text>
-                        <Text style={styles.kpiLabel}>Impact Score</Text>
+                {/* Pride Section */}
+                <View style={styles.prideSection}>
+                    <Text style={styles.prideTitle}>Resumen de Resultados Directos (Orgullo Municipal)</Text>
+                    <View style={styles.prideGrid}>
+                        <View style={styles.prideItem}>
+                            <Text style={styles.prideValue}>{s.fixedPopulation}</Text>
+                            <Text style={styles.prideLabel}>Población Fijada</Text>
+                        </View>
+                        <View style={styles.prideItem}>
+                            <Text style={styles.prideValue}>{s.newResidents}</Text>
+                            <Text style={styles.prideLabel}>Nuevos Vecinos</Text>
+                        </View>
+                        <View style={styles.prideItem}>
+                            <Text style={styles.prideValue}>{s.jobsGeneratedQuarter}</Text>
+                            <Text style={styles.prideLabel}>Empleos (Trimestre)</Text>
+                        </View>
                     </View>
                 </View>
-            </View>
 
-            {/* Descriptive Note */}
-            <View style={styles.section}>
-                <Text style={{ fontSize: 10, color: '#4b5563', lineHeight: 1.5 }}>
-                    Este reporte certifica los resultados de colaboración entre el Ayuntamiento de {municipalityName} y la plataforma Rural Minds.
-                    Las métricas reflejadas son el resultado del compromiso municipal por la atracción de talento, la validación de empresas con propósito
-                    y la fijación de población en el territorio rural.
-                </Text>
-            </View>
+                {/* General Stats */}
+                <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>Indicadores de Ecosistema</Text>
+                    <View style={styles.grid}>
+                        <View style={styles.kpiCard}>
+                            <Text style={styles.kpiValue}>{s.companiesValidated}</Text>
+                            <Text style={styles.kpiLabel}>Empresas Validadas</Text>
+                        </View>
+                        <View style={styles.kpiCard}>
+                            <Text style={styles.kpiValue}>{s.activeProjects}</Text>
+                            <Text style={styles.kpiLabel}>Proyectos Activos</Text>
+                        </View>
+                        <View style={styles.kpiCard}>
+                            <Text style={styles.kpiValue}>{s.localCandidates}</Text>
+                            <Text style={styles.kpiLabel}>Pool de Talento</Text>
+                        </View>
+                        <View style={styles.kpiCard}>
+                            <Text style={styles.kpiValue}>{s.insertionRate}%</Text>
+                            <Text style={styles.kpiLabel}>Tasa de Inserción</Text>
+                        </View>
+                        <View style={styles.kpiCard}>
+                            <Text style={styles.kpiValue}>{s.impactScore}/100</Text>
+                            <Text style={styles.kpiLabel}>Impact Score</Text>
+                        </View>
+                    </View>
+                </View>
 
-            {/* Footer */}
-            <View style={styles.footer}>
-                <Text>Documento generado oficialmente por Rural Minds para {municipalityName}</Text>
-                <Text>© {new Date().getFullYear()} Rural Minds - Inteligencia Territorial</Text>
-            </View>
-        </Page>
-    </Document>
-);
+                {/* Descriptive Note */}
+                <View style={styles.section}>
+                    <Text style={{ fontSize: 10, color: '#4b5563', lineHeight: 1.5 }}>
+                        Este reporte certifica los resultados de colaboración entre el Ayuntamiento de {municipalityName} y la plataforma Rural Minds.
+                        Las métricas reflejadas son el resultado del compromiso municipal por la atracción de talento, la validación de empresas con propósito
+                        y la fijación de población en el territorio rural.
+                    </Text>
+                </View>
+
+                {/* Footer */}
+                <View style={styles.footer}>
+                    <Text>Documento generado oficialmente por Rural Minds para {municipalityName}</Text>
+                    <Text>© {new Date().getFullYear()} Rural Minds - Inteligencia Territorial</Text>
+                </View>
+            </Page>
+        </Document>
+    );
+};
 
 export default MunicipalityReportPDF;
