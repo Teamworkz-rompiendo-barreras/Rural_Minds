@@ -41,6 +41,7 @@ const MunicipalityDashboard: React.FC = () => {
     const [sensoryStats, setSensoryStats] = useState<any>({});
 
     const [loadingTabs, setLoadingTabs] = useState(false);
+    const [showContactModal, setShowContactModal] = useState(false);
 
     // Profile Editor State
     const [showProfileEditor, setShowProfileEditor] = useState(false);
@@ -228,18 +229,18 @@ const MunicipalityDashboard: React.FC = () => {
                             {user?.organization?.name || "Tu Municipio"} — Gestión de Impacto Social
                         </p>
                     </div>
-                    <div className="flex flex-wrap gap-3">
+                    <div className="flex flex-wrap gap-2">
                         <button
                             onClick={() => setShowInviteModal(true)}
-                            className="bg-p2 text-white px-5 py-2.5 rounded-xl font-bold shadow-lg shadow-p2/20 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-2 text-sm"
+                            className="bg-p2 text-white px-4 py-2.5 rounded-xl font-bold hover:bg-p2/90 transition-all flex items-center gap-2 text-xs shadow-md"
                         >
                             ➕ Invitar Empresa
                         </button>
                         <button
-                            onClick={() => { fetchProfileData(); setShowProfileEditor(true); }}
-                            className="bg-white border border-gray-200 text-n900 px-5 py-2.5 rounded-xl font-bold hover:bg-gray-50 transition-all flex items-center gap-2 text-sm"
+                            onClick={() => { fetchTalentData(); setShowContactModal(true); }}
+                            className="bg-emerald-600 text-white px-4 py-2.5 rounded-xl font-bold hover:bg-emerald-700 transition-all flex items-center gap-2 text-xs shadow-md"
                         >
-                            ⚙️ Configurar Ficha
+                            🧭 Contactar Talento Entrante
                         </button>
                         <PDFDownloadLink
                             document={<MunicipalityReportPDF
@@ -249,10 +250,16 @@ const MunicipalityDashboard: React.FC = () => {
                                 month={new Date().toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}
                             />}
                             fileName={`Reporte_Impacto_${user?.organization?.name}_${new Date().toISOString().slice(0, 10)}.pdf`}
-                            className="bg-n900 text-white px-5 py-2.5 rounded-xl font-bold hover:bg-black transition-all flex items-center gap-2 text-sm"
+                            className="bg-n900 text-white px-4 py-2.5 rounded-xl font-bold hover:bg-black transition-all flex items-center gap-2 text-xs shadow-md"
                         >
-                            {({ loading }) => (loading ? '📄 Generando...' : '📄 Reporte Impacto')}
+                            {({ loading }) => (loading ? '📄 Generando...' : '📄 Generar Reporte de Impacto')}
                         </PDFDownloadLink>
+                        <button
+                            onClick={() => { fetchProfileData(); setShowProfileEditor(true); }}
+                            className="bg-white border border-gray-200 text-gray-600 px-4 py-2.5 rounded-xl font-bold hover:bg-gray-50 transition-all flex items-center gap-2 text-xs shadow-sm"
+                        >
+                            ⚙️ Configurar Ficha
+                        </button>
                     </div>
                 </div>
             </header>
@@ -537,9 +544,9 @@ const MunicipalityDashboard: React.FC = () => {
                                                 <div className="flex gap-2">
                                                     <button
                                                         onClick={() => handleContactTalent(t.id)}
-                                                        className="px-4 py-2 bg-white border border-emerald-600 text-emerald-700 text-xs font-bold rounded-lg hover:bg-emerald-50 transition-colors"
+                                                        className="px-4 py-2 bg-white border border-emerald-600 text-emerald-700 text-xs font-bold rounded-lg hover:bg-emerald-50 transition-colors shadow-sm"
                                                     >
-                                                        💬 Apoyar
+                                                        💬 Contactar
                                                     </button>
                                                     <button
                                                         onClick={() => handleSendWelcome(t.id)}
@@ -836,6 +843,51 @@ const MunicipalityDashboard: React.FC = () => {
                     </div>
                 )}
             </div>
+
+            {/* Contact Talent Modal */}
+            {showContactModal && (
+                <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-n900/40 backdrop-blur-sm animate-in fade-in duration-300">
+                    <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[80vh] overflow-y-auto shadow-2xl p-8 slide-in-from-bottom-8 animate-in duration-500">
+                        <div className="flex justify-between items-center mb-6">
+                            <h3 className="text-2xl font-heading font-bold text-n900">🧭 Contactar Talento Entrante</h3>
+                            <button onClick={() => setShowContactModal(false)} className="text-gray-400 hover:text-n900 text-2xl">✕</button>
+                        </div>
+                        <p className="text-sm text-gray-500 mb-6">Esta lista muestra a las personas interesadas en mudarse a {user?.organization?.name}. Puedes enviarles un mensaje de apoyo y recursos municipales.</p>
+
+                        <div className="space-y-4">
+                            {attractionTalent.length > 0 ? (
+                                attractionTalent.map((t, i) => (
+                                    <div key={i} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-200">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 bg-emerald-600 text-white rounded-full flex items-center justify-center font-bold">
+                                                {t.full_name[0]}
+                                            </div>
+                                            <div>
+                                                <p className="font-bold text-n900">{t.full_name}</p>
+                                                <p className="text-xs text-gray-500">Origen: {t.from_location}</p>
+                                            </div>
+                                        </div>
+                                        <button
+                                            onClick={() => handleContactTalent(t.id)}
+                                            className="px-4 py-2 bg-emerald-600 text-white text-xs font-bold rounded-lg hover:bg-emerald-700 transition-all font-bold"
+                                        >
+                                            Contactar 📩
+                                        </button>
+                                    </div>
+                                ))
+                            ) : (
+                                <div className="text-center py-12 text-gray-400 italic border-2 border-dashed rounded-xl">
+                                    No hay solicitudes de atracción pendientes en este momento.
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="mt-8 flex justify-end">
+                            <button onClick={() => setShowContactModal(false)} className="btn-secondary px-6">Cerrar</button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
