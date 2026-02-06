@@ -549,7 +549,7 @@ const MunicipalityDashboard: React.FC = () => {
                                                 </thead>
                                                 <tbody className="divide-y divide-gray-50">
                                                     {/* Arraigo Talent */}
-                                                    {localTalent.map((t, i) => (
+                                                    {localTalent.map((_t, i) => (
                                                         <tr key={`local-${i}`} className="hover:bg-gray-50/50 transition-colors">
                                                             <td className="px-6 py-4">
                                                                 <div className="flex items-center gap-2">
