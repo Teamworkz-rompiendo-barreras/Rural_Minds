@@ -231,7 +231,8 @@ def get_local_talent(
         "id": p.id,
         "skills": p.skills,
         "work_style": p.work_style,
-        "created_at": p.created_at
+        "created_at": p.created_at,
+        "needs_housing": p.preferences.get('needs_housing', False) if p.preferences else False
     } for p in profiles]
 
 @router.get("/talent/attraction")
@@ -262,7 +263,8 @@ def get_talent_attraction(
                     "full_name": p.user.full_name if p.user else "Talento Interesado",
                     "email": p.user.email if p.user else "N/A",
                     "skills": p.skills,
-                    "from_location": p.residence_location.municipality if p.residence_location else "Fuera"
+                    "from_location": p.residence_location.municipality if p.residence_location else "Fuera",
+                    "needs_housing": p.preferences.get('needs_housing', False) if p.preferences else False
                 })
     return results
 

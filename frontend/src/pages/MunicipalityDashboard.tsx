@@ -613,6 +613,7 @@ const MunicipalityDashboard: React.FC = () => {
                                                         <tr>
                                                             <th className="px-6 py-4 text-sm font-bold text-gray-400 uppercase tracking-widest">Perfil (Seudónimo)</th>
                                                             <th className="px-6 py-4 text-sm font-bold text-gray-400 uppercase tracking-widest">Origen / Estado</th>
+                                                            <th className="px-6 py-4 text-sm font-bold text-gray-400 uppercase tracking-widest text-center">Vivienda</th>
                                                             <th className="px-6 py-4 text-sm font-bold text-gray-400 uppercase tracking-widest hidden md:table-cell">Match Promedio</th>
                                                             <th className="px-6 py-4 text-sm font-bold text-gray-400 uppercase tracking-widest hidden md:table-cell">Necesidades Clave</th>
                                                             <th className="px-6 py-4 text-sm font-bold text-gray-400 uppercase tracking-widest text-right">Acciones</th>
@@ -632,6 +633,9 @@ const MunicipalityDashboard: React.FC = () => {
                                                                     <span className="text-sm text-gray-600 font-medium flex items-center gap-1">
                                                                         <span className="text-p2" aria-hidden="true">📍</span> Municipio
                                                                     </span>
+                                                                </td>
+                                                                <td className="px-6 py-4 text-center">
+                                                                    {_t.needs_housing && <span className="text-lg" title="Necesita ayuda con vivienda">🏠❗</span>}
                                                                 </td>
                                                                 <td className="px-6 py-4 hidden md:table-cell">
                                                                     <div className="flex items-center gap-2">
@@ -668,6 +672,9 @@ const MunicipalityDashboard: React.FC = () => {
                                                                     <span className="text-sm text-gray-600 font-medium flex items-center gap-1">
                                                                         <span className="text-emerald-500" aria-hidden="true">🧳</span> {t.from_location || 'Madrid'} -&gt; Mudanza
                                                                     </span>
+                                                                </td>
+                                                                <td className="px-6 py-4 text-center">
+                                                                    {t.needs_housing && <span className="text-lg" title="Necesita ayuda con vivienda">🏠❗</span>}
                                                                 </td>
                                                                 <td className="px-6 py-4 hidden md:table-cell">
                                                                     <div className="flex items-center gap-2">

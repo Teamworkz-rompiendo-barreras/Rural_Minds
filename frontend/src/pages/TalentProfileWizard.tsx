@@ -23,6 +23,10 @@ interface ProfileData {
     residence_location_id?: string;
     is_willing_to_move: boolean;
     target_locations: string[]; // List of location IDs
+    preferences: {
+        needs_housing?: boolean;
+        [key: string]: any;
+    };
 }
 
 const TalentProfileWizard: React.FC = () => {
@@ -56,7 +60,10 @@ const TalentProfileWizard: React.FC = () => {
         skills: [],
         residence_location_id: '',
         is_willing_to_move: false,
-        target_locations: []
+        target_locations: [],
+        preferences: {
+            needs_housing: false
+        }
     });
     const [skillInput, setSkillInput] = useState('');
 
@@ -95,7 +102,8 @@ const TalentProfileWizard: React.FC = () => {
                         skills: profileRes.data.skills || [],
                         residence_location_id: profileRes.data.residence_location_id || '',
                         is_willing_to_move: profileRes.data.is_willing_to_move || false,
-                        target_locations: profileRes.data.target_locations || []
+                        target_locations: profileRes.data.target_locations || [],
+                        preferences: profileRes.data.preferences || { needs_housing: false }
                     });
                 }
             } catch (err) {
@@ -405,6 +413,24 @@ const TalentProfileWizard: React.FC = () => {
                         </div>
                         <span className="font-bold text-gray-700 cursor-pointer" onClick={() => setProfileData(prev => ({ ...prev, is_willing_to_move: !prev.is_willing_to_move }))}>
                             Estoy dispuesto a mudarme a otro municipio rural
+                        </span>
+                    </div>
+
+                    <div className="mb-6 flex items-center gap-3">
+                        <div
+                            onClick={() => setProfileData(prev => ({
+                                ...prev,
+                                preferences: { ...prev.preferences, needs_housing: !prev.preferences.needs_housing }
+                            }))}
+                            className={`w-12 h-6 rounded-full p-1 cursor-pointer transition-colors ${profileData.preferences.needs_housing ? 'bg-orange-500' : 'bg-gray-300'}`}
+                        >
+                            <div className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform ${profileData.preferences.needs_housing ? 'translate-x-6' : 'translate-x-0'}`}></div>
+                        </div>
+                        <span className="font-bold text-gray-700 cursor-pointer" onClick={() => setProfileData(prev => ({
+                            ...prev,
+                            preferences: { ...prev.preferences, needs_housing: !prev.preferences.needs_housing }
+                        }))}>
+                            Necesito ayuda para encontrar vivienda 🏠❗
                         </span>
                     </div>
 
