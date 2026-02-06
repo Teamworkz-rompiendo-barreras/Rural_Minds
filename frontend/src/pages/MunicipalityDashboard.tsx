@@ -81,7 +81,7 @@ const MunicipalityDashboard: React.FC = () => {
         try {
             await axios.post('/municipality/invite-companies', {
                 emails: emailList,
-                signature: `Ayuntamiento de ${user?.organization?.name || 'municipio'}`
+                signature: `${user?.organization?.name || 'Ayuntamiento'}`
             });
             alert('Invitaciones enviadas correctamente');
             setShowInviteModal(false);
@@ -295,7 +295,7 @@ const MunicipalityDashboard: React.FC = () => {
                         <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
                             <h4 className="font-bold text-sm text-gray-700 mb-2">Vista Previa del Mensaje:</h4>
                             <div className="text-sm text-gray-600 italic border-l-4 border-p2 pl-3">
-                                "Estimado responsable... Desde el Ayuntamiento de <strong>{user?.organization?.name}</strong>, estamos impulsando Rural Minds... Unirse es gratuito..."
+                                "Estimado responsable... Desde el <strong>{user?.organization?.name}</strong>, estamos impulsando Rural Minds... Unirse es gratuito..."
                             </div>
                         </div>
 
