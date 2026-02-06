@@ -408,6 +408,33 @@ def get_municipality_stats(
     # Base 50 + (Validated * 2) + (Active Projects * 5) + (Insertion Rate / 2)
     impact_score = 50 + (validated_companies_count * 2) + (active_projects_count * 5) + (insertion_rate / 2)
     if impact_score > 100: impact_score = 100
+
+    # 6. Pride Metrics (Impact Analysis)
+    fixed_population = 0
+    new_residents = 0
+    jobs_generated_quarter = 0
+    ninety_days_ago = datetime.datetime.utcnow() - datetime.timedelta(days=90)
+
+    if company_ids:
+        # Get all accepted applications for these companies
+        accepted_apps_details = db.query(models.Application).join(models.Challenge).filter(
+            models.Challenge.tenant_id.in_(company_ids),
+            models.Application.status == 'accepted'
+        ).all()
+
+        for app in accepted_apps_details:
+            # Quarterly check
+            if app.created_at >= ninety_days_ago:
+                jobs_generated_quarter += 1
+            
+            # Retention vs Attraction check
+            # We need the talent profile for this user
+            tp = db.query(models.TalentProfile).filter(models.TalentProfile.user_id == app.user_id).first()
+            if tp:
+                if tp.residence_location_id == org.location_id:
+                    fixed_population += 1
+                elif tp.target_locations and str(org.location_id) in (tp.target_locations or []):
+                    new_residents += 1
     
     return {
         "insertionRate": insertion_rate,
@@ -416,5 +443,8 @@ def get_municipality_stats(
         "localCandidates": local_candidates_count,
         "attractionCount": attraction_count,
         "pendingValidations": pending_validations_count,
-        "impactScore": int(impact_score)
+        "impactScore": int(impact_score),
+        "fixedPopulation": fixed_population,
+        "newResidents": new_residents,
+        "jobsGeneratedQuarter": jobs_generated_quarter
     }

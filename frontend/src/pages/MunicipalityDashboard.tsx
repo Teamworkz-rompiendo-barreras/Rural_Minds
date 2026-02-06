@@ -14,7 +14,10 @@ const MunicipalityDashboard: React.FC = () => {
         localCandidates: 0,
         attractionCount: 0,
         pendingValidations: 0,
-        impactScore: 0
+        impactScore: 0,
+        fixedPopulation: 0,
+        newResidents: 0,
+        jobsGeneratedQuarter: 0
     });
     const [companies, setCompanies] = useState<any[]>([]);
     const [showValidationModal, setShowValidationModal] = useState(false);
@@ -215,6 +218,41 @@ const MunicipalityDashboard: React.FC = () => {
                     <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 text-center ring-2 ring-accent ring-inset">
                         <p className="text-3xl font-bold text-accent mb-1">{metrics.impactScore}</p>
                         <p className="text-xs text-gray-500 font-medium uppercase">Social Score</p>
+                    </div>
+                </div>
+            </section>
+
+            {/* Impact Pride Section */}
+            <section className="mb-12 bg-p2 rounded-2xl p-8 text-white shadow-xl shadow-p2/20 relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-8 opacity-10">
+                    <span className="text-9xl">🌟</span>
+                </div>
+                <div className="relative z-10">
+                    <h2 className="text-3xl font-heading font-extrabold mb-2">Impacto Social Directo (Orgullo Local)</h2>
+                    <p className="text-p1 font-bold uppercase tracking-widest text-xs mb-8">Resultados tangibles logrados a través de Rural Minds</p>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        <div className="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-white/20">
+                            <p className="text-sm font-bold text-p1 mb-2 uppercase tracking-wide italic">🏠 Población Fijada (KM 0)</p>
+                            <p className="text-5xl font-extrabold">{metrics.fixedPopulation}</p>
+                            <p className="text-[10px] text-white/60 mt-4 leading-relaxed">
+                                Vecinos que han encontrado oportunidades en el municipio y han decidido mantener su proyecto de vida aquí.
+                            </p>
+                        </div>
+                        <div className="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-white/20">
+                            <p className="text-sm font-bold text-p1 mb-2 uppercase tracking-wide italic">🧭 Nuevos Vecinos Atraídos</p>
+                            <p className="text-5xl font-extrabold">{metrics.newResidents}</p>
+                            <p className="text-[10px] text-white/60 mt-4 leading-relaxed">
+                                Talento externo que ha marcado el municipio como destino y ha logrado integrarse laboralmente.
+                            </p>
+                        </div>
+                        <div className="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-white/20">
+                            <p className="text-sm font-bold text-p1 mb-2 uppercase tracking-wide italic">💼 Empleos Creados (Trimestre)</p>
+                            <p className="text-5xl font-extrabold">{metrics.jobsGeneratedQuarter}</p>
+                            <p className="text-[10px] text-white/60 mt-4 leading-relaxed">
+                                Dinamización económica medida por el número de contrataciones efectivas en los últimos 90 días.
+                            </p>
+                        </div>
                     </div>
                 </div>
             </section>
