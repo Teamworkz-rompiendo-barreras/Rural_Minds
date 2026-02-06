@@ -1,22 +1,15 @@
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 const LandingPage: React.FC = () => {
-    const { user, isAuthenticated } = useAuth();
-    const navigate = useNavigate();
+    const { logout, isAuthenticated } = useAuth();
 
     React.useEffect(() => {
-        if (isAuthenticated && user) {
-            if (user.role === 'admin' || user.role === 'superadmin') {
-                navigate('/admin');
-            } else if (user.role === 'enterprise') {
-                navigate('/municipality-dashboard');
-            } else if (user.role === 'talent') {
-                navigate('/talent-dashboard');
-            }
+        if (isAuthenticated) {
+            logout();
         }
-    }, [isAuthenticated, user, navigate]);
+    }, [isAuthenticated, logout]);
 
     return (
         <div className="flex flex-col min-h-screen">
@@ -28,9 +21,8 @@ const LandingPage: React.FC = () => {
                         <img src="/logo.png" alt="Logotipo de Rural Minds" className="h-24 w-auto object-contain bg-white p-3 rounded-xl shadow-md" />
                     </div>
 
-                    {/* Titular: Adaptativo con text-wrap: balance */}
                     <div className="w-full px-4 mb-8">
-                        <h1 className="font-extrabold text-white leading-tight tracking-wide mx-auto max-w-screen-xl"
+                        <h1 className="font-extrabold text-white leading-tight mx-auto max-w-screen-xl"
                             style={{
                                 textWrap: 'balance',
                                 fontSize: 'clamp(2rem, 5vw, 4rem)'

@@ -189,12 +189,12 @@ const MunicipalityDashboard: React.FC = () => {
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
                     <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 text-center">
                         <p className="text-3xl font-bold text-green-600 mb-1">{metrics.insertionRate}%</p>
-                        <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">Inserción Laboral</p>
+                        <p className="text-xs text-gray-500 font-medium uppercase">Inserción Laboral</p>
                     </div>
                     {/* ... Other metrics ... */}
                     <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 text-center">
                         <p className="text-3xl font-bold text-p2 mb-1">{metrics.companiesValidated}</p>
-                        <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">Empresas Validadas</p>
+                        <p className="text-xs text-gray-500 font-medium uppercase">Empresas Validadas</p>
                     </div>
                 </div>
             </section>

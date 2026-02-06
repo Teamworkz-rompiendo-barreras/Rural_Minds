@@ -80,7 +80,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                     </button>
 
                     <nav className={`${isMenuOpen ? 'flex' : 'hidden'} md:flex flex-col md:flex-row w-full md:w-auto items-center gap-4 mt-4 md:mt-0 transition-all`}>
-                        <Link to="/" className={isActive('/')}>Inicio</Link>
+                        <Link to="/" className={isActive('/')} onClick={handleLogout}>Inicio</Link>
 
                         {isAuthenticated && user ? (
                             <div className="flex flex-col md:flex-row items-center gap-4 w-full md:w-auto">
