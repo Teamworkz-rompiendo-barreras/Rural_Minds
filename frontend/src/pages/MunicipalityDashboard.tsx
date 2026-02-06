@@ -275,7 +275,7 @@ const MunicipalityDashboard: React.FC = () => {
                                     alert("Hubo un error al generar el reporte. Por favor, inténtalo de nuevo.");
                                 }
                             }}
-                            className="bg-n900 text-white px-4 py-2.5 rounded-xl font-bold hover:bg-black transition-all flex items-center gap-2 text-xs shadow-md cursor-pointer no-underline"
+                            className="bg-n900 text-white px-4 py-2.5 rounded-xl font-bold hover:bg-n900/90 transition-all flex items-center gap-2 text-xs shadow-md"
                         >
                             📄 Generar Reporte de Impacto
                         </button>
