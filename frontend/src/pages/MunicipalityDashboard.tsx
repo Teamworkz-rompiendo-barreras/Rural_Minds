@@ -27,9 +27,15 @@ const MunicipalityDashboard: React.FC = () => {
     const [inviting, setInviting] = useState(false);
 
     // Tab State
-    const [activeTab, setActiveTab] = useState<'invites' | 'companies' | 'monitor'>('invites');
+    const [activeTab, setActiveTab] = useState<'invites' | 'companies' | 'monitor' | 'talent'>('invites');
     const [vacancies, setVacancies] = useState<any[]>([]);
     const [excellenceCompanies, setExcellenceCompanies] = useState<any[]>([]);
+
+    // Talent Management Sub-states
+    const [localTalent, setLocalTalent] = useState<any[]>([]);
+    const [attractionTalent, setAttractionTalent] = useState<any[]>([]);
+    const [sensoryStats, setSensoryStats] = useState<any>({});
+
     const [loadingTabs, setLoadingTabs] = useState(false);
 
     useEffect(() => {
@@ -43,6 +49,8 @@ const MunicipalityDashboard: React.FC = () => {
             fetchVacancies();
         } else if (user && activeTab === 'companies') {
             fetchExcellence();
+        } else if (user && activeTab === 'talent') {
+            fetchTalentData();
         }
     }, [user, activeTab]);
 
@@ -81,6 +89,33 @@ const MunicipalityDashboard: React.FC = () => {
             console.error(err);
         } finally {
             setLoadingTabs(false);
+        }
+    };
+
+    const fetchTalentData = async () => {
+        setLoadingTabs(true);
+        try {
+            const [localRes, attractionRes, statsRes] = await Promise.all([
+                axios.get('/municipality/talent/local'),
+                axios.get('/municipality/talent/attraction'),
+                axios.get('/municipality/talent/sensory-stats')
+            ]);
+            setLocalTalent(localRes.data);
+            setAttractionTalent(attractionRes.data);
+            setSensoryStats(statsRes.data);
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setLoadingTabs(false);
+        }
+    };
+
+    const handleSendWelcome = async (talentId: string) => {
+        try {
+            await axios.post(`/municipality/talent/${talentId}/welcome`);
+            alert("Guía de bienvenida enviada correctamente.");
+        } catch (err) {
+            alert("Error al enviar la bienvenida.");
         }
     };
 
@@ -204,6 +239,12 @@ const MunicipalityDashboard: React.FC = () => {
                 >
                     📊 Monitor de Ofertas
                 </button>
+                <button
+                    onClick={() => setActiveTab('talent')}
+                    className={`pb-4 px-2 font-bold transition-all border-b-2 ${activeTab === 'talent' ? 'border-p2 text-p2' : 'border-transparent text-gray-400 opacity-60'}`}
+                >
+                    👥 Gestión del Talento
+                </button>
             </div>
 
             {/* Tab Content */}
@@ -326,6 +367,123 @@ const MunicipalityDashboard: React.FC = () => {
                                     )}
                                 </div>
                             )}
+                        </div>
+                    )}
+
+                    {activeTab === 'talent' && (
+                        <div className="space-y-8 animate-in slide-in-from-bottom-4 duration-500">
+                            {/* Radar KM 0 */}
+                            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                                <div className="flex justify-between items-center mb-6">
+                                    <h2 className="text-2xl font-heading font-bold text-n900">📍 Radar de Talento Local (KM 0)</h2>
+                                    <span className="text-xs bg-p2/10 text-p2 px-3 py-1 rounded-full font-bold">Residencial</span>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+                                    <div className="bg-p2/5 p-4 rounded-xl border border-p2/10 text-center">
+                                        <p className="text-4xl font-bold text-p2 mb-1">{localTalent.length}</p>
+                                        <p className="text-xs text-gray-500 font-bold uppercase">Vecinos Registrados</p>
+                                    </div>
+                                    <div className="bg-accent/5 p-4 rounded-xl border border-accent/10 text-center">
+                                        <p className="text-4xl font-bold text-accent mb-1">{[...new Set(localTalent.flatMap(t => t.skills))].length}</p>
+                                        <p className="text-xs text-gray-500 font-bold uppercase">Habilidades en el Municipio</p>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-3">
+                                    <h4 className="text-sm font-bold text-gray-700 uppercase tracking-wider mb-2">Composición del Pool Académico/Profesional:</h4>
+                                    {localTalent.slice(0, 5).map((t, i) => (
+                                        <div key={i} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-100 text-sm">
+                                            <span className="text-xl">👤</span>
+                                            <div>
+                                                <p className="font-bold text-n900">Perfil Anónimo #{i + 1}</p>
+                                                <div className="flex flex-wrap gap-1 mt-1">
+                                                    {t.skills.map((s: string, idx: number) => (
+                                                        <span key={idx} className="px-2 py-0.5 bg-white border text-[10px] rounded-full text-gray-500">{s}</span>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                    {localTalent.length > 5 && <p className="text-xs text-gray-400 text-center py-2">+ {localTalent.length - 5} perfiles adicionales</p>}
+                                </div>
+                            </div>
+
+                            {/* Attraction Management */}
+                            <div className="bg-white p-6 rounded-xl shadow-sm border border-emerald-100 bg-gradient-to-br from-white to-emerald-50/30">
+                                <div className="flex justify-between items-center mb-6">
+                                    <h2 className="text-2xl font-heading font-bold text-n900">🧭 Gestor de "Nuevos Residentes"</h2>
+                                    <span className="text-xs bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full font-bold">Atracción</span>
+                                </div>
+                                <div className="space-y-4">
+                                    {attractionTalent.length > 0 ? (
+                                        attractionTalent.map((t, i) => (
+                                            <div key={i} className="flex items-center justify-between p-4 bg-white rounded-xl border border-emerald-100 shadow-sm">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-10 h-10 bg-emerald-600 text-white rounded-full flex items-center justify-center font-bold">
+                                                        {t.full_name[0]}
+                                                    </div>
+                                                    <div>
+                                                        <p className="font-bold text-n900">{t.full_name}</p>
+                                                        <p className="text-xs text-gray-500">Actualmente en: <span className="font-bold text-emerald-600">{t.from_location}</span></p>
+                                                    </div>
+                                                </div>
+                                                <button
+                                                    onClick={() => handleSendWelcome(t.id)}
+                                                    className="px-4 py-2 bg-emerald-600 text-white text-xs font-bold rounded-lg hover:bg-emerald-700 transition-colors flex items-center gap-2"
+                                                >
+                                                    🚀 Enviar Bienvenida
+                                                </button>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <div className="text-center py-10 text-gray-400 border-2 border-dashed border-gray-200 rounded-xl">
+                                            No hay personas de fuera interesadas en mudarse hoy.
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Sensory Needs Analysis */}
+                            <div className="bg-white p-6 rounded-xl shadow-sm border border-orange-100 bg-gradient-to-br from-white to-orange-50/30">
+                                <h2 className="text-2xl font-heading font-bold text-n900 mb-2">🧠 Perfiles Sensoriales Agregados</h2>
+                                <p className="text-xs text-gray-500 mb-6 uppercase font-bold tracking-widest">Inteligencia para Espacios Públicos y Coworkings</p>
+
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                    <div className="bg-white p-4 rounded-xl border border-orange-100 text-center shadow-sm">
+                                        <p className="text-sm font-bold text-gray-600 mb-4">Luz Tenue</p>
+                                        <div className="relative w-20 h-20 mx-auto">
+                                            <svg className="w-full h-full transform -rotate-90">
+                                                <circle cx="40" cy="40" r="35" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-orange-50" />
+                                                <circle cx="40" cy="40" r="35" stroke="currentColor" strokeWidth="8" fill="transparent" strokeDasharray={220} strokeDashoffset={220 - (220 * (sensoryStats.low_lighting_pct || 0) / 100)} className="text-orange-500" />
+                                            </svg>
+                                            <span className="absolute inset-0 flex items-center justify-center font-bold text-orange-600">{sensoryStats.low_lighting_pct || 0}%</span>
+                                        </div>
+                                    </div>
+                                    <div className="bg-white p-4 rounded-xl border border-orange-100 text-center shadow-sm">
+                                        <p className="text-sm font-bold text-gray-600 mb-4">Silencio Absoluto</p>
+                                        <div className="relative w-20 h-20 mx-auto">
+                                            <svg className="w-full h-full transform -rotate-90">
+                                                <circle cx="40" cy="40" r="35" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-orange-50" />
+                                                <circle cx="40" cy="40" r="35" stroke="currentColor" strokeWidth="8" fill="transparent" strokeDasharray={220} strokeDashoffset={220 - (220 * (sensoryStats.quiet_environment_pct || 0) / 100)} className="text-blue-500" />
+                                            </svg>
+                                            <span className="absolute inset-0 flex items-center justify-center font-bold text-blue-600">{sensoryStats.quiet_environment_pct || 0}%</span>
+                                        </div>
+                                    </div>
+                                    <div className="bg-white p-4 rounded-xl border border-orange-100 text-center shadow-sm">
+                                        <p className="text-sm font-bold text-gray-600 mb-4">Teletrabajo</p>
+                                        <div className="relative w-20 h-20 mx-auto">
+                                            <svg className="w-full h-full transform -rotate-90">
+                                                <circle cx="40" cy="40" r="35" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-orange-50" />
+                                                <circle cx="40" cy="40" r="35" stroke="currentColor" strokeWidth="8" fill="transparent" strokeDasharray={220} strokeDashoffset={220 - (220 * (sensoryStats.flexible_hours_pct || 0) / 100)} className="text-green-500" />
+                                            </svg>
+                                            <span className="absolute inset-0 flex items-center justify-center font-bold text-green-600">{sensoryStats.flexible_hours_pct || 0}%</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <p className="text-[10px] text-gray-400 mt-6 italic text-center">
+                                    * Estos datos agregados permiten al ayuntamiento adaptar infraestructuras municipales y planes de ADL.
+                                </p>
+                            </div>
                         </div>
                     )}
                 </div>

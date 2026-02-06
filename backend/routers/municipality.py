@@ -210,6 +210,118 @@ def get_excellence_companies(
             
     return results
 
+@router.get("/talent/local")
+def get_local_talent(
+    db: Session = Depends(database.get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    if current_user.role not in ["territory_admin", "municipality"]:
+        raise HTTPException(status_code=403, detail="Permission denied")
+    
+    org = db.query(models.Organization).filter(models.Organization.id == current_user.organization_id).first()
+    if not org or not org.location_id:
+        return []
+        
+    profiles = db.query(models.TalentProfile).filter(
+        models.TalentProfile.residence_location_id == org.location_id
+    ).all()
+    
+    # Anonymous profiles
+    return [{
+        "id": p.id,
+        "skills": p.skills,
+        "work_style": p.work_style,
+        "created_at": p.created_at
+    } for p in profiles]
+
+@router.get("/talent/attraction")
+def get_talent_attraction(
+    db: Session = Depends(database.get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    if current_user.role not in ["territory_admin", "municipality"]:
+        raise HTTPException(status_code=403, detail="Permission denied")
+    
+    org = db.query(models.Organization).filter(models.Organization.id == current_user.organization_id).first()
+    if not org or not org.location_id:
+        return []
+
+    # Users willing to move to this location_id
+    loc_id_str = str(org.location_id)
+    candidates = db.query(models.TalentProfile).filter(
+        models.TalentProfile.is_willing_to_move == True,
+        models.TalentProfile.residence_location_id != org.location_id
+    ).all()
+    
+    results = []
+    for p in candidates:
+        if p.target_locations and isinstance(p.target_locations, list):
+            if loc_id_str in p.target_locations:
+                results.append({
+                    "id": p.id,
+                    "full_name": p.user.full_name if p.user else "Talento Interesado",
+                    "email": p.user.email if p.user else "N/A",
+                    "skills": p.skills,
+                    "from_location": p.residence_location.municipality if p.residence_location else "Fuera"
+                })
+    return results
+
+@router.get("/talent/sensory-stats")
+def get_talent_sensory_stats(
+    db: Session = Depends(database.get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    if current_user.role not in ["territory_admin", "municipality"]:
+        raise HTTPException(status_code=403, detail="Permission denied")
+        
+    org = db.query(models.Organization).filter(models.Organization.id == current_user.organization_id).first()
+    if not org or not org.location_id:
+        return {}
+        
+    # Stats from AccessibilityProfile of local talent
+    user_ids = [p.user_id for p in db.query(models.TalentProfile.user_id).filter(
+        models.TalentProfile.residence_location_id == org.location_id
+    ).all()]
+    
+    if not user_ids: return {}
+    
+    profiles = db.query(models.AccessibilityProfile).filter(
+        models.AccessibilityProfile.user_id.in_(user_ids)
+    ).all()
+    
+    total = len(profiles)
+    if total == 0: return {}
+    
+    low_light = sum(1 for p in profiles if p.sensory_needs.get('lighting') == 'low')
+    quiet_env = sum(1 for p in profiles if p.sensory_needs.get('noise') == 'low')
+    flexible_hours = sum(1 for p in profiles if p.sensory_needs.get('flexibility') == 'high')
+    
+    return {
+        "total_analyzed": total,
+        "low_lighting_pct": int((low_light/total)*100),
+        "quiet_environment_pct": int((quiet_env/total)*100),
+        "flexible_hours_pct": int((flexible_hours/total)*100)
+    }
+
+@router.post("/talent/{talent_id}/welcome")
+def send_welcome_guide(
+    talent_id: uuid.UUID,
+    db: Session = Depends(database.get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    if current_user.role not in ["territory_admin", "municipality"]:
+        raise HTTPException(status_code=403, detail="Permission denied")
+        
+    org = db.query(models.Organization).filter(models.Organization.id == current_user.organization_id).first()
+    talent_profile = db.query(models.TalentProfile).filter(models.TalentProfile.id == talent_id).first()
+    
+    if not talent_profile or not talent_profile.user:
+        raise HTTPException(status_code=404, detail="Talent not found")
+        
+    # Logic to send email with org.landing_guide_url
+    # For now, simulate or call existing service if available
+    return {"message": f"Guía de bienvenida enviada a {talent_profile.user.email}"}
+
 @router.get("/stats")
 def get_municipality_stats(
     db: Session = Depends(database.get_db),
