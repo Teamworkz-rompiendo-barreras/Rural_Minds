@@ -228,663 +228,788 @@ const MunicipalityDashboard: React.FC = () => {
     };
 
     return (
-        <div className="max-w-7xl mx-auto p-4 md:p-8 animate-in fade-in duration-500">
-            {/* Header */}
-            <header className="border-b border-gray-100 pb-6 mb-8">
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-                    <div>
-                        <div className="flex items-center gap-3 mb-1">
-                            <h1 className="text-4xl font-heading font-bold text-p2">
-                                Panel del Ayuntamiento
-                            </h1>
-                            <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${user?.role === 'super_admin' ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-600'}`}>
-                                {user?.role === 'super_admin' ? '👀 Modo Superadmin' : `Admin: ${user?.full_name || 'Desconocido'}`}
-                            </span>
-                        </div>
-                        <p className="text-xl text-n900">
-                            {user?.organization?.name || "Tu Municipio"} — Gestión de Impacto Social
-                        </p>
+        <div className="min-h-screen bg-n100 font-sans">
+            <div className="flex flex-col lg:flex-row max-w-[1600px] mx-auto">
+                {/* Fixed Sidebar Navigation */}
+                <aside className="lg:w-64 lg:fixed lg:h-screen bg-white border-r border-gray-200 z-30 flex flex-col pt-8">
+                    <div className="px-6 mb-10">
+                        <h2 className="text-xl font-heading font-extrabold text-p2 flex items-center gap-2">
+                            Rural Minds
+                        </h2>
+                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">Panel de Control</p>
                     </div>
-                    <div className="flex flex-wrap gap-2">
-                        <button
-                            onClick={() => setShowInviteModal(true)}
-                            className="bg-p2 text-white px-4 py-2.5 rounded-xl font-bold hover:bg-p2/90 transition-all flex items-center gap-2 text-xs shadow-md"
-                        >
-                            ➕ Invitar Empresa
-                        </button>
-                        <button
-                            onClick={() => { fetchTalentData(); setShowContactModal(true); }}
-                            className="bg-emerald-600 text-white px-4 py-2.5 rounded-xl font-bold hover:bg-emerald-700 transition-all flex items-center gap-2 text-xs shadow-md"
-                        >
-                            🧭 Contactar Talento Entrante
-                        </button>
-                        <button
-                            onClick={async () => {
-                                try {
-                                    const blob = await pdf(reportDocument).toBlob();
-                                    const url = URL.createObjectURL(blob);
-                                    const link = document.createElement('a');
-                                    link.href = url;
-                                    link.download = `Reporte_Impacto_${(user?.organization?.name || 'Municipio').replace(/[^a-z0-9]/gi, '_')}_${new Date().toISOString().slice(0, 10)}.pdf`;
-                                    document.body.appendChild(link);
-                                    link.click();
-                                    document.body.removeChild(link);
-                                    URL.revokeObjectURL(url);
-                                } catch (error) {
-                                    console.error("Error generating PDF:", error);
-                                    alert("Hubo un error al generar el reporte. Por favor, inténtalo de nuevo.");
-                                }
-                            }}
-                            className="bg-n900 text-white px-4 py-2.5 rounded-xl font-bold hover:bg-n900/90 transition-all flex items-center gap-2 text-xs shadow-md"
-                        >
-                            📄 Generar Reporte de Impacto
-                        </button>
+
+                    <nav className="flex-1 px-4 space-y-2">
+                        {[
+                            { id: 'invites', label: 'Gestión de Invitaciones', icon: '✉️' },
+                            { id: 'companies', label: 'Gestión de Tejido', icon: '🏢' },
+                            { id: 'monitor', label: 'Monitor de Ofertas', icon: '📊' },
+                            { id: 'talent', label: 'Gestión del Talento', icon: '👥' }
+                        ].map((item) => (
+                            <button
+                                key={item.id}
+                                onClick={() => setActiveTab(item.id as any)}
+                                className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl font-bold text-sm transition-all text-left ${activeTab === item.id
+                                    ? 'bg-p2 text-white shadow-lg shadow-p2/20'
+                                    : 'text-gray-500 hover:bg-gray-50'
+                                    }`}
+                            >
+                                <span className="text-lg">{item.icon}</span>
+                                <span>{item.label}</span>
+                            </button>
+                        ))}
+                    </nav>
+
+                    <div className="p-6 border-t border-gray-50">
                         <button
                             onClick={() => { fetchProfileData(); setShowProfileEditor(true); }}
-                            className="bg-white border border-gray-200 text-gray-600 px-4 py-2.5 rounded-xl font-bold hover:bg-gray-50 transition-all flex items-center gap-2 text-xs shadow-sm"
+                            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-xs text-gray-600 hover:bg-gray-50 transition-colors"
                         >
-                            ⚙️ Configurar ficha de Ayuntamiento
+                            <span>⚙️</span>
+                            <span>Ajustes Municipio</span>
                         </button>
                     </div>
-                </div>
-            </header>
+                </aside>
 
-            {/* Metrics Overview */}
-            <section className="mb-10">
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                    <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 text-center">
-                        <p className="text-3xl font-bold text-green-600 mb-1">{metrics.insertionRate}%</p>
-                        <p className="text-xs text-gray-500 font-medium uppercase">Inserción Laboral</p>
-                    </div>
-                    <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 text-center">
-                        <p className="text-3xl font-bold text-p2 mb-1">{metrics.companiesValidated}</p>
-                        <p className="text-xs text-gray-500 font-medium uppercase">Empresas Validadas</p>
-                    </div>
-                    <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 text-center">
-                        <p className="text-3xl font-bold text-p2 mb-1">{metrics.activeProjects}</p>
-                        <p className="text-xs text-gray-500 font-medium uppercase">Ofertas Activas</p>
-                    </div>
-                    <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 text-center">
-                        <p className="text-3xl font-bold text-p2 mb-1">{metrics.localCandidates}</p>
-                        <p className="text-xs text-gray-500 font-medium uppercase">Talento Local</p>
-                    </div>
-                    <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 text-center">
-                        <p className="text-3xl font-bold text-orange-600 mb-1">{metrics.pendingValidations}</p>
-                        <p className="text-xs text-gray-500 font-medium uppercase">Pendientes</p>
-                    </div>
-                    <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 text-center ring-2 ring-accent ring-inset">
-                        <p className="text-3xl font-bold text-accent mb-1">{metrics.impactScore}</p>
-                        <p className="text-xs text-gray-500 font-medium uppercase">Social Score</p>
-                    </div>
-                </div>
-            </section>
-
-            {/* Impact Pride Section */}
-            <section className="mb-12 bg-p2 rounded-2xl p-8 text-white shadow-xl shadow-p2/20 relative overflow-hidden">
-                <div className="absolute top-0 right-0 p-8 opacity-10">
-                    <span className="text-9xl">🌟</span>
-                </div>
-                <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-10">
-                    <div>
-                        <h2 className="text-3xl font-heading font-extrabold mb-2">Impacto Social Directo (Orgullo Local)</h2>
-                        <p className="text-p1 font-bold uppercase tracking-widest text-xs">Resultados tangibles logrados a través de Rural Minds</p>
-                    </div>
-                </div>
-                <div className="relative z-10">
-
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                        <div className="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-white/20">
-                            <p className="text-sm font-bold text-p1 mb-2 uppercase tracking-wide italic">🏠 Población Fijada (KM 0)</p>
-                            <p className="text-5xl font-extrabold">{metrics.fixedPopulation}</p>
-                            <p className="text-[10px] text-white/60 mt-4 leading-relaxed">
-                                Vecinos que han encontrado oportunidades en el municipio y han decidido mantener su proyecto de vida aquí.
-                            </p>
-                        </div>
-                        <div className="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-white/20">
-                            <p className="text-sm font-bold text-p1 mb-2 uppercase tracking-wide italic">🧭 Nuevos Vecinos Atraídos</p>
-                            <p className="text-5xl font-extrabold">{metrics.newResidents}</p>
-                            <p className="text-[10px] text-white/60 mt-4 leading-relaxed">
-                                Talento externo que ha marcado el municipio como destino y ha logrado integrarse laboralmente.
-                            </p>
-                        </div>
-                        <div className="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-white/20">
-                            <p className="text-sm font-bold text-p1 mb-2 uppercase tracking-wide italic">💼 Empleos Creados (Trimestre)</p>
-                            <p className="text-5xl font-extrabold">{metrics.jobsGeneratedQuarter}</p>
-                            <p className="text-[10px] text-white/60 mt-4 leading-relaxed">
-                                Dinamización económica medida por el número de contrataciones efectivas en los últimos 90 días.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            {/* Tab Navigation */}
-            <div className="flex gap-4 mb-6 border-b pb-px">
-                <button
-                    onClick={() => setActiveTab('invites')}
-                    className={`pb-4 px-2 font-bold transition-all border-b-2 ${activeTab === 'invites' ? 'border-p2 text-p2' : 'border-transparent text-gray-400 opacity-60'}`}
-                >
-                    ✉️ Centro de Invitaciones
-                </button>
-                <button
-                    onClick={() => setActiveTab('companies')}
-                    className={`pb-4 px-2 font-bold transition-all border-b-2 ${activeTab === 'companies' ? 'border-p2 text-p2' : 'border-transparent text-gray-400 opacity-60'}`}
-                >
-                    🏢 Gestión de Tejido
-                </button>
-                <button
-                    onClick={() => setActiveTab('monitor')}
-                    className={`pb-4 px-2 font-bold transition-all border-b-2 ${activeTab === 'monitor' ? 'border-p2 text-p2' : 'border-transparent text-gray-400 opacity-60'}`}
-                >
-                    📊 Monitor de Ofertas
-                </button>
-                <button
-                    onClick={() => setActiveTab('talent')}
-                    className={`pb-4 px-2 font-bold transition-all border-b-2 ${activeTab === 'talent' ? 'border-p2 text-p2' : 'border-transparent text-gray-400 opacity-60'}`}
-                >
-                    👥 Gestión del Talento
-                </button>
-            </div>
-
-            {/* Tab Content */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
-                <div className="lg:col-span-2">
-                    {activeTab === 'invites' && (
-                        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-                            <div className="flex justify-between items-center mb-6">
-                                <h2 className="text-2xl font-heading font-bold text-n900">Seguimiento de Invitaciones</h2>
-                                <button onClick={() => setShowInviteModal(true)} className="btn-primary py-2 text-sm">Nuevas Invitaciones 📨</button>
+                {/* Main Content Area */}
+                <main className="flex-1 lg:ml-64 p-4 md:p-8 lg:p-12 animate-in fade-in duration-500">
+                    {/* Header */}
+                    <header className="border-b border-gray-100 pb-6 mb-8">
+                        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                            <div>
+                                <div className="flex items-center gap-3 mb-1">
+                                    <h1 className="text-4xl font-heading font-bold text-p2">
+                                        Panel del Ayuntamiento
+                                    </h1>
+                                    <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${user?.role === 'super_admin' ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-600'}`}>
+                                        {user?.role === 'super_admin' ? '👀 Modo Superadmin' : `Admin: ${user?.full_name || 'Desconocido'}`}
+                                    </span>
+                                </div>
+                                <p className="text-xl text-n900">
+                                    {user?.organization?.name || "Tu Municipio"} — Gestión de Impacto Social
+                                </p>
                             </div>
-                            <div className="space-y-4">
-                                {(invitationStatus as any).pending?.length > 0 ? (
-                                    (invitationStatus as any).pending.map((inv: any, i: number) => (
-                                        <div key={i} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-100">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 bg-p2/10 rounded-full flex items-center justify-center text-p2 font-bold text-xs">
-                                                    ?
-                                                </div>
-                                                <div>
-                                                    <p className="font-bold text-n900 text-sm">{inv.email}</p>
-                                                    <p className="text-xs text-gray-500">Invitado el {new Date(inv.date).toLocaleDateString()}</p>
-                                                </div>
-                                            </div>
-                                            <span className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-[10px] font-bold uppercase">Pendiente</span>
-                                        </div>
-                                    ))
-                                ) : (
-                                    <p className="text-center py-8 text-gray-500 italic">No hay invitaciones pendientes.</p>
-                                )}
+                            <div className="flex flex-wrap gap-3">
+                                <button
+                                    onClick={() => setShowInviteModal(true)}
+                                    className="bg-p2 text-white px-5 py-3 rounded-xl font-bold hover:bg-p2/90 transition-all flex items-center gap-2 text-xs shadow-md"
+                                >
+                                    ➕ Invitar Empresa
+                                </button>
+                                <button
+                                    onClick={() => { fetchTalentData(); setShowContactModal(true); }}
+                                    className="bg-emerald-600 text-white px-5 py-3 rounded-xl font-bold hover:bg-emerald-700 transition-all flex items-center gap-2 text-xs shadow-md"
+                                >
+                                    🧭 Contactar Talento Entrante
+                                </button>
+                                <button
+                                    onClick={async () => {
+                                        try {
+                                            const blob = await pdf(reportDocument).toBlob();
+                                            const url = URL.createObjectURL(blob);
+                                            const link = document.createElement('a');
+                                            link.href = url;
+                                            link.download = `Reporte_Impacto_${(user?.organization?.name || 'Municipio').replace(/[^a-z0-9]/gi, '_')}_${new Date().toISOString().slice(0, 10)}.pdf`;
+                                            document.body.appendChild(link);
+                                            link.click();
+                                            document.body.removeChild(link);
+                                            URL.revokeObjectURL(url);
+                                        } catch (error) {
+                                            console.error("Error generating PDF:", error);
+                                            alert("Hubo un error al generar el reporte. Por favor, inténtalo de nuevo.");
+                                        }
+                                    }}
+                                    className="bg-n900 text-white px-5 py-3 rounded-xl font-bold hover:bg-n900/90 transition-all flex items-center gap-2 text-xs shadow-md"
+                                >
+                                    📄 Generar Reporte de Impacto
+                                </button>
                             </div>
                         </div>
-                    )}
+                    </header>
 
-                    {activeTab === 'companies' && (
-                        <div className="space-y-6">
-                            {/* Validation Section */}
-                            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-                                <h2 className="text-2xl font-heading font-bold text-n900 mb-6 border-b pb-4">Validación "Denominación de Origen"</h2>
-                                <ul className="space-y-4">
-                                    {companies.filter(c => c.validation_status !== 'validated').length > 0 ? (
-                                        companies.filter(c => c.validation_status !== 'validated').map((company) => (
-                                            <li key={company.id} className="flex items-center justify-between p-4 rounded-xl border bg-orange-50/30 border-orange-100">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="w-12 h-12 bg-white p-2 rounded-lg border flex items-center justify-center">
-                                                        {company.logo ? <img src={company.logo} alt="" className="max-h-full max-w-full" /> : <span>🏢</span>}
-                                                    </div>
-                                                    <div>
-                                                        <h4 className="font-bold text-n900 text-lg">{company.name}</h4>
-                                                        <span className="text-xs font-bold text-orange-600 uppercase">Esperando Validación</span>
-                                                    </div>
-                                                </div>
-                                                <button onClick={() => handleValidate(company.id)} className="bg-orange-600 text-white font-bold px-4 py-2 rounded-lg hover:bg-orange-700 transition-colors shadow-sm text-sm">
-                                                    Otorgar Sello 📜
-                                                </button>
-                                            </li>
-                                        ))
-                                    ) : (
-                                        <p className="text-gray-500 text-center py-4 italic">Todas las empresas están validadas.</p>
-                                    )}
-                                </ul>
+                    {/* Metrics Overview */}
+                    <section className="mb-10">
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                            <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 text-center">
+                                <p className="text-3xl font-bold text-green-600 mb-1">{metrics.insertionRate}%</p>
+                                <p className="text-xs text-gray-500 font-medium uppercase">Inserción Laboral</p>
                             </div>
+                            <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 text-center">
+                                <p className="text-3xl font-bold text-p2 mb-1">{metrics.companiesValidated}</p>
+                                <p className="text-xs text-gray-500 font-medium uppercase">Empresas Validadas</p>
+                            </div>
+                            <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 text-center">
+                                <p className="text-3xl font-bold text-p2 mb-1">{metrics.activeProjects}</p>
+                                <p className="text-xs text-gray-500 font-medium uppercase">Ofertas Activas</p>
+                            </div>
+                            <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 text-center">
+                                <p className="text-3xl font-bold text-p2 mb-1">{metrics.localCandidates}</p>
+                                <p className="text-xs text-gray-500 font-medium uppercase">Talento Local</p>
+                            </div>
+                            <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 text-center">
+                                <p className="text-3xl font-bold text-orange-600 mb-1">{metrics.pendingValidations}</p>
+                                <p className="text-xs text-gray-500 font-medium uppercase">Pendientes</p>
+                            </div>
+                            <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 text-center ring-2 ring-accent ring-inset">
+                                <p className="text-3xl font-bold text-accent mb-1">{metrics.impactScore}</p>
+                                <p className="text-xs text-gray-500 font-medium uppercase">Social Score</p>
+                            </div>
+                        </div>
+                    </section>
 
-                            {/* Excellence Section */}
-                            <div className="bg-white p-6 rounded-xl shadow-sm border border-p1/30 bg-gradient-to-br from-white to-p1/5">
-                                <h2 className="text-2xl font-heading font-bold text-n900 mb-6 flex items-center gap-2">
-                                    🌟 Sello de Excelencia
-                                    <span className="text-xs bg-p1 text-n900 px-2 py-0.5 rounded-full font-bold">Premium</span>
-                                </h2>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    {excellenceCompanies.length > 0 ? (
-                                        excellenceCompanies.map((c, i) => (
-                                            <div key={i} className="flex items-center gap-3 p-3 bg-white border border-p1/40 rounded-xl shadow-sm">
-                                                <img src={c.logo || '/logo.png'} className="w-10 h-10 object-contain" alt="" />
-                                                <div>
-                                                    <p className="font-bold text-sm text-n900">{c.name}</p>
-                                                    <p className="text-[10px] text-green-600 font-bold uppercase">Contratación Verificada</p>
-                                                </div>
-                                            </div>
-                                        ))
-                                    ) : (
-                                        <div className="col-span-2 text-center py-8 text-gray-500 border-2 border-dashed border-p1/20 rounded-xl">
-                                            Aún no hay empresas con Sello de Excelencia.
-                                            <p className="text-xs mt-1">Se otorga tras la primera contratación y adaptación exitosa.</p>
-                                        </div>
-                                    )}
+                    {/* Impact Pride Section */}
+                    <section className="mb-12 bg-p2 rounded-2xl p-8 text-white shadow-xl shadow-p2/20 relative overflow-hidden">
+                        <div className="absolute top-0 right-0 p-8 opacity-10">
+                            <span className="text-9xl">🌟</span>
+                        </div>
+                        <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-10">
+                            <div>
+                                <h2 className="text-3xl font-heading font-extrabold mb-2">Impacto Social Directo (Orgullo Local)</h2>
+                                <p className="text-p1 font-bold uppercase tracking-widest text-xs">Resultados tangibles logrados a través de Rural Minds</p>
+                            </div>
+                        </div>
+                        <div className="relative z-10">
+
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                                <div className="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-white/20">
+                                    <p className="text-sm font-bold text-p1 mb-2 uppercase tracking-wide italic">🏠 Población Fijada (KM 0)</p>
+                                    <p className="text-5xl font-extrabold">{metrics.fixedPopulation}</p>
+                                    <p className="text-[10px] text-white/60 mt-4 leading-relaxed">
+                                        Vecinos que han encontrado oportunidades en el municipio y han decidido mantener su proyecto de vida aquí.
+                                    </p>
+                                </div>
+                                <div className="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-white/20">
+                                    <p className="text-sm font-bold text-p1 mb-2 uppercase tracking-wide italic">🧭 Nuevos Vecinos Atraídos</p>
+                                    <p className="text-5xl font-extrabold">{metrics.newResidents}</p>
+                                    <p className="text-[10px] text-white/60 mt-4 leading-relaxed">
+                                        Talento externo que ha marcado el municipio como destino y ha logrado integrarse laboralmente.
+                                    </p>
+                                </div>
+                                <div className="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-white/20">
+                                    <p className="text-sm font-bold text-p1 mb-2 uppercase tracking-wide italic">💼 Empleos Creados (Trimestre)</p>
+                                    <p className="text-5xl font-extrabold">{metrics.jobsGeneratedQuarter}</p>
+                                    <p className="text-[10px] text-white/60 mt-4 leading-relaxed">
+                                        Dinamización económica medida por el número de contrataciones efectivas en los últimos 90 días.
+                                    </p>
                                 </div>
                             </div>
                         </div>
-                    )}
+                    </section>
 
-                    {activeTab === 'monitor' && (
-                        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-                            <h2 className="text-2xl font-heading font-bold text-n900 mb-6 border-b pb-4">Monitor de Vacantes Locales</h2>
-                            {loadingTabs ? (
-                                <p className="text-center py-8">Cargando ofertas...</p>
-                            ) : (
-                                <div className="space-y-4">
-                                    {vacancies.length > 0 ? (
-                                        vacancies.map((v, i) => (
-                                            <div key={i} className={`p-4 rounded-xl border flex justify-between items-center ${v.is_difficult_to_fill ? 'bg-red-50 border-red-100' : 'bg-gray-50 border-gray-100'}`}>
-                                                <div>
-                                                    <div className="flex items-center gap-2 mb-1">
-                                                        <h4 className="font-bold text-n900 text-sm">{v.title}</h4>
-                                                        {v.is_difficult_to_fill && <span className="text-[10px] bg-red-600 text-white px-2 py-0.5 rounded-full font-bold animate-pulse uppercase">DIFÍCIL DE CUBRIR</span>}
+
+                    {/* Tab Content */}
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+                        <div className="lg:col-span-2">
+                            {activeTab === 'invites' && (
+                                <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                                    <div className="flex justify-between items-center mb-6">
+                                        <h2 className="text-2xl font-heading font-bold text-n900">Seguimiento de Invitaciones</h2>
+                                        <button onClick={() => setShowInviteModal(true)} className="btn-primary py-2 text-sm">Nuevas Invitaciones 📨</button>
+                                    </div>
+                                    <div className="space-y-4">
+                                        {(invitationStatus as any).pending?.length > 0 ? (
+                                            (invitationStatus as any).pending.map((inv: any, i: number) => (
+                                                <div key={i} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-100">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-10 h-10 bg-p2/10 rounded-full flex items-center justify-center text-p2 font-bold text-xs">
+                                                            ?
+                                                        </div>
+                                                        <div>
+                                                            <p className="font-bold text-n900 text-sm">{inv.email}</p>
+                                                            <p className="text-xs text-gray-500">Invitado el {new Date(inv.date).toLocaleDateString()}</p>
+                                                        </div>
                                                     </div>
-                                                    <p className="text-xs text-gray-600 font-medium">{v.company_name}</p>
-                                                    <p className="text-[10px] text-gray-400 mt-1">{v.applications_count} aplicaciones recibidas</p>
+                                                    <span className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-[10px] font-bold uppercase">Pendiente</span>
                                                 </div>
-                                                <div className="text-right">
-                                                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${v.status === 'open' ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-600'}`}>
-                                                        {v.status === 'open' ? 'Abierta' : 'Cerrada'}
-                                                    </span>
-                                                    {v.is_difficult_to_fill && <p className="text-[10px] text-red-600 font-bold mt-2 italic">Acción Sugerida ADL</p>}
+                                            ))
+                                        ) : (
+                                            <p className="text-center py-8 text-gray-500 italic">No hay invitaciones pendientes.</p>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+
+                            {activeTab === 'companies' && (
+                                <div className="space-y-6">
+                                    {/* Validation Section */}
+                                    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                                        <h2 className="text-2xl font-heading font-bold text-n900 mb-6 border-b pb-4">Validación "Denominación de Origen"</h2>
+                                        <ul className="space-y-4">
+                                            {companies.filter(c => c.validation_status !== 'validated').length > 0 ? (
+                                                companies.filter(c => c.validation_status !== 'validated').map((company) => (
+                                                    <li key={company.id} className="flex items-center justify-between p-4 rounded-xl border bg-orange-50/30 border-orange-100">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="w-12 h-12 bg-white p-2 rounded-lg border flex items-center justify-center">
+                                                                {company.logo ? <img src={company.logo} alt="" className="max-h-full max-w-full" /> : <span>🏢</span>}
+                                                            </div>
+                                                            <div>
+                                                                <h4 className="font-bold text-n900 text-lg">{company.name}</h4>
+                                                                <span className="text-xs font-bold text-orange-600 uppercase">Esperando Validación</span>
+                                                            </div>
+                                                        </div>
+                                                        <button onClick={() => handleValidate(company.id)} className="bg-orange-600 text-white font-bold px-4 py-2 rounded-lg hover:bg-orange-700 transition-colors shadow-sm text-sm">
+                                                            Otorgar Sello 📜
+                                                        </button>
+                                                    </li>
+                                                ))
+                                            ) : (
+                                                <p className="text-gray-500 text-center py-4 italic">Todas las empresas están validadas.</p>
+                                            )}
+                                        </ul>
+                                    </div>
+
+                                    {/* Excellence Section */}
+                                    <div className="bg-white p-6 rounded-xl shadow-sm border border-p1/30 bg-gradient-to-br from-white to-p1/5">
+                                        <h2 className="text-2xl font-heading font-bold text-n900 mb-6 flex items-center gap-2">
+                                            🌟 Sello de Excelencia
+                                            <span className="text-xs bg-p1 text-n900 px-2 py-0.5 rounded-full font-bold">Premium</span>
+                                        </h2>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            {excellenceCompanies.length > 0 ? (
+                                                excellenceCompanies.map((c, i) => (
+                                                    <div key={i} className="flex items-center gap-3 p-3 bg-white border border-p1/40 rounded-xl shadow-sm">
+                                                        <img src={c.logo || '/logo.png'} className="w-10 h-10 object-contain" alt="" />
+                                                        <div>
+                                                            <p className="font-bold text-sm text-n900">{c.name}</p>
+                                                            <p className="text-[10px] text-green-600 font-bold uppercase">Contratación Verificada</p>
+                                                        </div>
+                                                    </div>
+                                                ))
+                                            ) : (
+                                                <div className="col-span-2 text-center py-8 text-gray-500 border-2 border-dashed border-p1/20 rounded-xl">
+                                                    Aún no hay empresas con Sello de Excelencia.
+                                                    <p className="text-xs mt-1">Se otorga tras la primera contratación y adaptación exitosa.</p>
                                                 </div>
-                                            </div>
-                                        ))
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {activeTab === 'monitor' && (
+                                <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                                    <h2 className="text-2xl font-heading font-bold text-n900 mb-6 border-b pb-4">Monitor de Vacantes Locales</h2>
+                                    {loadingTabs ? (
+                                        <p className="text-center py-8">Cargando ofertas...</p>
                                     ) : (
-                                        <p className="text-center py-12 text-gray-500 italic">No hay vacantes publicadas en el municipio actualmente.</p>
+                                        <div className="space-y-4">
+                                            {vacancies.length > 0 ? (
+                                                vacancies.map((v, i) => (
+                                                    <div key={i} className={`p-4 rounded-xl border flex justify-between items-center ${v.is_difficult_to_fill ? 'bg-red-50 border-red-100' : 'bg-gray-50 border-gray-100'}`}>
+                                                        <div>
+                                                            <div className="flex items-center gap-2 mb-1">
+                                                                <h4 className="font-bold text-n900 text-sm">{v.title}</h4>
+                                                                {v.is_difficult_to_fill && <span className="text-[10px] bg-red-600 text-white px-2 py-0.5 rounded-full font-bold animate-pulse uppercase">DIFÍCIL DE CUBRIR</span>}
+                                                            </div>
+                                                            <p className="text-xs text-gray-600 font-medium">{v.company_name}</p>
+                                                            <p className="text-[10px] text-gray-400 mt-1">{v.applications_count} aplicaciones recibidas</p>
+                                                        </div>
+                                                        <div className="text-right">
+                                                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${v.status === 'open' ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-600'}`}>
+                                                                {v.status === 'open' ? 'Abierta' : 'Cerrada'}
+                                                            </span>
+                                                            {v.is_difficult_to_fill && <p className="text-[10px] text-red-600 font-bold mt-2 italic">Acción Sugerida ADL</p>}
+                                                        </div>
+                                                    </div>
+                                                ))
+                                            ) : (
+                                                <p className="text-center py-12 text-gray-500 italic">No hay vacantes publicadas en el municipio actualmente.</p>
+                                            )}
+                                        </div>
                                     )}
                                 </div>
                             )}
-                        </div>
-                    )}
 
-                    {activeTab === 'talent' && (
-                        <div className="space-y-8 animate-in slide-in-from-bottom-4 duration-500">
-                            {/* Radar KM 0 */}
-                            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-                                <div className="flex justify-between items-center mb-6">
-                                    <h2 className="text-2xl font-heading font-bold text-n900">📍 Radar de Talento Local (KM 0)</h2>
-                                    <span className="text-xs bg-p2/10 text-p2 px-3 py-1 rounded-full font-bold">Residencial</span>
-                                </div>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-                                    <div className="bg-p2/5 p-4 rounded-xl border border-p2/10 text-center">
-                                        <p className="text-4xl font-bold text-p2 mb-1">{localTalent.length}</p>
-                                        <p className="text-xs text-gray-500 font-bold uppercase">Vecinos Registrados</p>
-                                    </div>
-                                    <div className="bg-accent/5 p-4 rounded-xl border border-accent/10 text-center">
-                                        <p className="text-4xl font-bold text-accent mb-1">{[...new Set(localTalent.flatMap(t => t.skills))].length}</p>
-                                        <p className="text-xs text-gray-500 font-bold uppercase">Habilidades en el Municipio</p>
-                                    </div>
-                                </div>
+                            {activeTab === 'talent' && (
+                                <div className="space-y-8 animate-in slide-in-from-bottom-4 duration-500">
+                                    {/* Radar KM 0 */}
+                                    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                                        <div className="flex justify-between items-center mb-6">
+                                            <h2 className="text-2xl font-heading font-bold text-n900">📍 Radar de Talento Local (KM 0)</h2>
+                                            <span className="text-xs bg-p2/10 text-p2 px-3 py-1 rounded-full font-bold">Residencial</span>
+                                        </div>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+                                            <div className="bg-p2/5 p-4 rounded-xl border border-p2/10 text-center">
+                                                <p className="text-4xl font-bold text-p2 mb-1">{localTalent.length}</p>
+                                                <p className="text-xs text-gray-500 font-bold uppercase">Vecinos Registrados</p>
+                                            </div>
+                                            <div className="bg-accent/5 p-4 rounded-xl border border-accent/10 text-center">
+                                                <p className="text-4xl font-bold text-accent mb-1">{[...new Set(localTalent.flatMap(t => t.skills))].length}</p>
+                                                <p className="text-xs text-gray-500 font-bold uppercase">Habilidades en el Municipio</p>
+                                            </div>
+                                        </div>
 
-                                <div className="space-y-3">
-                                    <h4 className="text-sm font-bold text-gray-700 uppercase tracking-wider mb-2">Composición del Pool Académico/Profesional:</h4>
-                                    {localTalent.slice(0, 5).map((t, i) => (
-                                        <div key={i} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-100 text-sm">
-                                            <span className="text-xl">👤</span>
-                                            <div>
-                                                <p className="font-bold text-n900">Perfil Anónimo #{i + 1}</p>
-                                                <div className="flex flex-wrap gap-1 mt-1">
-                                                    {t.skills.map((s: string, idx: number) => (
-                                                        <span key={idx} className="px-2 py-0.5 bg-white border text-[10px] rounded-full text-gray-500">{s}</span>
-                                                    ))}
+                                        <div className="space-y-3">
+                                            <h4 className="text-sm font-bold text-gray-700 uppercase tracking-wider mb-2">Composición del Pool Académico/Profesional:</h4>
+                                            {localTalent.slice(0, 5).map((t, i) => (
+                                                <div key={i} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-100 text-sm">
+                                                    <span className="text-xl">👤</span>
+                                                    <div>
+                                                        <p className="font-bold text-n900">Perfil Anónimo #{i + 1}</p>
+                                                        <div className="flex flex-wrap gap-1 mt-1">
+                                                            {t.skills.map((s: string, idx: number) => (
+                                                                <span key={idx} className="px-2 py-0.5 bg-white border text-[10px] rounded-full text-gray-500">{s}</span>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                            {localTalent.length > 5 && <p className="text-xs text-gray-400 text-center py-2">+ {localTalent.length - 5} perfiles adicionales</p>}
+                                        </div>
+                                    </div>
+
+                                    {/* Attraction Management */}
+                                    <div className="bg-white p-6 rounded-xl shadow-sm border border-emerald-100 bg-gradient-to-br from-white to-emerald-50/30">
+                                        <div className="flex justify-between items-center mb-6">
+                                            <h2 className="text-2xl font-heading font-bold text-n900">🧭 Gestor de "Nuevos Residentes"</h2>
+                                            <span className="text-xs bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full font-bold">Atracción</span>
+                                        </div>
+                                        <div className="space-y-4">
+                                            {attractionTalent.length > 0 ? (
+                                                attractionTalent.map((t, i) => (
+                                                    <div key={i} className="flex items-center justify-between p-4 bg-white rounded-xl border border-emerald-100 shadow-sm">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="w-10 h-10 bg-emerald-600 text-white rounded-full flex items-center justify-center font-bold">
+                                                                {t.full_name[0]}
+                                                            </div>
+                                                            <div>
+                                                                <p className="font-bold text-n900">{t.full_name}</p>
+                                                                <p className="text-xs text-gray-500">Actualmente en: <span className="font-bold text-emerald-600">{t.from_location}</span></p>
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex gap-2">
+                                                            <button
+                                                                onClick={() => handleContactTalent(t.id)}
+                                                                className="px-4 py-2 bg-white border border-emerald-600 text-emerald-700 text-xs font-bold rounded-lg hover:bg-emerald-50 transition-colors shadow-sm"
+                                                            >
+                                                                💬 Contactar
+                                                            </button>
+                                                            <button
+                                                                onClick={() => handleSendWelcome(t.id)}
+                                                                className="px-4 py-2 bg-emerald-600 text-white text-xs font-bold rounded-lg hover:bg-emerald-700 transition-colors flex items-center gap-2"
+                                                            >
+                                                                🚀 Enviar Bienvenida
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                ))
+                                            ) : (
+                                                <div className="text-center py-10 text-gray-400 border-2 border-dashed border-gray-200 rounded-xl">
+                                                    No hay personas de fuera interesadas en mudarse hoy.
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* Sensory Needs Analysis */}
+                                    <div className="bg-white p-6 rounded-xl shadow-sm border border-orange-100 bg-gradient-to-br from-white to-orange-50/30">
+                                        <h2 className="text-2xl font-heading font-bold text-n900 mb-2">🧠 Perfiles Sensoriales Agregados</h2>
+                                        <p className="text-xs text-gray-500 mb-6 uppercase font-bold tracking-widest">Inteligencia para Espacios Públicos y Coworkings</p>
+
+                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                            <div className="bg-white p-4 rounded-xl border border-orange-100 text-center shadow-sm">
+                                                <p className="text-sm font-bold text-gray-600 mb-4">Luz Tenue</p>
+                                                <div className="relative w-20 h-20 mx-auto">
+                                                    <svg className="w-full h-full transform -rotate-90">
+                                                        <circle cx="40" cy="40" r="35" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-orange-50" />
+                                                        <circle cx="40" cy="40" r="35" stroke="currentColor" strokeWidth="8" fill="transparent" strokeDasharray={220} strokeDashoffset={220 - (220 * (sensoryStats.low_lighting_pct || 0) / 100)} className="text-orange-500" />
+                                                    </svg>
+                                                    <span className="absolute inset-0 flex items-center justify-center font-bold text-orange-600">{sensoryStats.low_lighting_pct || 0}%</span>
+                                                </div>
+                                            </div>
+                                            <div className="bg-white p-4 rounded-xl border border-orange-100 text-center shadow-sm">
+                                                <p className="text-sm font-bold text-gray-600 mb-4">Silencio Absoluto</p>
+                                                <div className="relative w-20 h-20 mx-auto">
+                                                    <svg className="w-full h-full transform -rotate-90">
+                                                        <circle cx="40" cy="40" r="35" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-orange-50" />
+                                                        <circle cx="40" cy="40" r="35" stroke="currentColor" strokeWidth="8" fill="transparent" strokeDasharray={220} strokeDashoffset={220 - (220 * (sensoryStats.quiet_environment_pct || 0) / 100)} className="text-blue-500" />
+                                                    </svg>
+                                                    <span className="absolute inset-0 flex items-center justify-center font-bold text-blue-600">{sensoryStats.quiet_environment_pct || 0}%</span>
+                                                </div>
+                                            </div>
+                                            <div className="bg-white p-4 rounded-xl border border-orange-100 text-center shadow-sm">
+                                                <p className="text-sm font-bold text-gray-600 mb-4">Teletrabajo</p>
+                                                <div className="relative w-20 h-20 mx-auto">
+                                                    <svg className="w-full h-full transform -rotate-90">
+                                                        <circle cx="40" cy="40" r="35" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-orange-50" />
+                                                        <circle cx="40" cy="40" r="35" stroke="currentColor" strokeWidth="8" fill="transparent" strokeDasharray={220} strokeDashoffset={220 - (220 * (sensoryStats.flexible_hours_pct || 0) / 100)} className="text-green-500" />
+                                                    </svg>
+                                                    <span className="absolute inset-0 flex items-center justify-center font-bold text-green-600">{sensoryStats.flexible_hours_pct || 0}%</span>
                                                 </div>
                                             </div>
                                         </div>
-                                    ))}
-                                    {localTalent.length > 5 && <p className="text-xs text-gray-400 text-center py-2">+ {localTalent.length - 5} perfiles adicionales</p>}
+                                        <p className="text-[10px] text-gray-400 mt-6 italic text-center">
+                                            * Estos datos agregados permiten al ayuntamiento adaptar infraestructuras municipales y planes de ADL.
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Shared Resources Sidebar */}
+                        <div className="space-y-6">
+                            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                                <h3 className="font-heading font-bold text-lg text-n900 mb-4 pb-3 border-b">
+                                    📚 Centro de Recursos
+                                </h3>
+
+                                {/* Landing Guide Management */}
+                                <div className="mb-6">
+                                    <label className="block text-sm font-bold text-gray-700 mb-2">Mi Guía de Aterrizaje (URL)</label>
+                                    <div className="flex gap-2">
+                                        <input
+                                            type="url"
+                                            className="input-field text-sm flex-1"
+                                            placeholder="https://ejemplo.es/guia.pdf"
+                                            value={(invitationStatus as any).landing_guide_url || ''}
+                                            onChange={(e) => {
+                                                setInvitationStatus((prev: any) => ({ ...prev, landing_guide_url: e.target.value }));
+                                            }}
+                                        />
+                                        <button
+                                            onClick={async () => {
+                                                try {
+                                                    await axios.put('/org/municipalities/me/details', {
+                                                        landing_guide_url: (invitationStatus as any).landing_guide_url
+                                                    });
+                                                    alert("Guía de aterrizaje actualizada.");
+                                                } catch (err) {
+                                                    alert("Error al guardar la guía.");
+                                                }
+                                            }}
+                                            className="bg-accent text-white px-3 py-1 rounded text-sm font-bold hover:bg-accent/90"
+                                            aria-label="Guardar URL de la guía"
+                                        >
+                                            💾
+                                        </button>
+                                    </div>
+                                    <p className="text-[10px] text-gray-500 mt-1">Este enlace se enviará automáticamente a los nuevos talentos interesados.</p>
+                                </div>
+
+                                <div className="border-t pt-4">
+                                    <p className="text-sm font-bold text-gray-700 mb-3 text-center">Manual de Inclusión Municipal</p>
+                                    <PDFDownloadLink document={<InclusionManualPDF municipalityName={user?.organization?.name} />} fileName="Manual_Inclusion_RuralMinds.pdf">
+                                        {({ loading }) => (
+                                            <button
+                                                disabled={loading}
+                                                className="w-full bg-p2/10 text-p2 border-2 border-p2 font-bold py-3 px-4 rounded-lg hover:bg-p2 hover:text-white transition-all disabled:opacity-50 flex items-center justify-center gap-2 text-sm"
+                                                aria-label={loading ? "Generando PDF" : "Descargar Manual de Inclusión en PDF"}
+                                            >
+                                                {loading ? 'Generando...' : '📄 Descargar Manual PDF'}
+                                            </button>
+                                        )}
+                                    </PDFDownloadLink>
                                 </div>
                             </div>
 
-                            {/* Attraction Management */}
-                            <div className="bg-white p-6 rounded-xl shadow-sm border border-emerald-100 bg-gradient-to-br from-white to-emerald-50/30">
-                                <div className="flex justify-between items-center mb-6">
-                                    <h2 className="text-2xl font-heading font-bold text-n900">🧭 Gestor de "Nuevos Residentes"</h2>
-                                    <span className="text-xs bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full font-bold">Atracción</span>
+                            <div className="bg-p2/5 p-6 rounded-xl border border-p2/20">
+                                <h4 className="font-bold text-p2 mb-2">Enlace de Registro Local</h4>
+                                <p className="text-[10px] text-gray-600 mb-3 leading-relaxed">Usa este enlace para atraer empresas directamente a tu municipio:</p>
+                                <div className="bg-white p-3 rounded border border-p2/30 text-[9px] font-mono break-all text-p2 mb-3 shadow-inner">
+                                    {getRefLink()}
                                 </div>
+                                <button
+                                    onClick={() => { navigator.clipboard.writeText(getRefLink()); alert("Enlace copiado"); }}
+                                    className="w-full bg-p2 text-white text-xs font-bold py-2.5 rounded-lg active:scale-95 transition-transform"
+                                >
+                                    Copiar Enlace para Difusión 🔗
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Profile Editor Modal */}
+                        {showProfileEditor && (
+                            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-n900/40 backdrop-blur-sm animate-in fade-in duration-300">
+                                <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl p-8 slide-in-from-bottom-8 animate-in duration-500">
+                                    <div className="flex justify-between items-center mb-6">
+                                        <h3 className="text-2xl font-heading font-bold text-n900">Configuración de la Ficha Municipal</h3>
+                                        <button onClick={() => setShowProfileEditor(false)} className="text-gray-400 hover:text-n900 text-xl">✕</button>
+                                    </div>
+
+                                    <div className="space-y-6">
+                                        <div>
+                                            <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">Eslogan Publicitario</label>
+                                            <input
+                                                type="text"
+                                                className="w-full px-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-p2 focus:border-transparent outline-none"
+                                                value={profileData.slogan}
+                                                onChange={(e) => setProfileData({ ...profileData, slogan: e.target.value })}
+                                                placeholder="Ej. El paraíso del teletrabajo"
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">Descripción del Municipio</label>
+                                            <textarea
+                                                rows={4}
+                                                className="w-full px-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-p2 focus:border-transparent outline-none"
+                                                value={profileData.description}
+                                                onChange={(e) => setProfileData({ ...profileData, description: e.target.value })}
+                                                placeholder="Describe por qué el talento debería elegir tu municipio..."
+                                            />
+                                        </div>
+
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div>
+                                                <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">Internet / Fibra</label>
+                                                <input
+                                                    type="text"
+                                                    className="w-full px-4 py-3 bg-gray-50 border rounded-xl outline-none"
+                                                    value={profileData.internet_speed}
+                                                    onChange={(e) => setProfileData({ ...profileData, internet_speed: e.target.value })}
+                                                    placeholder="Ej. 1Gbps Simétrico"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">Transporte / Distancia</label>
+                                                <input
+                                                    type="text"
+                                                    className="w-full px-4 py-3 bg-gray-50 border rounded-xl outline-none"
+                                                    value={profileData.connectivity_info}
+                                                    onChange={(e) => setProfileData({ ...profileData, connectivity_info: e.target.value })}
+                                                    placeholder="Ej. 45 min de la capital"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="p-4 bg-orange-50 border border-orange-100 rounded-xl">
+                                            <h4 className="font-bold text-orange-800 text-sm mb-4 uppercase tracking-wider">Servicios Esenciales</h4>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                {[
+                                                    { key: 'health', label: 'Salud' },
+                                                    { key: 'education', label: 'Educación' },
+                                                    { key: 'coworking', label: 'Coworking' },
+                                                    { key: 'commerce', label: 'Comercio' }
+                                                ].map(s => (
+                                                    <div key={s.key}>
+                                                        <label className="block text-[10px] font-bold text-orange-700 mb-1 uppercase tracking-widest">{s.label}</label>
+                                                        <input
+                                                            type="text"
+                                                            className="w-full px-3 py-2 bg-white border border-orange-100 rounded-lg outline-none text-sm"
+                                                            value={profileData.services[s.key]}
+                                                            onChange={(e) => setProfileData({
+                                                                ...profileData,
+                                                                services: { ...profileData.services, [s.key]: e.target.value }
+                                                            })}
+                                                        />
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">Galería de Imágenes (URLs separadas por comas)</label>
+                                            <textarea
+                                                rows={2}
+                                                className="w-full px-4 py-3 bg-gray-50 border rounded-xl outline-none"
+                                                value={profileData.gallery_urls?.join(', ')}
+                                                onChange={(e) => setProfileData({
+                                                    ...profileData,
+                                                    gallery_urls: e.target.value.split(',').map(u => u.trim())
+                                                })}
+                                                placeholder="https://image1.jpg, https://image2.jpg"
+                                            />
+                                        </div>
+
+                                        <div className="flex justify-end gap-3 mt-8">
+                                            <button onClick={() => setShowProfileEditor(false)} className="px-6 py-3 font-bold text-gray-500">Cancelar</button>
+                                            <button
+                                                onClick={handleSaveProfile}
+                                                disabled={savingProfile}
+                                                className="px-8 py-3 bg-p2 text-white rounded-xl font-bold shadow-lg shadow-p2/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
+                                            >
+                                                {savingProfile ? 'Guardando...' : 'Guardar Cambios'}
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Invite Companies Modal */}
+                        {showInviteModal && (
+                            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+                                <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 md:p-8">
+                                    <div className="flex justify-between items-center mb-6">
+                                        <h3 className="text-2xl font-heading font-bold text-n900">📨 Invitar Empresas Locales</h3>
+                                        <button onClick={() => setShowInviteModal(false)} className="text-gray-400 hover:text-gray-600 text-3xl">×</button>
+                                    </div>
+
+                                    <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                                        <h4 className="font-bold text-xs text-gray-500 uppercase tracking-widest mb-2">Vista Previa del Mensaje</h4>
+                                        <div className="text-sm text-gray-600 italic border-l-4 border-p2 pl-3">
+                                            "Estimado responsable... Desde el <strong>{user?.organization?.name}</strong>, estamos impulsando Rural Minds... Unirse es gratuito..."
+                                        </div>
+                                    </div>
+
+                                    <div className="mb-6">
+                                        <label className="block font-bold text-n900 mb-2 text-sm">Correos Electrónicos (uno por línea)</label>
+                                        <textarea
+                                            className="input-field w-full h-40 font-mono text-xs p-3 leading-relaxed"
+                                            placeholder="empresa1@local.com&#10;taller@pueblo.es&#10;cooperativa@agro.com"
+                                            value={inviteEmails}
+                                            onChange={e => setInviteEmails(e.target.value)}
+                                        />
+                                        <p className="text-[10px] text-gray-500 mt-2">Cada empresa recibirá un acceso personalizado a la plataforma.</p>
+                                    </div>
+
+                                    <div className="flex justify-end gap-4">
+                                        <button onClick={() => setShowInviteModal(false)} className="px-6 py-2.5 border border-gray-300 rounded-lg font-bold text-gray-500 hover:bg-gray-50 transition-colors text-sm">Cancelar</button>
+                                        <button
+                                            onClick={handleSendInvites}
+                                            disabled={inviting || !inviteEmails.trim()}
+                                            className="btn-primary px-8 py-2.5 flex items-center gap-2 shadow-lg shadow-p2/30 disabled:shadow-none"
+                                        >
+                                            {inviting ? 'Enviando...' : 'Enviar Invitaciones 🚀'}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Validation Modal */}
+                        {showValidationModal && (
+                            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+                                <div className="bg-white rounded-xl p-8 max-w-md w-full shadow-2xl">
+                                    <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-3xl mb-4 mx-auto">
+                                        📜
+                                    </div>
+                                    <h3 className="font-heading font-bold text-2xl text-n900 mb-4 text-center">Denominación de Origen</h3>
+                                    <p className="text-gray-600 mb-6 text-center text-sm">¿Certificar que esta empresa opera formalmente en el municipio para otorgarle el sello oficial?</p>
+                                    <div className="flex gap-4">
+                                        <button onClick={() => setShowValidationModal(false)} className="flex-1 py-3 border border-gray-200 rounded-lg font-bold text-gray-600 hover:bg-gray-50 text-sm">Cancelar</button>
+                                        <button onClick={confirmValidation} className="flex-1 py-3 bg-green-600 text-white rounded-lg font-bold hover:bg-green-700 transition-colors shadow-lg shadow-green-200 text-sm">Aprobar Sello</button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Contact Talent Modal */}
+                    {showContactModal && (
+                        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-n900/40 backdrop-blur-sm animate-in fade-in duration-300">
+                            <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[80vh] overflow-y-auto shadow-2xl p-8 slide-in-from-bottom-8 animate-in duration-500">
+                                <div className="flex justify-between items-center mb-6">
+                                    <h3 className="text-2xl font-heading font-bold text-n900">🧭 Contactar Talento Entrante</h3>
+                                    <button onClick={() => setShowContactModal(false)} className="text-gray-400 hover:text-n900 text-2xl">✕</button>
+                                </div>
+                                <p className="text-sm text-gray-500 mb-6">Esta lista muestra a las personas interesadas en mudarse a {user?.organization?.name}. Puedes enviarles un mensaje de apoyo y recursos municipales.</p>
+
                                 <div className="space-y-4">
                                     {attractionTalent.length > 0 ? (
                                         attractionTalent.map((t, i) => (
-                                            <div key={i} className="flex items-center justify-between p-4 bg-white rounded-xl border border-emerald-100 shadow-sm">
+                                            <div key={i} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-200">
                                                 <div className="flex items-center gap-3">
                                                     <div className="w-10 h-10 bg-emerald-600 text-white rounded-full flex items-center justify-center font-bold">
                                                         {t.full_name[0]}
                                                     </div>
                                                     <div>
                                                         <p className="font-bold text-n900">{t.full_name}</p>
-                                                        <p className="text-xs text-gray-500">Actualmente en: <span className="font-bold text-emerald-600">{t.from_location}</span></p>
+                                                        <p className="text-xs text-gray-500">Origen: {t.from_location}</p>
                                                     </div>
                                                 </div>
-                                                <div className="flex gap-2">
-                                                    <button
-                                                        onClick={() => handleContactTalent(t.id)}
-                                                        className="px-4 py-2 bg-white border border-emerald-600 text-emerald-700 text-xs font-bold rounded-lg hover:bg-emerald-50 transition-colors shadow-sm"
-                                                    >
-                                                        💬 Contactar
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleSendWelcome(t.id)}
-                                                        className="px-4 py-2 bg-emerald-600 text-white text-xs font-bold rounded-lg hover:bg-emerald-700 transition-colors flex items-center gap-2"
-                                                    >
-                                                        🚀 Enviar Bienvenida
-                                                    </button>
-                                                </div>
+                                                <button
+                                                    onClick={() => handleContactTalent(t.id)}
+                                                    className="px-4 py-2 bg-emerald-600 text-white text-xs font-bold rounded-lg hover:bg-emerald-700 transition-all font-bold"
+                                                >
+                                                    Contactar 📩
+                                                </button>
                                             </div>
                                         ))
                                     ) : (
-                                        <div className="text-center py-10 text-gray-400 border-2 border-dashed border-gray-200 rounded-xl">
-                                            No hay personas de fuera interesadas en mudarse hoy.
+                                        <div className="text-center py-12 text-gray-400 italic border-2 border-dashed rounded-xl">
+                                            No hay solicitudes de atracción pendientes en este momento.
                                         </div>
                                     )}
                                 </div>
-                            </div>
 
-                            {/* Sensory Needs Analysis */}
-                            <div className="bg-white p-6 rounded-xl shadow-sm border border-orange-100 bg-gradient-to-br from-white to-orange-50/30">
-                                <h2 className="text-2xl font-heading font-bold text-n900 mb-2">🧠 Perfiles Sensoriales Agregados</h2>
-                                <p className="text-xs text-gray-500 mb-6 uppercase font-bold tracking-widest">Inteligencia para Espacios Públicos y Coworkings</p>
-
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                    <div className="bg-white p-4 rounded-xl border border-orange-100 text-center shadow-sm">
-                                        <p className="text-sm font-bold text-gray-600 mb-4">Luz Tenue</p>
-                                        <div className="relative w-20 h-20 mx-auto">
-                                            <svg className="w-full h-full transform -rotate-90">
-                                                <circle cx="40" cy="40" r="35" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-orange-50" />
-                                                <circle cx="40" cy="40" r="35" stroke="currentColor" strokeWidth="8" fill="transparent" strokeDasharray={220} strokeDashoffset={220 - (220 * (sensoryStats.low_lighting_pct || 0) / 100)} className="text-orange-500" />
-                                            </svg>
-                                            <span className="absolute inset-0 flex items-center justify-center font-bold text-orange-600">{sensoryStats.low_lighting_pct || 0}%</span>
-                                        </div>
-                                    </div>
-                                    <div className="bg-white p-4 rounded-xl border border-orange-100 text-center shadow-sm">
-                                        <p className="text-sm font-bold text-gray-600 mb-4">Silencio Absoluto</p>
-                                        <div className="relative w-20 h-20 mx-auto">
-                                            <svg className="w-full h-full transform -rotate-90">
-                                                <circle cx="40" cy="40" r="35" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-orange-50" />
-                                                <circle cx="40" cy="40" r="35" stroke="currentColor" strokeWidth="8" fill="transparent" strokeDasharray={220} strokeDashoffset={220 - (220 * (sensoryStats.quiet_environment_pct || 0) / 100)} className="text-blue-500" />
-                                            </svg>
-                                            <span className="absolute inset-0 flex items-center justify-center font-bold text-blue-600">{sensoryStats.quiet_environment_pct || 0}%</span>
-                                        </div>
-                                    </div>
-                                    <div className="bg-white p-4 rounded-xl border border-orange-100 text-center shadow-sm">
-                                        <p className="text-sm font-bold text-gray-600 mb-4">Teletrabajo</p>
-                                        <div className="relative w-20 h-20 mx-auto">
-                                            <svg className="w-full h-full transform -rotate-90">
-                                                <circle cx="40" cy="40" r="35" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-orange-50" />
-                                                <circle cx="40" cy="40" r="35" stroke="currentColor" strokeWidth="8" fill="transparent" strokeDasharray={220} strokeDashoffset={220 - (220 * (sensoryStats.flexible_hours_pct || 0) / 100)} className="text-green-500" />
-                                            </svg>
-                                            <span className="absolute inset-0 flex items-center justify-center font-bold text-green-600">{sensoryStats.flexible_hours_pct || 0}%</span>
-                                        </div>
-                                    </div>
+                                <div className="mt-8 flex justify-end">
+                                    <button onClick={() => setShowContactModal(false)} className="btn-secondary px-6">Cerrar</button>
                                 </div>
-                                <p className="text-[10px] text-gray-400 mt-6 italic text-center">
-                                    * Estos datos agregados permiten al ayuntamiento adaptar infraestructuras municipales y planes de ADL.
-                                </p>
                             </div>
                         </div>
                     )}
-                </div>
+                </main>
+            </div>
 
-                {/* Shared Resources Sidebar */}
-                <div className="space-y-6">
-                    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-                        <h3 className="font-heading font-bold text-lg text-n900 mb-4 pb-3 border-b">
-                            📚 Centro de Recursos
-                        </h3>
+            {/* Modals */}
+            {showValidationModal && (
+                <div className="fixed inset-0 bg-n900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                    <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-8 relative animate-in zoom-in duration-300">
+                        <h3 className="text-2xl font-bold text-n900 mb-2">Validar Empresa</h3>
+                        <p className="text-gray-500 mb-6">Confirma si esta empresa cumple con los requisitos de impacto social para operar en tu municipio.</p>
 
-                        {/* Landing Guide Management */}
-                        <div className="mb-6">
-                            <label className="block text-sm font-bold text-gray-700 mb-2">Mi Guía de Aterrizaje (URL)</label>
-                            <div className="flex gap-2">
-                                <input
-                                    type="url"
-                                    className="input-field text-sm flex-1"
-                                    placeholder="https://ejemplo.es/guia.pdf"
-                                    value={(invitationStatus as any).landing_guide_url || ''}
-                                    onChange={(e) => {
-                                        setInvitationStatus((prev: any) => ({ ...prev, landing_guide_url: e.target.value }));
-                                    }}
-                                />
-                                <button
-                                    onClick={async () => {
-                                        try {
-                                            await axios.put('/org/municipalities/me/details', {
-                                                landing_guide_url: (invitationStatus as any).landing_guide_url
-                                            });
-                                            alert("Guía de aterrizaje actualizada.");
-                                        } catch (err) {
-                                            alert("Error al guardar la guía.");
-                                        }
-                                    }}
-                                    className="bg-accent text-white px-3 py-1 rounded text-sm font-bold hover:bg-accent/90"
-                                    aria-label="Guardar URL de la guía"
-                                >
-                                    💾
-                                </button>
-                            </div>
-                            <p className="text-[10px] text-gray-500 mt-1">Este enlace se enviará automáticamente a los nuevos talentos interesados.</p>
-                        </div>
-
-                        <div className="border-t pt-4">
-                            <p className="text-sm font-bold text-gray-700 mb-3 text-center">Manual de Inclusión Municipal</p>
-                            <PDFDownloadLink document={<InclusionManualPDF municipalityName={user?.organization?.name} />} fileName="Manual_Inclusion_RuralMinds.pdf">
-                                {({ loading }) => (
-                                    <button
-                                        disabled={loading}
-                                        className="w-full bg-p2/10 text-p2 border-2 border-p2 font-bold py-3 px-4 rounded-lg hover:bg-p2 hover:text-white transition-all disabled:opacity-50 flex items-center justify-center gap-2 text-sm"
-                                        aria-label={loading ? "Generando PDF" : "Descargar Manual de Inclusión en PDF"}
-                                    >
-                                        {loading ? 'Generando...' : '📄 Descargar Manual PDF'}
-                                    </button>
-                                )}
-                            </PDFDownloadLink>
+                        <div className="flex gap-4">
+                            <button
+                                onClick={() => confirmValidation()}
+                                className="flex-1 bg-green-600 text-white font-bold py-3 rounded-xl hover:bg-green-700 transition-all"
+                            >
+                                ✅ Validar
+                            </button>
+                            <button
+                                onClick={() => setShowValidationModal(false)}
+                                className="flex-1 bg-gray-100 text-gray-600 font-bold py-3 rounded-xl hover:bg-gray-200 transition-all"
+                            >
+                                Cancelar
+                            </button>
                         </div>
                     </div>
+                </div>
+            )}
 
-                    <div className="bg-p2/5 p-6 rounded-xl border border-p2/20">
-                        <h4 className="font-bold text-p2 mb-2">Enlace de Registro Local</h4>
-                        <p className="text-[10px] text-gray-600 mb-3 leading-relaxed">Usa este enlace para atraer empresas directamente a tu municipio:</p>
-                        <div className="bg-white p-3 rounded border border-p2/30 text-[9px] font-mono break-all text-p2 mb-3 shadow-inner">
-                            {getRefLink()}
+            {showInviteModal && (
+                <div className="fixed inset-0 bg-n900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                    <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full p-8 relative animate-in zoom-in duration-300">
+                        <button onClick={() => setShowInviteModal(false)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600">✕</button>
+                        <h3 className="text-2xl font-bold text-n900 mb-2">Invitar Colaboradores</h3>
+                        <p className="text-gray-500 mb-6">Envía una invitación personalizada a empresas para que se unan a tu ecosistema rural.</p>
+
+                        <div className="mb-6">
+                            <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Lista de Emails (uno por línea)</label>
+                            <textarea
+                                className="w-full h-32 p-4 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-p2 outline-none text-sm"
+                                placeholder="ejemplo@empresa.com"
+                                value={inviteEmails}
+                                onChange={(e) => setInviteEmails(e.target.value)}
+                            />
                         </div>
+
+                        <div className="p-4 bg-orange-50 border border-orange-100 rounded-xl mb-6">
+                            <p className="text-xs text-orange-800 leading-relaxed font-medium">
+                                💡 Se enviará un email con el sello oficial de <strong>{user?.organization?.name}</strong>.
+                            </p>
+                        </div>
+
                         <button
-                            onClick={() => { navigator.clipboard.writeText(getRefLink()); alert("Enlace copiado"); }}
-                            className="w-full bg-p2 text-white text-xs font-bold py-2.5 rounded-lg active:scale-95 transition-transform"
+                            onClick={handleSendInvites}
+                            disabled={inviting || !inviteEmails}
+                            className="w-full bg-p2 text-white font-bold py-4 rounded-xl hover:bg-p2/90 disabled:opacity-50 transition-all shadow-lg shadow-p2/20"
                         >
-                            Copiar Enlace para Difusión 🔗
+                            {inviting ? 'Enviando...' : 'Enviar Invitaciones masivas 🚀'}
                         </button>
                     </div>
                 </div>
+            )}
 
-                {/* Profile Editor Modal */}
-                {showProfileEditor && (
-                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-n900/40 backdrop-blur-sm animate-in fade-in duration-300">
-                        <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl p-8 slide-in-from-bottom-8 animate-in duration-500">
-                            <div className="flex justify-between items-center mb-6">
-                                <h3 className="text-2xl font-heading font-bold text-n900">Configuración de la Ficha Municipal</h3>
-                                <button onClick={() => setShowProfileEditor(false)} className="text-gray-400 hover:text-n900 text-xl">✕</button>
-                            </div>
-
-                            <div className="space-y-6">
-                                <div>
-                                    <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">Eslogan Publicitario</label>
-                                    <input
-                                        type="text"
-                                        className="w-full px-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-p2 focus:border-transparent outline-none"
-                                        value={profileData.slogan}
-                                        onChange={(e) => setProfileData({ ...profileData, slogan: e.target.value })}
-                                        placeholder="Ej. El paraíso del teletrabajo"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">Descripción del Municipio</label>
-                                    <textarea
-                                        rows={4}
-                                        className="w-full px-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-p2 focus:border-transparent outline-none"
-                                        value={profileData.description}
-                                        onChange={(e) => setProfileData({ ...profileData, description: e.target.value })}
-                                        placeholder="Describe por qué el talento debería elegir tu municipio..."
-                                    />
-                                </div>
-
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">Internet / Fibra</label>
-                                        <input
-                                            type="text"
-                                            className="w-full px-4 py-3 bg-gray-50 border rounded-xl outline-none"
-                                            value={profileData.internet_speed}
-                                            onChange={(e) => setProfileData({ ...profileData, internet_speed: e.target.value })}
-                                            placeholder="Ej. 1Gbps Simétrico"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">Transporte / Distancia</label>
-                                        <input
-                                            type="text"
-                                            className="w-full px-4 py-3 bg-gray-50 border rounded-xl outline-none"
-                                            value={profileData.connectivity_info}
-                                            onChange={(e) => setProfileData({ ...profileData, connectivity_info: e.target.value })}
-                                            placeholder="Ej. 45 min de la capital"
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="p-4 bg-orange-50 border border-orange-100 rounded-xl">
-                                    <h4 className="font-bold text-orange-800 text-sm mb-4 uppercase tracking-wider">Servicios Esenciales</h4>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        {[
-                                            { key: 'health', label: 'Salud' },
-                                            { key: 'education', label: 'Educación' },
-                                            { key: 'coworking', label: 'Coworking' },
-                                            { key: 'commerce', label: 'Comercio' }
-                                        ].map(s => (
-                                            <div key={s.key}>
-                                                <label className="block text-[10px] font-bold text-orange-700 mb-1 uppercase tracking-widest">{s.label}</label>
-                                                <input
-                                                    type="text"
-                                                    className="w-full px-3 py-2 bg-white border border-orange-100 rounded-lg outline-none text-sm"
-                                                    value={profileData.services[s.key]}
-                                                    onChange={(e) => setProfileData({
-                                                        ...profileData,
-                                                        services: { ...profileData.services, [s.key]: e.target.value }
-                                                    })}
-                                                />
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">Galería de Imágenes (URLs separadas por comas)</label>
-                                    <textarea
-                                        rows={2}
-                                        className="w-full px-4 py-3 bg-gray-50 border rounded-xl outline-none"
-                                        value={profileData.gallery_urls?.join(', ')}
-                                        onChange={(e) => setProfileData({
-                                            ...profileData,
-                                            gallery_urls: e.target.value.split(',').map(u => u.trim())
-                                        })}
-                                        placeholder="https://image1.jpg, https://image2.jpg"
-                                    />
-                                </div>
-
-                                <div className="flex justify-end gap-3 mt-8">
-                                    <button onClick={() => setShowProfileEditor(false)} className="px-6 py-3 font-bold text-gray-500">Cancelar</button>
-                                    <button
-                                        onClick={handleSaveProfile}
-                                        disabled={savingProfile}
-                                        className="px-8 py-3 bg-p2 text-white rounded-xl font-bold shadow-lg shadow-p2/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
-                                    >
-                                        {savingProfile ? 'Guardando...' : 'Guardar Cambios'}
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-                {/* Invite Companies Modal */}
-                {showInviteModal && (
-                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-                        <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 md:p-8">
-                            <div className="flex justify-between items-center mb-6">
-                                <h3 className="text-2xl font-heading font-bold text-n900">📨 Invitar Empresas Locales</h3>
-                                <button onClick={() => setShowInviteModal(false)} className="text-gray-400 hover:text-gray-600 text-3xl">×</button>
-                            </div>
-
-                            <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                                <h4 className="font-bold text-xs text-gray-500 uppercase tracking-widest mb-2">Vista Previa del Mensaje</h4>
-                                <div className="text-sm text-gray-600 italic border-l-4 border-p2 pl-3">
-                                    "Estimado responsable... Desde el <strong>{user?.organization?.name}</strong>, estamos impulsando Rural Minds... Unirse es gratuito..."
-                                </div>
-                            </div>
-
-                            <div className="mb-6">
-                                <label className="block font-bold text-n900 mb-2 text-sm">Correos Electrónicos (uno por línea)</label>
-                                <textarea
-                                    className="input-field w-full h-40 font-mono text-xs p-3 leading-relaxed"
-                                    placeholder="empresa1@local.com&#10;taller@pueblo.es&#10;cooperativa@agro.com"
-                                    value={inviteEmails}
-                                    onChange={e => setInviteEmails(e.target.value)}
-                                />
-                                <p className="text-[10px] text-gray-500 mt-2">Cada empresa recibirá un acceso personalizado a la plataforma.</p>
-                            </div>
-
-                            <div className="flex justify-end gap-4">
-                                <button onClick={() => setShowInviteModal(false)} className="px-6 py-2.5 border border-gray-300 rounded-lg font-bold text-gray-500 hover:bg-gray-50 transition-colors text-sm">Cancelar</button>
-                                <button
-                                    onClick={handleSendInvites}
-                                    disabled={inviting || !inviteEmails.trim()}
-                                    className="btn-primary px-8 py-2.5 flex items-center gap-2 shadow-lg shadow-p2/30 disabled:shadow-none"
-                                >
-                                    {inviting ? 'Enviando...' : 'Enviar Invitaciones 🚀'}
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-                {/* Validation Modal */}
-                {showValidationModal && (
-                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-                        <div className="bg-white rounded-xl p-8 max-w-md w-full shadow-2xl">
-                            <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-3xl mb-4 mx-auto">
-                                📜
-                            </div>
-                            <h3 className="font-heading font-bold text-2xl text-n900 mb-4 text-center">Denominación de Origen</h3>
-                            <p className="text-gray-600 mb-6 text-center text-sm">¿Certificar que esta empresa opera formalmente en el municipio para otorgarle el sello oficial?</p>
-                            <div className="flex gap-4">
-                                <button onClick={() => setShowValidationModal(false)} className="flex-1 py-3 border border-gray-200 rounded-lg font-bold text-gray-600 hover:bg-gray-50 text-sm">Cancelar</button>
-                                <button onClick={confirmValidation} className="flex-1 py-3 bg-green-600 text-white rounded-lg font-bold hover:bg-green-700 transition-colors shadow-lg shadow-green-200 text-sm">Aprobar Sello</button>
-                            </div>
-                        </div>
-                    </div>
-                )}
-            </div>
-
-            {/* Contact Talent Modal */}
             {showContactModal && (
-                <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-n900/40 backdrop-blur-sm animate-in fade-in duration-300">
-                    <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[80vh] overflow-y-auto shadow-2xl p-8 slide-in-from-bottom-8 animate-in duration-500">
-                        <div className="flex justify-between items-center mb-6">
-                            <h3 className="text-2xl font-heading font-bold text-n900">🧭 Contactar Talento Entrante</h3>
-                            <button onClick={() => setShowContactModal(false)} className="text-gray-400 hover:text-n900 text-2xl">✕</button>
-                        </div>
-                        <p className="text-sm text-gray-500 mb-6">Esta lista muestra a las personas interesadas en mudarse a {user?.organization?.name}. Puedes enviarles un mensaje de apoyo y recursos municipales.</p>
+                <div className="fixed inset-0 bg-n900/60 backdrop-blur-sm z-40 flex items-center justify-center p-4 overflow-y-auto">
+                    <div className="bg-white rounded-[2rem] shadow-2xl max-w-3xl w-full p-8 lg:p-12 my-8 relative animate-in zoom-in duration-300">
+                        <button
+                            onClick={() => setShowContactModal(false)}
+                            className="absolute top-6 right-6 w-10 h-10 flex items-center justify-center rounded-full bg-gray-50 text-gray-400 hover:bg-gray-100 hover:text-n900 transition-all font-bold"
+                        >
+                            ✕
+                        </button>
 
-                        <div className="space-y-4">
+                        <div className="flex items-center gap-4 mb-8">
+                            <div className="bg-emerald-100 text-emerald-600 p-3 rounded-2xl text-2xl">🧭</div>
+                            <div>
+                                <h3 className="text-3xl font-heading font-extrabold text-n900">Talento Entrante</h3>
+                                <p className="text-gray-500">Personas interesadas en mudarse a {user?.organization?.name}</p>
+                            </div>
+                        </div>
+
+                        <div className="space-y-4 max-h-[50vh] overflow-y-auto pr-2 custom-scrollbar">
                             {attractionTalent.length > 0 ? (
                                 attractionTalent.map((t, i) => (
                                     <div key={i} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-200">
@@ -914,6 +1039,130 @@ const MunicipalityDashboard: React.FC = () => {
 
                         <div className="mt-8 flex justify-end">
                             <button onClick={() => setShowContactModal(false)} className="btn-secondary px-6">Cerrar</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Profile Editor Modal */}
+            {showProfileEditor && (
+                <div className="fixed inset-0 bg-n900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
+                    <div className="bg-white rounded-[2rem] shadow-2xl max-w-4xl w-full p-8 lg:p-12 my-8 relative animate-in zoom-in duration-300">
+                        <button
+                            onClick={() => setShowProfileEditor(false)}
+                            className="absolute top-6 right-6 w-10 h-10 flex items-center justify-center rounded-full bg-gray-50 text-gray-400 hover:bg-gray-100 hover:text-n900 transition-all font-bold"
+                        >
+                            ✕
+                        </button>
+
+                        <div className="flex items-center gap-4 mb-8">
+                            <div className="bg-p2/10 text-p2 p-3 rounded-2xl text-2xl">⚙️</div>
+                            <div>
+                                <h3 className="text-3xl font-heading font-extrabold text-n900">Configuración del Municipio</h3>
+                                <p className="text-gray-500">Define cómo se presenta tu municipio al mundo</p>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                            <div className="space-y-6">
+                                <div>
+                                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Eslogan de Atracción</label>
+                                    <input
+                                        type="text"
+                                        className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-p2 outline-none"
+                                        placeholder="Ej: El corazón verde de la comarca"
+                                        value={profileData.slogan}
+                                        onChange={(e) => setProfileData({ ...profileData, slogan: e.target.value })}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Descripción General</label>
+                                    <textarea
+                                        className="w-full h-32 px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-p2 outline-none text-sm"
+                                        placeholder="Describe la calidad de vida, los servicios y el ambiente..."
+                                        value={profileData.description}
+                                        onChange={(e) => setProfileData({ ...profileData, description: e.target.value })}
+                                    />
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Velocidad Internet</label>
+                                        <input
+                                            type="text"
+                                            className="w-full px-3 py-2 bg-gray-50 border border-gray-100 rounded-lg outline-none text-sm"
+                                            placeholder="Ej: Fibra 1Gbps"
+                                            value={profileData.internet_speed}
+                                            onChange={(e) => setProfileData({ ...profileData, internet_speed: e.target.value })}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">CO2 / Clima</label>
+                                        <input
+                                            type="text"
+                                            className="w-full px-3 py-2 bg-gray-50 border border-gray-100 rounded-lg outline-none text-sm"
+                                            placeholder="Ej: Aire Puro / Continental"
+                                            value={profileData.climate_co2}
+                                            onChange={(e) => setProfileData({ ...profileData, climate_co2: e.target.value })}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="space-y-6">
+                                <div className="p-4 bg-orange-50 border border-orange-100 rounded-xl">
+                                    <h4 className="font-bold text-orange-800 text-sm mb-4 uppercase tracking-wider">Servicios Esenciales</h4>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        {[
+                                            { key: 'health', label: 'Salud' },
+                                            { key: 'education', label: 'Educación' },
+                                            { key: 'coworking', label: 'Coworking' },
+                                            { key: 'commerce', label: 'Comercio' }
+                                        ].map(s => (
+                                            <div key={s.key}>
+                                                <label className="block text-[10px] font-bold text-orange-700 mb-1 uppercase tracking-widest">{s.label}</label>
+                                                <input
+                                                    type="text"
+                                                    className="w-full px-3 py-2 bg-white border border-orange-100 rounded-lg outline-none text-sm"
+                                                    value={profileData.services[s.key]}
+                                                    onChange={(e) => setProfileData({
+                                                        ...profileData,
+                                                        services: { ...profileData.services, [s.key]: e.target.value }
+                                                    })}
+                                                />
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">URLs de la Galería (coma sep.)</label>
+                                    <textarea
+                                        className="w-full h-24 px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-p2 outline-none text-xs"
+                                        placeholder="https://imagen1.jpg, https://imagen2.jpg"
+                                        value={profileData.gallery_urls?.join(', ')}
+                                        onChange={(e) => setProfileData({
+                                            ...profileData,
+                                            gallery_urls: e.target.value.split(',').map(u => u.trim()).filter(u => u)
+                                        })}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="flex gap-4">
+                            <button
+                                onClick={handleSaveProfile}
+                                disabled={savingProfile}
+                                className="flex-1 bg-p2 text-white font-bold py-4 rounded-xl hover:bg-p2/90 disabled:opacity-50 transition-all shadow-lg shadow-p2/20"
+                            >
+                                {savingProfile ? 'Guardando...' : '💾 Guardar Cambios'}
+                            </button>
+                            <button
+                                onClick={() => setShowProfileEditor(false)}
+                                className="px-8 bg-gray-100 text-gray-600 font-bold py-4 rounded-xl hover:bg-gray-200 transition-all"
+                            >
+                                Cancelar
+                            </button>
                         </div>
                     </div>
                 </div>
