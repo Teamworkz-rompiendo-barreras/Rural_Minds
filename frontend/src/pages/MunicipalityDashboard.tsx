@@ -551,11 +551,11 @@ const MunicipalityDashboard: React.FC = () => {
                                                     <tbody className="divide-y divide-gray-50">
                                                         {/* Arraigo Talent */}
                                                         {localTalent.map((_t, i) => (
-                                                            <tr key={`local-${i}`} className="hover:bg-gray-50/50 transition-colors">
+                                                            <tr key={`local-${i}`} className="hover:bg-gray-50/50 transition-colors border-l-4 border-[#F2D680]">
                                                                 <td className="px-6 py-4">
                                                                     <div className="flex items-center gap-2">
                                                                         <span className="font-bold text-n900 text-sm">RM-{429 + i}</span>
-                                                                        <span className="text-[9px] bg-p2 text-white px-1.5 py-0.5 rounded font-black uppercase tracking-tighter">Local</span>
+                                                                        <span className="text-[9px] bg-[#F2D680] text-n900 px-1.5 py-0.5 rounded font-black uppercase tracking-tighter">Prioridad Local</span>
                                                                     </div>
                                                                 </td>
                                                                 <td className="px-6 py-4">
@@ -578,7 +578,7 @@ const MunicipalityDashboard: React.FC = () => {
                                                                     </span>
                                                                 </td>
                                                                 <td className="px-6 py-4 text-right">
-                                                                    <button className="text-[10px] font-bold bg-white border border-p2 text-p2 px-4 py-2 rounded-xl hover:bg-p2 hover:text-white transition-all shadow-sm">
+                                                                    <button className="text-[10px] font-bold bg-white border border-[#F2D680] text-n900 px-4 py-2 rounded-xl hover:bg-[#F2D680] transition-all shadow-sm">
                                                                         Validar Residencia
                                                                     </button>
                                                                 </td>
@@ -625,7 +625,7 @@ const MunicipalityDashboard: React.FC = () => {
                                                                             onClick={() => handleSendWelcome(t.id)}
                                                                             className="bg-emerald-600 text-white px-4 py-2 rounded-xl hover:bg-emerald-700 transition-all shadow-md shadow-emerald-600/20"
                                                                         >
-                                                                            Enviar Guía Acogida
+                                                                            Enviar Bienvenida ✉️
                                                                         </button>
                                                                     </div>
                                                                 </td>
@@ -973,244 +973,252 @@ const MunicipalityDashboard: React.FC = () => {
                         </div>
                     )}
                 </main>
-            </div>
+            </div >
 
             {/* Modals */}
-            {showValidationModal && (
-                <div className="fixed inset-0 bg-n900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                    <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-8 relative animate-in zoom-in duration-300">
-                        <h3 className="text-2xl font-bold text-n900 mb-2">Validar Empresa</h3>
-                        <p className="text-gray-500 mb-6">Confirma si esta empresa cumple con los requisitos de impacto social para operar en tu municipio.</p>
+            {
+                showValidationModal && (
+                    <div className="fixed inset-0 bg-n900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                        <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-8 relative animate-in zoom-in duration-300">
+                            <h3 className="text-2xl font-bold text-n900 mb-2">Validar Empresa</h3>
+                            <p className="text-gray-500 mb-6">Confirma si esta empresa cumple con los requisitos de impacto social para operar en tu municipio.</p>
 
-                        <div className="flex gap-4">
-                            <button
-                                onClick={() => confirmValidation()}
-                                className="flex-1 bg-green-600 text-white font-bold py-3 rounded-xl hover:bg-green-700 transition-all"
-                            >
-                                ✅ Validar
-                            </button>
-                            <button
-                                onClick={() => setShowValidationModal(false)}
-                                className="flex-1 bg-gray-100 text-gray-600 font-bold py-3 rounded-xl hover:bg-gray-200 transition-all"
-                            >
-                                Cancelar
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {showInviteModal && (
-                <div className="fixed inset-0 bg-n900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                    <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full p-8 relative animate-in zoom-in duration-300">
-                        <button onClick={() => setShowInviteModal(false)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600">✕</button>
-                        <h3 className="text-2xl font-bold text-n900 mb-2">Invitar Colaboradores</h3>
-                        <p className="text-gray-500 mb-6">Envía una invitación personalizada a empresas para que se unan a tu ecosistema rural.</p>
-
-                        <div className="mb-6">
-                            <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Lista de Emails (uno por línea)</label>
-                            <textarea
-                                className="w-full h-32 p-4 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-p2 outline-none text-sm"
-                                placeholder="ejemplo@empresa.com"
-                                value={inviteEmails}
-                                onChange={(e) => setInviteEmails(e.target.value)}
-                            />
-                        </div>
-
-                        <div className="p-4 bg-orange-50 border border-orange-100 rounded-xl mb-6">
-                            <p className="text-xs text-orange-800 leading-relaxed font-medium">
-                                💡 Se enviará un email con el sello oficial de <strong>{user?.organization?.name}</strong>.
-                            </p>
-                        </div>
-
-                        <button
-                            onClick={handleSendInvites}
-                            disabled={inviting || !inviteEmails}
-                            className="w-full bg-p2 text-white font-bold py-4 rounded-xl hover:bg-p2/90 disabled:opacity-50 transition-all shadow-lg shadow-p2/20"
-                        >
-                            {inviting ? 'Enviando...' : 'Enviar Invitaciones masivas 🚀'}
-                        </button>
-                    </div>
-                </div>
-            )}
-
-            {showContactModal && (
-                <div className="fixed inset-0 bg-n900/60 backdrop-blur-sm z-40 flex items-center justify-center p-4 overflow-y-auto">
-                    <div className="bg-white rounded-[2rem] shadow-2xl max-w-3xl w-full p-8 lg:p-12 my-8 relative animate-in zoom-in duration-300">
-                        <button
-                            onClick={() => setShowContactModal(false)}
-                            className="absolute top-6 right-6 w-10 h-10 flex items-center justify-center rounded-full bg-gray-50 text-gray-400 hover:bg-gray-100 hover:text-n900 transition-all font-bold"
-                        >
-                            ✕
-                        </button>
-
-                        <div className="flex items-center gap-4 mb-8">
-                            <div className="bg-emerald-100 text-emerald-600 p-3 rounded-2xl text-2xl">🧭</div>
-                            <div>
-                                <h3 className="text-3xl font-heading font-extrabold text-n900">Talento Entrante</h3>
-                                <p className="text-gray-500">Personas interesadas en mudarse a {user?.organization?.name}</p>
+                            <div className="flex gap-4">
+                                <button
+                                    onClick={() => confirmValidation()}
+                                    className="flex-1 bg-green-600 text-white font-bold py-3 rounded-xl hover:bg-green-700 transition-all"
+                                >
+                                    ✅ Validar
+                                </button>
+                                <button
+                                    onClick={() => setShowValidationModal(false)}
+                                    className="flex-1 bg-gray-100 text-gray-600 font-bold py-3 rounded-xl hover:bg-gray-200 transition-all"
+                                >
+                                    Cancelar
+                                </button>
                             </div>
                         </div>
+                    </div>
+                )
+            }
 
-                        <div className="space-y-4 max-h-[50vh] overflow-y-auto pr-2 custom-scrollbar">
-                            {attractionTalent.length > 0 ? (
-                                attractionTalent.map((t, i) => (
-                                    <div key={i} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-200">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 bg-emerald-600 text-white rounded-full flex items-center justify-center font-bold">
-                                                {t.full_name[0]}
-                                            </div>
-                                            <div>
-                                                <p className="font-bold text-n900">{t.full_name}</p>
-                                                <p className="text-xs text-gray-500">Origen: {t.from_location}</p>
-                                            </div>
-                                        </div>
-                                        <button
-                                            onClick={() => handleContactTalent(t.id)}
-                                            className="px-4 py-2 bg-emerald-600 text-white text-xs font-bold rounded-lg hover:bg-emerald-700 transition-all font-bold"
-                                        >
-                                            Contactar 📩
-                                        </button>
-                                    </div>
-                                ))
-                            ) : (
-                                <div className="text-center py-12 text-gray-400 italic border-2 border-dashed rounded-xl">
-                                    No hay solicitudes de atracción pendientes en este momento.
-                                </div>
-                            )}
-                        </div>
+            {
+                showInviteModal && (
+                    <div className="fixed inset-0 bg-n900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                        <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full p-8 relative animate-in zoom-in duration-300">
+                            <button onClick={() => setShowInviteModal(false)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600">✕</button>
+                            <h3 className="text-2xl font-bold text-n900 mb-2">Invitar Colaboradores</h3>
+                            <p className="text-gray-500 mb-6">Envía una invitación personalizada a empresas para que se unan a tu ecosistema rural.</p>
 
-                        <div className="mt-8 flex justify-end">
-                            <button onClick={() => setShowContactModal(false)} className="btn-secondary px-6">Cerrar</button>
+                            <div className="mb-6">
+                                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Lista de Emails (uno por línea)</label>
+                                <textarea
+                                    className="w-full h-32 p-4 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-p2 outline-none text-sm"
+                                    placeholder="ejemplo@empresa.com"
+                                    value={inviteEmails}
+                                    onChange={(e) => setInviteEmails(e.target.value)}
+                                />
+                            </div>
+
+                            <div className="p-4 bg-orange-50 border border-orange-100 rounded-xl mb-6">
+                                <p className="text-xs text-orange-800 leading-relaxed font-medium">
+                                    💡 Se enviará un email con el sello oficial de <strong>{user?.organization?.name}</strong>.
+                                </p>
+                            </div>
+
+                            <button
+                                onClick={handleSendInvites}
+                                disabled={inviting || !inviteEmails}
+                                className="w-full bg-p2 text-white font-bold py-4 rounded-xl hover:bg-p2/90 disabled:opacity-50 transition-all shadow-lg shadow-p2/20"
+                            >
+                                {inviting ? 'Enviando...' : 'Enviar Invitaciones masivas 🚀'}
+                            </button>
                         </div>
                     </div>
-                </div>
-            )}
+                )
+            }
+
+            {
+                showContactModal && (
+                    <div className="fixed inset-0 bg-n900/60 backdrop-blur-sm z-40 flex items-center justify-center p-4 overflow-y-auto">
+                        <div className="bg-white rounded-[2rem] shadow-2xl max-w-3xl w-full p-8 lg:p-12 my-8 relative animate-in zoom-in duration-300">
+                            <button
+                                onClick={() => setShowContactModal(false)}
+                                className="absolute top-6 right-6 w-10 h-10 flex items-center justify-center rounded-full bg-gray-50 text-gray-400 hover:bg-gray-100 hover:text-n900 transition-all font-bold"
+                            >
+                                ✕
+                            </button>
+
+                            <div className="flex items-center gap-4 mb-8">
+                                <div className="bg-emerald-100 text-emerald-600 p-3 rounded-2xl text-2xl">🧭</div>
+                                <div>
+                                    <h3 className="text-3xl font-heading font-extrabold text-n900">Talento Entrante</h3>
+                                    <p className="text-gray-500">Personas interesadas en mudarse a {user?.organization?.name}</p>
+                                </div>
+                            </div>
+
+                            <div className="space-y-4 max-h-[50vh] overflow-y-auto pr-2 custom-scrollbar">
+                                {attractionTalent.length > 0 ? (
+                                    attractionTalent.map((t, i) => (
+                                        <div key={i} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-200">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-10 h-10 bg-emerald-600 text-white rounded-full flex items-center justify-center font-bold">
+                                                    {t.full_name[0]}
+                                                </div>
+                                                <div>
+                                                    <p className="font-bold text-n900">{t.full_name}</p>
+                                                    <p className="text-xs text-gray-500">Origen: {t.from_location}</p>
+                                                </div>
+                                            </div>
+                                            <button
+                                                onClick={() => handleContactTalent(t.id)}
+                                                className="px-4 py-2 bg-emerald-600 text-white text-xs font-bold rounded-lg hover:bg-emerald-700 transition-all font-bold"
+                                            >
+                                                Contactar 📩
+                                            </button>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <div className="text-center py-12 text-gray-400 italic border-2 border-dashed rounded-xl">
+                                        No hay solicitudes de atracción pendientes en este momento.
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="mt-8 flex justify-end">
+                                <button onClick={() => setShowContactModal(false)} className="btn-secondary px-6">Cerrar</button>
+                            </div>
+                        </div>
+                    </div>
+                )
+            }
 
             {/* Profile Editor Modal */}
-            {showProfileEditor && (
-                <div className="fixed inset-0 bg-n900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
-                    <div className="bg-white rounded-[2rem] shadow-2xl max-w-4xl w-full p-8 lg:p-12 my-8 relative animate-in zoom-in duration-300">
-                        <button
-                            onClick={() => setShowProfileEditor(false)}
-                            className="absolute top-6 right-6 w-10 h-10 flex items-center justify-center rounded-full bg-gray-50 text-gray-400 hover:bg-gray-100 hover:text-n900 transition-all font-bold"
-                        >
-                            ✕
-                        </button>
-
-                        <div className="flex items-center gap-4 mb-8">
-                            <div className="bg-p2/10 text-p2 p-3 rounded-2xl text-2xl">⚙️</div>
-                            <div>
-                                <h3 className="text-3xl font-heading font-extrabold text-n900">Configuración del Municipio</h3>
-                                <p className="text-gray-500">Define cómo se presenta tu municipio al mundo</p>
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-                            <div className="space-y-6">
-                                <div>
-                                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Eslogan de Atracción</label>
-                                    <input
-                                        type="text"
-                                        className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-p2 outline-none"
-                                        placeholder="Ej: El corazón verde de la comarca"
-                                        value={profileData.slogan}
-                                        onChange={(e) => setProfileData({ ...profileData, slogan: e.target.value })}
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Descripción General</label>
-                                    <textarea
-                                        className="w-full h-32 px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-p2 outline-none text-sm"
-                                        placeholder="Describe la calidad de vida, los servicios y el ambiente..."
-                                        value={profileData.description}
-                                        onChange={(e) => setProfileData({ ...profileData, description: e.target.value })}
-                                    />
-                                </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Velocidad Internet</label>
-                                        <input
-                                            type="text"
-                                            className="w-full px-3 py-2 bg-gray-50 border border-gray-100 rounded-lg outline-none text-sm"
-                                            placeholder="Ej: Fibra 1Gbps"
-                                            value={profileData.internet_speed}
-                                            onChange={(e) => setProfileData({ ...profileData, internet_speed: e.target.value })}
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">CO2 / Clima</label>
-                                        <input
-                                            type="text"
-                                            className="w-full px-3 py-2 bg-gray-50 border border-gray-100 rounded-lg outline-none text-sm"
-                                            placeholder="Ej: Aire Puro / Continental"
-                                            value={profileData.climate_co2}
-                                            onChange={(e) => setProfileData({ ...profileData, climate_co2: e.target.value })}
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="space-y-6">
-                                <div className="p-4 bg-orange-50 border border-orange-100 rounded-xl">
-                                    <h4 className="font-bold text-orange-800 text-sm mb-4 uppercase tracking-wider">Servicios Esenciales</h4>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        {[
-                                            { key: 'health', label: 'Salud' },
-                                            { key: 'education', label: 'Educación' },
-                                            { key: 'coworking', label: 'Coworking' },
-                                            { key: 'commerce', label: 'Comercio' }
-                                        ].map(s => (
-                                            <div key={s.key}>
-                                                <label className="block text-[10px] font-bold text-orange-700 mb-1 uppercase tracking-widest">{s.label}</label>
-                                                <input
-                                                    type="text"
-                                                    className="w-full px-3 py-2 bg-white border border-orange-100 rounded-lg outline-none text-sm"
-                                                    value={profileData.services[s.key]}
-                                                    onChange={(e) => setProfileData({
-                                                        ...profileData,
-                                                        services: { ...profileData.services, [s.key]: e.target.value }
-                                                    })}
-                                                />
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">URLs de la Galería (coma sep.)</label>
-                                    <textarea
-                                        className="w-full h-24 px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-p2 outline-none text-xs"
-                                        placeholder="https://imagen1.jpg, https://imagen2.jpg"
-                                        value={profileData.gallery_urls?.join(', ')}
-                                        onChange={(e) => setProfileData({
-                                            ...profileData,
-                                            gallery_urls: e.target.value.split(',').map(u => u.trim()).filter(u => u)
-                                        })}
-                                    />
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="flex gap-4">
-                            <button
-                                onClick={handleSaveProfile}
-                                disabled={savingProfile}
-                                className="flex-1 bg-p2 text-white font-bold py-4 rounded-xl hover:bg-p2/90 disabled:opacity-50 transition-all shadow-lg shadow-p2/20"
-                            >
-                                {savingProfile ? 'Guardando...' : '💾 Guardar Cambios'}
-                            </button>
+            {
+                showProfileEditor && (
+                    <div className="fixed inset-0 bg-n900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
+                        <div className="bg-white rounded-[2rem] shadow-2xl max-w-4xl w-full p-8 lg:p-12 my-8 relative animate-in zoom-in duration-300">
                             <button
                                 onClick={() => setShowProfileEditor(false)}
-                                className="px-8 bg-gray-100 text-gray-600 font-bold py-4 rounded-xl hover:bg-gray-200 transition-all"
+                                className="absolute top-6 right-6 w-10 h-10 flex items-center justify-center rounded-full bg-gray-50 text-gray-400 hover:bg-gray-100 hover:text-n900 transition-all font-bold"
                             >
-                                Cancelar
+                                ✕
                             </button>
+
+                            <div className="flex items-center gap-4 mb-8">
+                                <div className="bg-p2/10 text-p2 p-3 rounded-2xl text-2xl">⚙️</div>
+                                <div>
+                                    <h3 className="text-3xl font-heading font-extrabold text-n900">Configuración del Municipio</h3>
+                                    <p className="text-gray-500">Define cómo se presenta tu municipio al mundo</p>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                                <div className="space-y-6">
+                                    <div>
+                                        <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Eslogan de Atracción</label>
+                                        <input
+                                            type="text"
+                                            className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-p2 outline-none"
+                                            placeholder="Ej: El corazón verde de la comarca"
+                                            value={profileData.slogan}
+                                            onChange={(e) => setProfileData({ ...profileData, slogan: e.target.value })}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Descripción General</label>
+                                        <textarea
+                                            className="w-full h-32 px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-p2 outline-none text-sm"
+                                            placeholder="Describe la calidad de vida, los servicios y el ambiente..."
+                                            value={profileData.description}
+                                            onChange={(e) => setProfileData({ ...profileData, description: e.target.value })}
+                                        />
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Velocidad Internet</label>
+                                            <input
+                                                type="text"
+                                                className="w-full px-3 py-2 bg-gray-50 border border-gray-100 rounded-lg outline-none text-sm"
+                                                placeholder="Ej: Fibra 1Gbps"
+                                                value={profileData.internet_speed}
+                                                onChange={(e) => setProfileData({ ...profileData, internet_speed: e.target.value })}
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">CO2 / Clima</label>
+                                            <input
+                                                type="text"
+                                                className="w-full px-3 py-2 bg-gray-50 border border-gray-100 rounded-lg outline-none text-sm"
+                                                placeholder="Ej: Aire Puro / Continental"
+                                                value={profileData.climate_co2}
+                                                onChange={(e) => setProfileData({ ...profileData, climate_co2: e.target.value })}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-6">
+                                    <div className="p-4 bg-orange-50 border border-orange-100 rounded-xl">
+                                        <h4 className="font-bold text-orange-800 text-sm mb-4 uppercase tracking-wider">Servicios Esenciales</h4>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            {[
+                                                { key: 'health', label: 'Salud' },
+                                                { key: 'education', label: 'Educación' },
+                                                { key: 'coworking', label: 'Coworking' },
+                                                { key: 'commerce', label: 'Comercio' }
+                                            ].map(s => (
+                                                <div key={s.key}>
+                                                    <label className="block text-[10px] font-bold text-orange-700 mb-1 uppercase tracking-widest">{s.label}</label>
+                                                    <input
+                                                        type="text"
+                                                        className="w-full px-3 py-2 bg-white border border-orange-100 rounded-lg outline-none text-sm"
+                                                        value={profileData.services[s.key]}
+                                                        onChange={(e) => setProfileData({
+                                                            ...profileData,
+                                                            services: { ...profileData.services, [s.key]: e.target.value }
+                                                        })}
+                                                    />
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">URLs de la Galería (coma sep.)</label>
+                                        <textarea
+                                            className="w-full h-24 px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-p2 outline-none text-xs"
+                                            placeholder="https://imagen1.jpg, https://imagen2.jpg"
+                                            value={profileData.gallery_urls?.join(', ')}
+                                            onChange={(e) => setProfileData({
+                                                ...profileData,
+                                                gallery_urls: e.target.value.split(',').map(u => u.trim()).filter(u => u)
+                                            })}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="flex gap-4">
+                                <button
+                                    onClick={handleSaveProfile}
+                                    disabled={savingProfile}
+                                    className="flex-1 bg-p2 text-white font-bold py-4 rounded-xl hover:bg-p2/90 disabled:opacity-50 transition-all shadow-lg shadow-p2/20"
+                                >
+                                    {savingProfile ? 'Guardando...' : '💾 Guardar Cambios'}
+                                </button>
+                                <button
+                                    onClick={() => setShowProfileEditor(false)}
+                                    className="px-8 bg-gray-100 text-gray-600 font-bold py-4 rounded-xl hover:bg-gray-200 transition-all"
+                                >
+                                    Cancelar
+                                </button>
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
-        </div>
+                )
+            }
+        </div >
     );
 };
 
