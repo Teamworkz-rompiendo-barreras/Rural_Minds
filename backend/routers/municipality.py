@@ -295,12 +295,14 @@ def get_talent_sensory_stats(
     low_light = sum(1 for p in profiles if p.sensory_needs.get('lighting') == 'low')
     quiet_env = sum(1 for p in profiles if p.sensory_needs.get('noise') == 'low')
     flexible_hours = sum(1 for p in profiles if p.sensory_needs.get('flexibility') == 'high')
+    fiber_fiber = sum(1 for p in profiles if p.sensory_needs.get('internet') == 'high' or p.sensory_needs.get('fiber') == True)
     
     return {
         "total_analyzed": total,
         "low_lighting_pct": int((low_light/total)*100),
         "quiet_environment_pct": int((quiet_env/total)*100),
-        "flexible_hours_pct": int((flexible_hours/total)*100)
+        "flexible_hours_pct": int((flexible_hours/total)*100),
+        "fiber_demand_pct": int((fiber_fiber/total)*100)
     }
 
 @router.post("/talent/{talent_id}/welcome")

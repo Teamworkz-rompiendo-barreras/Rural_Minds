@@ -39,6 +39,8 @@ const MunicipalityDashboard: React.FC = () => {
     const [localTalent, setLocalTalent] = useState<any[]>([]);
     const [attractionTalent, setAttractionTalent] = useState<any[]>([]);
     const [sensoryStats, setSensoryStats] = useState<any>({});
+    const [talentFilter, setTalentFilter] = useState<'all' | 'local' | 'attraction'>('all');
+    const [talentSearchQuery, setTalentSearchQuery] = useState('');
 
     const [loadingTabs, setLoadingTabs] = useState(false);
     const [showContactModal, setShowContactModal] = useState(false);
@@ -174,6 +176,34 @@ const MunicipalityDashboard: React.FC = () => {
         } catch (err) {
             alert("Error al enviar la bienvenida.");
         }
+    };
+
+    const handleExportTalent = () => {
+        const combined = [
+            ...localTalent.map((t, i) => ({ ...t, type: 'Arraigo', pseudonym: `RM-${429 + i}` })),
+            ...attractionTalent.map((t, i) => ({ ...t, type: 'Atracción', pseudonym: `RM-${102 + i}` }))
+        ];
+
+        const headers = ["ID", "Tipo", "Origen", "Skills", "Match"];
+        const rows = combined.map(t => [
+            t.pseudonym,
+            t.type,
+            t.type === 'Arraigo' ? 'Municipio' : (t.from_location || 'Externo'),
+            (t.skills || []).join(', '),
+            '85%'
+        ]);
+
+        const csvContent = "data:text/csv;charset=utf-8,"
+            + headers.join(",") + "\n"
+            + rows.map(e => e.join(",")).join("\n");
+
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", `talento_rural_minds_${new Date().toISOString().split('T')[0]}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     };
 
     const handleContactTalent = async (talentId: string) => {
@@ -522,35 +552,76 @@ const MunicipalityDashboard: React.FC = () => {
 
                             {activeTab === 'talent' && (
                                 <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-500">
+                                    {/* Necesidades Agregadas UI */}
+                                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                                        {[
+                                            { label: 'Demanda de Fibra > 600Mb', value: `${sensoryStats.fiber_demand_pct || 0}%`, icon: '🌐', color: 'bg-blue-50 text-blue-700' },
+                                            { label: 'Entornos Silenciosos', value: `${sensoryStats.quiet_environment_pct || 0}%`, icon: '🔇', color: 'bg-indigo-50 text-indigo-700' },
+                                            { label: 'Necesidad de Luz Natural', value: `${sensoryStats.low_lighting_pct || 0}%`, icon: '💡', color: 'bg-yellow-50 text-yellow-700' },
+                                            { label: 'Flexibilidad Horaria', value: `${sensoryStats.flexible_hours_pct || 0}%`, icon: '⏰', color: 'bg-emerald-50 text-emerald-700' }
+                                        ].map((stat, i) => (
+                                            <div key={i} className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex items-center gap-4">
+                                                <div className={`w-10 h-10 rounded-xl ${stat.color} flex items-center justify-center text-lg`}>{stat.icon}</div>
+                                                <div>
+                                                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">{stat.label}</p>
+                                                    <p className="text-xl font-bold text-n900">{stat.value}</p>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+
                                     <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
-                                        <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/30">
+                                        <div className="p-6 border-b border-gray-100 flex flex-col md:flex-row justify-between items-start md:items-center bg-gray-50/30 gap-4">
                                             <div>
                                                 <h2 className="text-2xl font-heading font-bold text-n900 flex items-center gap-2">
-                                                    👥 Gestión de Talento (Vista Ayuntamiento)
+                                                    👥 Gestión de Talento
                                                 </h2>
-                                                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">Clasificación Arraigo vs Atracción</p>
+                                                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">RLS: Solo candidatos locales o interesados en el municipio</p>
                                             </div>
-                                            <div className="flex gap-2">
-                                                <span className="px-3 py-1 bg-p2/10 text-p2 text-[10px] font-bold rounded-full uppercase border border-p2/20">Arraigo: {localTalent.length}</span>
-                                                <span className="px-3 py-1 bg-emerald-50 text-emerald-700 text-[10px] font-bold rounded-full uppercase border border-emerald-100">Atracción: {attractionTalent.length}</span>
+
+                                            <div className="flex flex-wrap items-center gap-3">
+                                                {/* Smart Filters (Toggles) */}
+                                                <div className="flex bg-gray-100 p-1 rounded-xl">
+                                                    {[
+                                                        { id: 'all', label: 'Todos' },
+                                                        { id: 'local', label: 'Ya viven aquí' },
+                                                        { id: 'attraction', label: 'Buscan casa' }
+                                                    ].map(f => (
+                                                        <button
+                                                            key={f.id}
+                                                            onClick={() => setTalentFilter(f.id as any)}
+                                                            className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${talentFilter === f.id ? 'bg-white text-n900 shadow-sm' : 'text-gray-500 hover:text-n900'}`}
+                                                        >
+                                                            {f.label}
+                                                        </button>
+                                                    ))}
+                                                </div>
+
+                                                <button
+                                                    onClick={handleExportTalent}
+                                                    className="flex items-center gap-2 px-4 py-2 bg-n900 text-white rounded-xl text-xs font-bold hover:bg-n800 transition-all shadow-md active:scale-95"
+                                                    aria-label="Exportar datos de talento a CSV accesible"
+                                                >
+                                                    📥 Exportar Datos
+                                                </button>
                                             </div>
                                         </div>
 
                                         {(localTalent.length > 0 || attractionTalent.length > 0) && (
-                                            <div className="overflow-hidden">
-                                                <table className="w-full text-left border-collapse">
+                                            <div className="overflow-x-auto">
+                                                <table className="w-full text-left border-collapse" role="grid">
                                                     <thead className="bg-gray-50/50 border-b border-gray-100">
                                                         <tr>
                                                             <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Perfil (Seudónimo)</th>
                                                             <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Origen / Estado</th>
                                                             <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Match Promedio</th>
                                                             <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Necesidades Clave</th>
-                                                            <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-right">Acción Recomendada</th>
+                                                            <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-right">Acciones</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody className="divide-y divide-gray-50">
                                                         {/* Arraigo Talent */}
-                                                        {localTalent.map((_t, i) => (
+                                                        {(talentFilter === 'all' || talentFilter === 'local') && localTalent.map((_t, i) => (
                                                             <tr key={`local-${i}`} className="hover:bg-gray-50/50 transition-colors border-l-4 border-[#F2D680]">
                                                                 <td className="px-6 py-4">
                                                                     <div className="flex items-center gap-2">
@@ -586,7 +657,7 @@ const MunicipalityDashboard: React.FC = () => {
                                                         ))}
 
                                                         {/* Atracción Talent */}
-                                                        {attractionTalent.map((t, i) => (
+                                                        {(talentFilter === 'all' || talentFilter === 'attraction') && attractionTalent.map((t, i) => (
                                                             <tr key={`attr-${i}`} className="hover:bg-emerald-50/30 transition-colors">
                                                                 <td className="px-6 py-4">
                                                                     <div className="flex items-center gap-2">
