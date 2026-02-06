@@ -118,14 +118,97 @@ def get_companies_status(
     
     return {
         "pending": [
-            {"email": i.email, "date": i.created_at, "status": "pending"} 
+            {
+                "email": i.email, 
+                "date": i.created_at, 
+                "status": "pending",
+                "entity_name": i.entity_name,
+                "expires_at": i.expires_at
+            } 
             for i in pending
         ],
         "active": [
-            {"name": o.name, "email": "N/A", "status": "active", "logo": o.branding_logo_url} 
+            {
+                "id": o.id,
+                "name": o.name, 
+                "email": "N/A", 
+                "status": "active", 
+                "logo": o.branding_logo_url,
+                "validation_status": o.validation_status
+            } 
             for o in active
         ]
     }
+
+@router.get("/vacancies")
+def get_municipality_vacancies(
+    db: Session = Depends(database.get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    if current_user.role not in ["territory_admin", "municipality"]:
+        raise HTTPException(status_code=403, detail="Permission denied")
+        
+    org_id = current_user.organization_id
+    
+    # Get companies linked to this municipality
+    company_ids = [o.id for o in db.query(models.Organization.id).filter(models.Organization.municipality_id == org_id).all()]
+    
+    if not company_ids:
+        return []
+
+    # Get challenges from these companies
+    challenges = db.query(models.Challenge).filter(
+        models.Challenge.tenant_id.in_(company_ids)
+    ).order_by(models.Challenge.created_at.desc()).all()
+    
+    # Calculate app counts for each
+    results = []
+    for c in challenges:
+        app_count = db.query(models.Application).filter(models.Application.challenge_id == c.id).count()
+        results.append({
+            "id": c.id,
+            "title": c.title,
+            "company_name": c.tenant.name if c.tenant else "Unknown",
+            "status": c.status,
+            "applications_count": app_count,
+            "created_at": c.created_at,
+            "is_difficult_to_fill": app_count < 2 and (datetime.datetime.utcnow() - c.created_at).days > 15
+        })
+        
+    return results
+
+@router.get("/excellence-companies")
+def get_excellence_companies(
+    db: Session = Depends(database.get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    if current_user.role not in ["territory_admin", "municipality"]:
+        raise HTTPException(status_code=403, detail="Permission denied")
+        
+    org_id = current_user.organization_id
+    
+    # Excellence = Validated + has at least one accepted application in any of its challenges
+    excellence = db.query(models.Organization).filter(
+        models.Organization.municipality_id == org_id,
+        models.Organization.validation_status == 'validated'
+    ).all()
+    
+    results = []
+    for o in excellence:
+        has_hires = db.query(models.Application).join(models.Challenge).filter(
+            models.Challenge.tenant_id == o.id,
+            models.Application.status == 'accepted'
+        ).first() is not None
+        
+        if has_hires:
+            results.append({
+                "id": o.id,
+                "name": o.name,
+                "logo": o.branding_logo_url,
+                "has_hires": True
+            })
+            
+    return results
 
 @router.get("/stats")
 def get_municipality_stats(

@@ -5,34 +5,20 @@ import { PDFDownloadLink } from '@react-pdf/renderer';
 import InclusionManualPDF from '../components/InclusionManualPDF';
 import axios from '../config/api';
 
-// Mock data for fallback
-const mockMetrics = {
-    insertionRate: 85,
-    companiesValidated: 12,
-    activeProjects: 5,
-    localCandidates: 34,
-    attractionCount: 0, // Attraction metric (new residents)
-    pendingValidations: 2,
-    impactScore: 92
-};
-
-const mockCompanies = [
-    { id: '1', name: 'Cooperativa Agroalimentaria del Valle', status: 'validated', vacancies: 3, lastActivity: '2026-01-28' },
-    { id: '2', name: 'Artesanía Sierra Norte S.L.', status: 'validated', vacancies: 1, lastActivity: '2026-01-30' },
-    { id: '3', name: 'TechRural Soluciones', status: 'pending', vacancies: 0, lastActivity: '2026-01-29' },
-];
-
-
-
 const MunicipalityDashboard: React.FC = () => {
     const { user } = useAuth();
-    const [loading] = useState(false);
+    const [metrics, setMetrics] = useState({
+        insertionRate: 0,
+        companiesValidated: 0,
+        activeProjects: 0,
+        localCandidates: 0,
+        attractionCount: 0,
+        pendingValidations: 0,
+        impactScore: 0
+    });
+    const [companies, setCompanies] = useState<any[]>([]);
     const [showValidationModal, setShowValidationModal] = useState(false);
-    const [selectedCompany, setSelectedCompany] = useState<string | null>(null);
-
-    // Data State (Mocked for now, but stateful)
-    const [metrics, setMetrics] = useState(mockMetrics);
-    const [companies, setCompanies] = useState<any[]>(mockCompanies);
+    const [selectedCompanyId, setSelectedCompanyId] = useState<string | null>(null);
 
     // Invitation State
     const [showInviteModal, setShowInviteModal] = useState(false);
@@ -40,40 +26,80 @@ const MunicipalityDashboard: React.FC = () => {
     const [invitationStatus, setInvitationStatus] = useState<{ pending: any[], active: any[] }>({ pending: [], active: [] });
     const [inviting, setInviting] = useState(false);
 
-    const handleValidate = (id: string) => {
-        setSelectedCompany(id);
-        setShowValidationModal(true);
-    };
+    // Tab State
+    const [activeTab, setActiveTab] = useState<'invites' | 'companies' | 'monitor'>('invites');
+    const [vacancies, setVacancies] = useState<any[]>([]);
+    const [excellenceCompanies, setExcellenceCompanies] = useState<any[]>([]);
+    const [loadingTabs, setLoadingTabs] = useState(false);
 
-    const confirmValidation = () => {
-        if (selectedCompany) {
-            setCompanies(prev => prev.map(c =>
-                c.id === selectedCompany ? { ...c, status: 'validated' } : c
-            ));
-            alert("Empresa validada correctamente.");
-        }
-        setShowValidationModal(false);
-        setSelectedCompany(null);
-    };
-
-    // Fetch Invite Status & Stats
     useEffect(() => {
-        if (user?.organization?.id) {
-            const fetchData = async () => {
-                try {
-                    const [statusRes, statsRes] = await Promise.all([
-                        axios.get('/municipality/companies-status'),
-                        axios.get('/municipality/stats')
-                    ]);
-                    setInvitationStatus(statusRes.data);
-                    setMetrics(statsRes.data);
-                } catch (err) {
-                    console.error("Error fetching dashboard data", err);
-                }
-            };
+        if (user) {
             fetchData();
         }
     }, [user]);
+
+    useEffect(() => {
+        if (user && activeTab === 'monitor') {
+            fetchVacancies();
+        } else if (user && activeTab === 'companies') {
+            fetchExcellence();
+        }
+    }, [user, activeTab]);
+
+    const fetchData = async () => {
+        try {
+            const [statsRes, statusRes] = await Promise.all([
+                axios.get('/municipality/stats'),
+                axios.get('/municipality/companies-status')
+            ]);
+            setMetrics(statsRes.data);
+            setInvitationStatus(statusRes.data);
+            setCompanies(statusRes.data.active || []);
+        } catch (err) {
+            console.error("Error fetching Dashboard data", err);
+        }
+    };
+
+    const fetchVacancies = async () => {
+        setLoadingTabs(true);
+        try {
+            const res = await axios.get('/municipality/vacancies');
+            setVacancies(res.data);
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setLoadingTabs(false);
+        }
+    };
+
+    const fetchExcellence = async () => {
+        setLoadingTabs(true);
+        try {
+            const res = await axios.get('/municipality/excellence-companies');
+            setExcellenceCompanies(res.data);
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setLoadingTabs(false);
+        }
+    };
+
+    const handleValidate = (id: string) => {
+        setSelectedCompanyId(id);
+        setShowValidationModal(true);
+    };
+
+    const confirmValidation = async () => {
+        if (!selectedCompanyId) return;
+        try {
+            await axios.put(`/admin/organizations/${selectedCompanyId}/validate`);
+            alert("Empresa validada correctamente.");
+            setShowValidationModal(false);
+            fetchData();
+        } catch (err) {
+            alert("Error al validar la empresa.");
+        }
+    };
 
     const handleSendInvites = async () => {
         setInviting(true);
@@ -86,10 +112,7 @@ const MunicipalityDashboard: React.FC = () => {
             alert('Invitaciones enviadas correctamente');
             setShowInviteModal(false);
             setInviteEmails('');
-            // Refresh status
-            const res = await axios.get('/municipality/companies-status');
-            setInvitationStatus(res.data);
-
+            fetchData();
         } catch (err) {
             alert('Error al enviar invitaciones');
             console.error(err);
@@ -99,28 +122,20 @@ const MunicipalityDashboard: React.FC = () => {
     };
 
     const getRefLink = () => {
-        // In real app, use window.location.origin or env var
         const baseUrl = window.location.origin.includes('localhost') ? 'http://localhost:5173' : 'https://rural-minds.vercel.app';
         return `${baseUrl}/register/company?ref=${user?.organization?.id}`;
     };
 
-    if (loading) {
-        return <div className="p-8 text-center animate-pulse">Cargando datos del municipio...</div>;
-    }
-
     return (
-        <div className="flex flex-col gap-8 max-w-7xl mx-auto px-4 py-6 font-body">
-
-            {/* Header ... (same as before) */}
+        <div className="max-w-7xl mx-auto p-4 md:p-8 animate-in fade-in duration-500">
             {/* Header */}
-            <header className="border-b border-gray-100 pb-6 mb-2">
+            <header className="border-b border-gray-100 pb-6 mb-8">
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     <div>
                         <div className="flex items-center gap-3 mb-2">
                             <h1 className="text-4xl font-heading font-bold text-p2">
                                 Panel del Ayuntamiento
                             </h1>
-                            {/* Identity Badge */}
                             <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${user?.role === 'super_admin' ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-600'}`}>
                                 {user?.role === 'super_admin' ? '👀 Modo Superadmin' : `Admin: ${user?.full_name || 'Desconocido'}`}
                             </span>
@@ -139,92 +154,183 @@ const MunicipalityDashboard: React.FC = () => {
                 </div>
             </header>
 
-            {/* Campaign Kit Section */}
-            <section className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 p-6 rounded-xl shadow-sm">
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-                    <div>
-                        <h2 className="text-2xl font-heading font-bold text-p2 mb-2">📢 Campaña de Adhesión</h2>
-                        <p className="text-gray-700 max-w-2xl">
-                            Invita a las empresas de tu localidad a unirse a la red. Envía invitaciones masivas o comparte tu enlace de afiliación oficial.
-                        </p>
-                    </div>
-                    <div className="flex flex-col gap-2 w-full md:w-auto">
-                        <button
-                            onClick={() => setShowInviteModal(true)}
-                            className="btn-primary shadow-lg flex items-center justify-center gap-2"
-                        >
-                            <span>✉️</span> Enviar Invitaciones Masivas
-                        </button>
-                        <div className="bg-white p-2 rounded border border-blue-200 text-xs flex items-center gap-2">
-                            <code className="text-gray-500 truncate max-w-[200px]">{getRefLink()}</code>
-                            <button
-                                onClick={() => navigator.clipboard.writeText(getRefLink())}
-                                className="text-p2 font-bold hover:underline"
-                            >
-                                Copiar
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Status Summary */}
-                <div className="mt-6 flex gap-6 text-sm">
-                    <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-full bg-orange-400"></div>
-                        <span className="font-bold">{invitationStatus.pending.length} Pendientes</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                        <span className="font-bold">{invitationStatus.active.length} Activas (En red)</span>
-                    </div>
-                </div>
-            </section>
-
-            {/* Key Metrics ... (Existing) */}
-            <section>
-                <h2 className="font-heading font-bold text-2xl text-n900 mb-4 flex items-center gap-2">
-                    <span>📊</span> Métricas de Impacto Social
-                </h2>
-                {/* ... Metrics Grid (Leaving as is or simplified logic) ... */}
+            {/* Metrics Overview */}
+            <section className="mb-10">
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
                     <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 text-center">
                         <p className="text-3xl font-bold text-green-600 mb-1">{metrics.insertionRate}%</p>
                         <p className="text-xs text-gray-500 font-medium uppercase">Inserción Laboral</p>
                     </div>
-                    {/* ... Other metrics ... */}
                     <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 text-center">
                         <p className="text-3xl font-bold text-p2 mb-1">{metrics.companiesValidated}</p>
                         <p className="text-xs text-gray-500 font-medium uppercase">Empresas Validadas</p>
                     </div>
+                    <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 text-center">
+                        <p className="text-3xl font-bold text-p2 mb-1">{metrics.activeProjects}</p>
+                        <p className="text-xs text-gray-500 font-medium uppercase">Ofertas Activas</p>
+                    </div>
+                    <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 text-center">
+                        <p className="text-3xl font-bold text-p2 mb-1">{metrics.localCandidates}</p>
+                        <p className="text-xs text-gray-500 font-medium uppercase">Talento Local</p>
+                    </div>
+                    <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 text-center">
+                        <p className="text-3xl font-bold text-orange-600 mb-1">{metrics.pendingValidations}</p>
+                        <p className="text-xs text-gray-500 font-medium uppercase">Pendientes</p>
+                    </div>
+                    <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 text-center ring-2 ring-accent ring-inset">
+                        <p className="text-3xl font-bold text-accent mb-1">{metrics.impactScore}</p>
+                        <p className="text-xs text-gray-500 font-medium uppercase">Social Score</p>
+                    </div>
                 </div>
             </section>
 
-            {/* Main Content Grid (Companies List) */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div className="lg:col-span-2 bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-                    <div className="flex justify-between items-center mb-6 border-b pb-4">
-                        <h2 className="text-2xl font-heading font-bold text-n900">Gestión de Empresas</h2>
-                    </div>
-                    {/* Existing Company List Logic */}
-                    <ul className="space-y-4">
-                        {companies.map((company) => (
-                            <li key={company.id} className="flex flex-col md:flex-row items-start md:items-center justify-between p-4 rounded-xl border bg-gray-50 border-gray-100">
-                                <div className="flex-1 mb-3 md:mb-0">
-                                    <h4 className="font-bold text-n900 text-lg">{company.name}</h4>
-                                    <p className="text-sm text-gray-500">Status: {company.status}</p>
-                                </div>
-                                {company.status !== 'validated' && (
-                                    <button onClick={() => handleValidate(company.id)} className="text-sm font-bold text-orange-600 border border-orange-200 px-3 py-1 rounded hover:bg-orange-50">
-                                        Validar
-                                    </button>
+            {/* Tab Navigation */}
+            <div className="flex gap-4 mb-6 border-b pb-px">
+                <button
+                    onClick={() => setActiveTab('invites')}
+                    className={`pb-4 px-2 font-bold transition-all border-b-2 ${activeTab === 'invites' ? 'border-p2 text-p2' : 'border-transparent text-gray-400 opacity-60'}`}
+                >
+                    ✉️ Centro de Invitaciones
+                </button>
+                <button
+                    onClick={() => setActiveTab('companies')}
+                    className={`pb-4 px-2 font-bold transition-all border-b-2 ${activeTab === 'companies' ? 'border-p2 text-p2' : 'border-transparent text-gray-400 opacity-60'}`}
+                >
+                    🏢 Gestión de Tejido
+                </button>
+                <button
+                    onClick={() => setActiveTab('monitor')}
+                    className={`pb-4 px-2 font-bold transition-all border-b-2 ${activeTab === 'monitor' ? 'border-p2 text-p2' : 'border-transparent text-gray-400 opacity-60'}`}
+                >
+                    📊 Monitor de Ofertas
+                </button>
+            </div>
+
+            {/* Tab Content */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+                <div className="lg:col-span-2">
+                    {activeTab === 'invites' && (
+                        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                            <div className="flex justify-between items-center mb-6">
+                                <h2 className="text-2xl font-heading font-bold text-n900">Seguimiento de Invitaciones</h2>
+                                <button onClick={() => setShowInviteModal(true)} className="btn-primary py-2 text-sm">Nuevas Invitaciones 📨</button>
+                            </div>
+                            <div className="space-y-4">
+                                {(invitationStatus as any).pending?.length > 0 ? (
+                                    (invitationStatus as any).pending.map((inv: any, i: number) => (
+                                        <div key={i} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-100">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-10 h-10 bg-p2/10 rounded-full flex items-center justify-center text-p2 font-bold text-xs">
+                                                    ?
+                                                </div>
+                                                <div>
+                                                    <p className="font-bold text-n900 text-sm">{inv.email}</p>
+                                                    <p className="text-xs text-gray-500">Invitado el {new Date(inv.date).toLocaleDateString()}</p>
+                                                </div>
+                                            </div>
+                                            <span className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-[10px] font-bold uppercase">Pendiente</span>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <p className="text-center py-8 text-gray-500 italic">No hay invitaciones pendientes.</p>
                                 )}
-                            </li>
-                        ))}
-                        {companies.length === 0 && <p className="text-gray-500 text-center py-4">No hay empresas asignadas aún.</p>}
-                    </ul>
+                            </div>
+                        </div>
+                    )}
+
+                    {activeTab === 'companies' && (
+                        <div className="space-y-6">
+                            {/* Validation Section */}
+                            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                                <h2 className="text-2xl font-heading font-bold text-n900 mb-6 border-b pb-4">Validación "Denominación de Origen"</h2>
+                                <ul className="space-y-4">
+                                    {companies.filter(c => c.validation_status !== 'validated').length > 0 ? (
+                                        companies.filter(c => c.validation_status !== 'validated').map((company) => (
+                                            <li key={company.id} className="flex items-center justify-between p-4 rounded-xl border bg-orange-50/30 border-orange-100">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-12 h-12 bg-white p-2 rounded-lg border flex items-center justify-center">
+                                                        {company.logo ? <img src={company.logo} alt="" className="max-h-full max-w-full" /> : <span>🏢</span>}
+                                                    </div>
+                                                    <div>
+                                                        <h4 className="font-bold text-n900 text-lg">{company.name}</h4>
+                                                        <span className="text-xs font-bold text-orange-600 uppercase">Esperando Validación</span>
+                                                    </div>
+                                                </div>
+                                                <button onClick={() => handleValidate(company.id)} className="bg-orange-600 text-white font-bold px-4 py-2 rounded-lg hover:bg-orange-700 transition-colors shadow-sm text-sm">
+                                                    Otorgar Sello 📜
+                                                </button>
+                                            </li>
+                                        ))
+                                    ) : (
+                                        <p className="text-gray-500 text-center py-4 italic">Todas las empresas están validadas.</p>
+                                    )}
+                                </ul>
+                            </div>
+
+                            {/* Excellence Section */}
+                            <div className="bg-white p-6 rounded-xl shadow-sm border border-p1/30 bg-gradient-to-br from-white to-p1/5">
+                                <h2 className="text-2xl font-heading font-bold text-n900 mb-6 flex items-center gap-2">
+                                    🌟 Sello de Excelencia
+                                    <span className="text-xs bg-p1 text-n900 px-2 py-0.5 rounded-full font-bold">Premium</span>
+                                </h2>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {excellenceCompanies.length > 0 ? (
+                                        excellenceCompanies.map((c, i) => (
+                                            <div key={i} className="flex items-center gap-3 p-3 bg-white border border-p1/40 rounded-xl shadow-sm">
+                                                <img src={c.logo || '/logo.png'} className="w-10 h-10 object-contain" alt="" />
+                                                <div>
+                                                    <p className="font-bold text-sm text-n900">{c.name}</p>
+                                                    <p className="text-[10px] text-green-600 font-bold uppercase">Contratación Verificada</p>
+                                                </div>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <div className="col-span-2 text-center py-8 text-gray-500 border-2 border-dashed border-p1/20 rounded-xl">
+                                            Aún no hay empresas con Sello de Excelencia.
+                                            <p className="text-xs mt-1">Se otorga tras la primera contratación y adaptación exitosa.</p>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {activeTab === 'monitor' && (
+                        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                            <h2 className="text-2xl font-heading font-bold text-n900 mb-6 border-b pb-4">Monitor de Vacantes Locales</h2>
+                            {loadingTabs ? (
+                                <p className="text-center py-8">Cargando ofertas...</p>
+                            ) : (
+                                <div className="space-y-4">
+                                    {vacancies.length > 0 ? (
+                                        vacancies.map((v, i) => (
+                                            <div key={i} className={`p-4 rounded-xl border flex justify-between items-center ${v.is_difficult_to_fill ? 'bg-red-50 border-red-100' : 'bg-gray-50 border-gray-100'}`}>
+                                                <div>
+                                                    <div className="flex items-center gap-2 mb-1">
+                                                        <h4 className="font-bold text-n900 text-sm">{v.title}</h4>
+                                                        {v.is_difficult_to_fill && <span className="text-[10px] bg-red-600 text-white px-2 py-0.5 rounded-full font-bold animate-pulse uppercase">DIFÍCIL DE CUBRIR</span>}
+                                                    </div>
+                                                    <p className="text-xs text-gray-600 font-medium">{v.company_name}</p>
+                                                    <p className="text-[10px] text-gray-400 mt-1">{v.applications_count} aplicaciones recibidas</p>
+                                                </div>
+                                                <div className="text-right">
+                                                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${v.status === 'open' ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-600'}`}>
+                                                        {v.status === 'open' ? 'Abierta' : 'Cerrada'}
+                                                    </span>
+                                                    {v.is_difficult_to_fill && <p className="text-[10px] text-red-600 font-bold mt-2 italic">Acción Sugerida ADL</p>}
+                                                </div>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <p className="text-center py-12 text-gray-500 italic">No hay vacantes publicadas en el municipio actualmente.</p>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </div>
 
-                {/* Resources Sidebar */}
+                {/* Shared Resources Sidebar */}
                 <div className="space-y-6">
                     <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
                         <h3 className="font-heading font-bold text-lg text-n900 mb-4 pb-3 border-b">
@@ -241,7 +347,6 @@ const MunicipalityDashboard: React.FC = () => {
                                     placeholder="https://ejemplo.es/guia.pdf"
                                     value={(invitationStatus as any).landing_guide_url || ''}
                                     onChange={(e) => {
-                                        // Simplified local state update for demo or use a dedicated state
                                         setInvitationStatus((prev: any) => ({ ...prev, landing_guide_url: e.target.value }));
                                     }}
                                 />
@@ -271,7 +376,7 @@ const MunicipalityDashboard: React.FC = () => {
                                 {({ loading }) => (
                                     <button
                                         disabled={loading}
-                                        className="w-full bg-p2/10 text-p2 border-2 border-p2 font-bold py-3 px-4 rounded-lg hover:bg-p2 hover:text-white transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                                        className="w-full bg-p2/10 text-p2 border-2 border-p2 font-bold py-3 px-4 rounded-lg hover:bg-p2 hover:text-white transition-all disabled:opacity-50 flex items-center justify-center gap-2 text-sm"
                                         aria-label={loading ? "Generando PDF" : "Descargar Manual de Inclusión en PDF"}
                                     >
                                         {loading ? 'Generando...' : '📄 Descargar Manual PDF'}
@@ -280,42 +385,56 @@ const MunicipalityDashboard: React.FC = () => {
                             </PDFDownloadLink>
                         </div>
                     </div>
+
+                    <div className="bg-p2/5 p-6 rounded-xl border border-p2/20">
+                        <h4 className="font-bold text-p2 mb-2">Enlace de Registro Local</h4>
+                        <p className="text-[10px] text-gray-600 mb-3 leading-relaxed">Usa este enlace para atraer empresas directamente a tu municipio:</p>
+                        <div className="bg-white p-3 rounded border border-p2/30 text-[9px] font-mono break-all text-p2 mb-3 shadow-inner">
+                            {getRefLink()}
+                        </div>
+                        <button
+                            onClick={() => { navigator.clipboard.writeText(getRefLink()); alert("Enlace copiado"); }}
+                            className="w-full bg-p2 text-white text-xs font-bold py-2.5 rounded-lg active:scale-95 transition-transform"
+                        >
+                            Copiar Enlace para Difusión 🔗
+                        </button>
+                    </div>
                 </div>
             </div>
 
             {/* Invite Companies Modal */}
             {showInviteModal && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
                     <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 md:p-8">
                         <div className="flex justify-between items-center mb-6">
                             <h3 className="text-2xl font-heading font-bold text-n900">📨 Invitar Empresas Locales</h3>
-                            <button onClick={() => setShowInviteModal(false)} className="text-gray-400 hover:text-gray-600 text-2xl">×</button>
+                            <button onClick={() => setShowInviteModal(false)} className="text-gray-400 hover:text-gray-600 text-3xl">×</button>
                         </div>
 
                         <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                            <h4 className="font-bold text-sm text-gray-700 mb-2">Vista Previa del Mensaje:</h4>
+                            <h4 className="font-bold text-xs text-gray-500 uppercase tracking-widest mb-2">Vista Previa del Mensaje</h4>
                             <div className="text-sm text-gray-600 italic border-l-4 border-p2 pl-3">
                                 "Estimado responsable... Desde el <strong>{user?.organization?.name}</strong>, estamos impulsando Rural Minds... Unirse es gratuito..."
                             </div>
                         </div>
 
                         <div className="mb-6">
-                            <label className="block font-bold text-n900 mb-2">Correos Electrónicos (uno por línea)</label>
+                            <label className="block font-bold text-n900 mb-2 text-sm">Correos Electrónicos (uno por línea)</label>
                             <textarea
-                                className="input-field w-full h-40 font-mono text-sm"
+                                className="input-field w-full h-40 font-mono text-xs p-3 leading-relaxed"
                                 placeholder="empresa1@local.com&#10;taller@pueblo.es&#10;cooperativa@agro.com"
                                 value={inviteEmails}
                                 onChange={e => setInviteEmails(e.target.value)}
                             />
-                            <p className="text-xs text-gray-500 mt-2">Se enviará una invitación personalizada a cada dirección.</p>
+                            <p className="text-[10px] text-gray-500 mt-2">Cada empresa recibirá un acceso personalizado a la plataforma.</p>
                         </div>
 
                         <div className="flex justify-end gap-4">
-                            <button onClick={() => setShowInviteModal(false)} className="px-6 py-3 border border-gray-300 rounded-lg font-bold text-gray-600">Cancelar</button>
+                            <button onClick={() => setShowInviteModal(false)} className="px-6 py-2.5 border border-gray-300 rounded-lg font-bold text-gray-500 hover:bg-gray-50 transition-colors text-sm">Cancelar</button>
                             <button
                                 onClick={handleSendInvites}
                                 disabled={inviting || !inviteEmails.trim()}
-                                className="btn-primary px-8 py-3 flex items-center gap-2"
+                                className="btn-primary px-8 py-2.5 flex items-center gap-2 shadow-lg shadow-p2/30 disabled:shadow-none"
                             >
                                 {inviting ? 'Enviando...' : 'Enviar Invitaciones 🚀'}
                             </button>
@@ -324,15 +443,18 @@ const MunicipalityDashboard: React.FC = () => {
                 </div>
             )}
 
-            {/* Validation Modal (Existing) */}
+            {/* Validation Modal */}
             {showValidationModal && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
                     <div className="bg-white rounded-xl p-8 max-w-md w-full shadow-2xl">
-                        <h3 className="font-heading font-bold text-2xl text-n900 mb-4">Confirmar Validación</h3>
-                        <p className="text-gray-600 mb-6">¿Certificar a esta empresa como parte de la red Rural Minds?</p>
+                        <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-3xl mb-4 mx-auto">
+                            📜
+                        </div>
+                        <h3 className="font-heading font-bold text-2xl text-n900 mb-4 text-center">Denominación de Origen</h3>
+                        <p className="text-gray-600 mb-6 text-center text-sm">¿Certificar que esta empresa opera formalmente en el municipio para otorgarle el sello oficial?</p>
                         <div className="flex gap-4">
-                            <button onClick={() => setShowValidationModal(false)} className="flex-1 py-3 border border-gray-200 rounded-lg font-bold text-gray-600">Cancelar</button>
-                            <button onClick={confirmValidation} className="flex-1 py-3 bg-green-600 text-white rounded-lg font-bold">Validar</button>
+                            <button onClick={() => setShowValidationModal(false)} className="flex-1 py-3 border border-gray-200 rounded-lg font-bold text-gray-600 hover:bg-gray-50 text-sm">Cancelar</button>
+                            <button onClick={confirmValidation} className="flex-1 py-3 bg-green-600 text-white rounded-lg font-bold hover:bg-green-700 transition-colors shadow-lg shadow-green-200 text-sm">Aprobar Sello</button>
                         </div>
                     </div>
                 </div>
