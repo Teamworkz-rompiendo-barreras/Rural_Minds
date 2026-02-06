@@ -40,7 +40,6 @@ const MunicipalityDashboard: React.FC = () => {
     const [attractionTalent, setAttractionTalent] = useState<any[]>([]);
     const [sensoryStats, setSensoryStats] = useState<any>({});
     const [talentFilter, setTalentFilter] = useState<'all' | 'local' | 'attraction'>('all');
-    const [talentSearchQuery, setTalentSearchQuery] = useState('');
 
     const [loadingTabs, setLoadingTabs] = useState(false);
     const [showContactModal, setShowContactModal] = useState(false);
