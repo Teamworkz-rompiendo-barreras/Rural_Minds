@@ -536,103 +536,105 @@ const MunicipalityDashboard: React.FC = () => {
                                             </div>
                                         </div>
 
-                                        <div className="overflow-x-auto">
-                                            <table className="w-full text-left border-collapse">
-                                                <thead className="bg-gray-50/50 border-b border-gray-100">
-                                                    <tr>
-                                                        <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Perfil (Seudónimo)</th>
-                                                        <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Origen / Estado</th>
-                                                        <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Match Promedio</th>
-                                                        <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Necesidades Clave</th>
-                                                        <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-right">Acción Recomendada</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody className="divide-y divide-gray-50">
-                                                    {/* Arraigo Talent */}
-                                                    {localTalent.map((_t, i) => (
-                                                        <tr key={`local-${i}`} className="hover:bg-gray-50/50 transition-colors">
-                                                            <td className="px-6 py-4">
-                                                                <div className="flex items-center gap-2">
-                                                                    <span className="font-bold text-n900 text-sm">RM-{429 + i}</span>
-                                                                    <span className="text-[9px] bg-p2 text-white px-1.5 py-0.5 rounded font-black uppercase tracking-tighter">Local</span>
-                                                                </div>
-                                                            </td>
-                                                            <td className="px-6 py-4">
-                                                                <span className="text-xs text-gray-600 font-medium flex items-center gap-1">
-                                                                    <span className="text-p2">📍</span> Municipio
-                                                                </span>
-                                                            </td>
-                                                            <td className="px-6 py-4">
-                                                                <div className="flex items-center gap-2">
-                                                                    <div className="w-16 h-1 bg-gray-100 rounded-full overflow-hidden">
-                                                                        <div className="h-full bg-p2" style={{ width: '85%' }}></div>
-                                                                    </div>
-                                                                    <span className="text-xs font-bold text-n900">85%</span>
-                                                                </div>
-                                                            </td>
-                                                            <td className="px-6 py-4">
-                                                                <span className="text-xs text-gray-500 flex items-center gap-1.5 grayscale hover:grayscale-0 transition-all cursor-help" title="Preferencia Sensorial Detectada">
-                                                                    <span className="bg-gray-100 w-6 h-6 flex items-center justify-center rounded-lg text-xs">🔇</span>
-                                                                    Baja acústica
-                                                                </span>
-                                                            </td>
-                                                            <td className="px-6 py-4 text-right">
-                                                                <button className="text-[10px] font-bold bg-white border border-p2 text-p2 px-4 py-2 rounded-xl hover:bg-p2 hover:text-white transition-all shadow-sm">
-                                                                    Validar Residencia
-                                                                </button>
-                                                            </td>
+                                        {(localTalent.length > 0 || attractionTalent.length > 0) && (
+                                            <div className="overflow-hidden">
+                                                <table className="w-full text-left border-collapse">
+                                                    <thead className="bg-gray-50/50 border-b border-gray-100">
+                                                        <tr>
+                                                            <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Perfil (Seudónimo)</th>
+                                                            <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Origen / Estado</th>
+                                                            <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Match Promedio</th>
+                                                            <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Necesidades Clave</th>
+                                                            <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-right">Acción Recomendada</th>
                                                         </tr>
-                                                    ))}
+                                                    </thead>
+                                                    <tbody className="divide-y divide-gray-50">
+                                                        {/* Arraigo Talent */}
+                                                        {localTalent.map((_t, i) => (
+                                                            <tr key={`local-${i}`} className="hover:bg-gray-50/50 transition-colors">
+                                                                <td className="px-6 py-4">
+                                                                    <div className="flex items-center gap-2">
+                                                                        <span className="font-bold text-n900 text-sm">RM-{429 + i}</span>
+                                                                        <span className="text-[9px] bg-p2 text-white px-1.5 py-0.5 rounded font-black uppercase tracking-tighter">Local</span>
+                                                                    </div>
+                                                                </td>
+                                                                <td className="px-6 py-4">
+                                                                    <span className="text-xs text-gray-600 font-medium flex items-center gap-1">
+                                                                        <span className="text-p2">📍</span> Municipio
+                                                                    </span>
+                                                                </td>
+                                                                <td className="px-6 py-4">
+                                                                    <div className="flex items-center gap-2">
+                                                                        <div className="w-16 h-1 bg-gray-100 rounded-full overflow-hidden">
+                                                                            <div className="h-full bg-p2" style={{ width: '85%' }}></div>
+                                                                        </div>
+                                                                        <span className="text-xs font-bold text-n900">85%</span>
+                                                                    </div>
+                                                                </td>
+                                                                <td className="px-6 py-4">
+                                                                    <span className="text-xs text-gray-500 flex items-center gap-1.5 grayscale hover:grayscale-0 transition-all cursor-help" title="Preferencia Sensorial Detectada">
+                                                                        <span className="bg-gray-100 w-6 h-6 flex items-center justify-center rounded-lg text-xs">🔇</span>
+                                                                        Baja acústica
+                                                                    </span>
+                                                                </td>
+                                                                <td className="px-6 py-4 text-right">
+                                                                    <button className="text-[10px] font-bold bg-white border border-p2 text-p2 px-4 py-2 rounded-xl hover:bg-p2 hover:text-white transition-all shadow-sm">
+                                                                        Validar Residencia
+                                                                    </button>
+                                                                </td>
+                                                            </tr>
+                                                        ))}
 
-                                                    {/* Atracción Talent */}
-                                                    {attractionTalent.map((t, i) => (
-                                                        <tr key={`attr-${i}`} className="hover:bg-emerald-50/30 transition-colors">
-                                                            <td className="px-6 py-4">
-                                                                <div className="flex items-center gap-2">
-                                                                    <span className="font-bold text-n900 text-sm">RM-{102 + i}</span>
-                                                                    <span className="text-[9px] bg-emerald-600 text-white px-1.5 py-0.5 rounded font-black uppercase tracking-tighter">Externo</span>
-                                                                </div>
-                                                            </td>
-                                                            <td className="px-6 py-4">
-                                                                <span className="text-xs text-gray-600 font-medium flex items-center gap-1">
-                                                                    <span className="text-emerald-500">🏙️</span> {t.from_location || 'Madrid'} -&gt; Mudanza
-                                                                </span>
-                                                            </td>
-                                                            <td className="px-6 py-4">
-                                                                <div className="flex items-center gap-2">
-                                                                    <div className="w-16 h-1 bg-gray-100 rounded-full overflow-hidden">
-                                                                        <div className="h-full bg-emerald-600" style={{ width: '92%' }}></div>
+                                                        {/* Atracción Talent */}
+                                                        {attractionTalent.map((t, i) => (
+                                                            <tr key={`attr-${i}`} className="hover:bg-emerald-50/30 transition-colors">
+                                                                <td className="px-6 py-4">
+                                                                    <div className="flex items-center gap-2">
+                                                                        <span className="font-bold text-n900 text-sm">RM-{102 + i}</span>
+                                                                        <span className="text-[9px] bg-emerald-600 text-white px-1.5 py-0.5 rounded font-black uppercase tracking-tighter">Externo</span>
                                                                     </div>
-                                                                    <span className="text-xs font-bold text-n900">92%</span>
-                                                                </div>
-                                                            </td>
-                                                            <td className="px-6 py-4">
-                                                                <span className="text-xs text-gray-500 flex items-center gap-1.5 grayscale hover:grayscale-0 transition-all cursor-help" title="Necesidad de Accesibilidad">
-                                                                    <span className="bg-gray-100 w-6 h-6 flex items-center justify-center rounded-lg text-xs">💡</span>
-                                                                    Luz Natural
-                                                                </span>
-                                                            </td>
-                                                            <td className="px-6 py-4 text-right">
-                                                                <div className="flex justify-end gap-2 text-[10px] font-black uppercase tracking-tighter">
-                                                                    <button
-                                                                        onClick={() => handleContactTalent(t.id)}
-                                                                        className="text-gray-400 hover:text-n900 underline decoration-gray-200 transition-colors"
-                                                                    >
-                                                                        Contactar
-                                                                    </button>
-                                                                    <button
-                                                                        onClick={() => handleSendWelcome(t.id)}
-                                                                        className="bg-emerald-600 text-white px-4 py-2 rounded-xl hover:bg-emerald-700 transition-all shadow-md shadow-emerald-600/20"
-                                                                    >
-                                                                        Enviar Guía Acogida
-                                                                    </button>
-                                                                </div>
-                                                            </td>
-                                                        </tr>
-                                                    ))}
-                                                </tbody>
-                                            </table>
-                                        </div>
+                                                                </td>
+                                                                <td className="px-6 py-4">
+                                                                    <span className="text-xs text-gray-600 font-medium flex items-center gap-1">
+                                                                        <span className="text-emerald-500">🏙️</span> {t.from_location || 'Madrid'} -&gt; Mudanza
+                                                                    </span>
+                                                                </td>
+                                                                <td className="px-6 py-4">
+                                                                    <div className="flex items-center gap-2">
+                                                                        <div className="w-16 h-1 bg-gray-100 rounded-full overflow-hidden">
+                                                                            <div className="h-full bg-emerald-600" style={{ width: '92%' }}></div>
+                                                                        </div>
+                                                                        <span className="text-xs font-bold text-n900">92%</span>
+                                                                    </div>
+                                                                </td>
+                                                                <td className="px-6 py-4">
+                                                                    <span className="text-xs text-gray-500 flex items-center gap-1.5 grayscale hover:grayscale-0 transition-all cursor-help" title="Necesidad de Accesibilidad">
+                                                                        <span className="bg-gray-100 w-6 h-6 flex items-center justify-center rounded-lg text-xs">💡</span>
+                                                                        Luz Natural
+                                                                    </span>
+                                                                </td>
+                                                                <td className="px-6 py-4 text-right">
+                                                                    <div className="flex justify-end gap-2 text-[10px] font-black uppercase tracking-tighter">
+                                                                        <button
+                                                                            onClick={() => handleContactTalent(t.id)}
+                                                                            className="text-gray-400 hover:text-n900 underline decoration-gray-200 transition-colors"
+                                                                        >
+                                                                            Contactar
+                                                                        </button>
+                                                                        <button
+                                                                            onClick={() => handleSendWelcome(t.id)}
+                                                                            className="bg-emerald-600 text-white px-4 py-2 rounded-xl hover:bg-emerald-700 transition-all shadow-md shadow-emerald-600/20"
+                                                                        >
+                                                                            Enviar Guía Acogida
+                                                                        </button>
+                                                                    </div>
+                                                                </td>
+                                                            </tr>
+                                                        ))}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        )}
 
                                         {(localTalent.length === 0 && attractionTalent.length === 0) && (
                                             <div className="p-16 text-center text-gray-400 italic">
