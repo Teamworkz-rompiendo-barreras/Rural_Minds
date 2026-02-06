@@ -130,8 +130,8 @@ const MunicipalityDashboard: React.FC = () => {
                         </p>
                     </div>
                     <div className="flex items-center gap-4">
-                        <div className="bg-gradient-to-r from-accent/20 to-accent/5 border border-accent/30 px-4 py-2 rounded-full">
-                            <span className="text-sm font-bold text-accent italic">
+                        <div className="bg-accent/10 border border-accent/40 px-4 py-2 rounded-full shadow-sm hover:shadow-md transition-all duration-300">
+                            <span className="text-sm font-extrabold text-p2 italic">
                                 "Innovación con Denominación de Origen"
                             </span>
                         </div>
