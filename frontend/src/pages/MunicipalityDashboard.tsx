@@ -562,7 +562,7 @@ const MunicipalityDashboard: React.FC = () => {
                                             <div key={i} className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex items-center gap-4">
                                                 <div className={`w-10 h-10 rounded-xl ${stat.color} flex items-center justify-center text-lg`}>{stat.icon}</div>
                                                 <div>
-                                                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">{stat.label}</p>
+                                                    <p className="text-sm text-gray-400 font-bold uppercase tracking-wider">{stat.label}</p>
                                                     <p className="text-xl font-bold text-n900">{stat.value}</p>
                                                 </div>
                                             </div>
@@ -575,7 +575,7 @@ const MunicipalityDashboard: React.FC = () => {
                                                 <h2 className="text-2xl font-heading font-bold text-n900 flex items-center gap-2">
                                                     👥 Gestión de Talento
                                                 </h2>
-                                                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">RLS: Solo candidatos locales o interesados en el municipio</p>
+                                                <p className="text-sm text-gray-400 font-bold uppercase tracking-widest mt-1">RLS: Solo candidatos locales o interesados en el municipio</p>
                                             </div>
 
                                             <div className="flex flex-wrap items-center gap-3">
@@ -589,7 +589,7 @@ const MunicipalityDashboard: React.FC = () => {
                                                         <button
                                                             key={f.id}
                                                             onClick={() => setTalentFilter(f.id as any)}
-                                                            className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${talentFilter === f.id ? 'bg-white text-n900 shadow-sm' : 'text-gray-500 hover:text-n900'}`}
+                                                            className={`px-4 py-1.5 rounded-lg text-sm font-bold transition-all ${talentFilter === f.id ? 'bg-white text-n900 shadow-sm' : 'text-gray-500 hover:text-n900'}`}
                                                         >
                                                             {f.label}
                                                         </button>
@@ -598,7 +598,7 @@ const MunicipalityDashboard: React.FC = () => {
 
                                                 <button
                                                     onClick={handleExportTalent}
-                                                    className="flex items-center gap-2 px-4 py-2 bg-n900 text-white rounded-xl text-xs font-bold hover:bg-n800 transition-all shadow-md active:scale-95"
+                                                    className="flex items-center gap-2 px-4 py-2 bg-n900 text-white rounded-xl text-sm font-bold hover:bg-n800 transition-all shadow-md active:scale-95"
                                                     aria-label="Exportar datos de talento a CSV accesible"
                                                 >
                                                     📥 Exportar Datos
@@ -608,14 +608,14 @@ const MunicipalityDashboard: React.FC = () => {
 
                                         {(localTalent.length > 0 || attractionTalent.length > 0) && (
                                             <div className="overflow-x-auto">
-                                                <table className="w-full text-left border-collapse" role="grid">
+                                                <table className="w-full text-left border-collapse font-sans" role="grid">
                                                     <thead className="bg-gray-50/50 border-b border-gray-100">
                                                         <tr>
-                                                            <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Perfil (Seudónimo)</th>
-                                                            <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Origen / Estado</th>
-                                                            <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Match Promedio</th>
-                                                            <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Necesidades Clave</th>
-                                                            <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-right">Acciones</th>
+                                                            <th className="px-6 py-4 text-sm font-bold text-gray-400 uppercase tracking-widest">Perfil (Seudónimo)</th>
+                                                            <th className="px-6 py-4 text-sm font-bold text-gray-400 uppercase tracking-widest">Origen / Estado</th>
+                                                            <th className="px-6 py-4 text-sm font-bold text-gray-400 uppercase tracking-widest hidden md:table-cell">Match Promedio</th>
+                                                            <th className="px-6 py-4 text-sm font-bold text-gray-400 uppercase tracking-widest hidden md:table-cell">Necesidades Clave</th>
+                                                            <th className="px-6 py-4 text-sm font-bold text-gray-400 uppercase tracking-widest text-right">Acciones</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody className="divide-y divide-gray-50">
@@ -625,30 +625,30 @@ const MunicipalityDashboard: React.FC = () => {
                                                                 <td className="px-6 py-4">
                                                                     <div className="flex items-center gap-2">
                                                                         <span className="font-bold text-n900 text-sm">RM-{429 + i}</span>
-                                                                        <span className="text-[9px] bg-[#F2D680] text-n900 px-1.5 py-0.5 rounded font-black uppercase tracking-tighter">Prioridad Local</span>
+                                                                        <span className="text-xs bg-[#F2D680] text-n900 px-2 py-0.5 rounded font-black uppercase tracking-tighter">Prioridad Local</span>
                                                                     </div>
                                                                 </td>
                                                                 <td className="px-6 py-4">
-                                                                    <span className="text-xs text-gray-600 font-medium flex items-center gap-1">
-                                                                        <span className="text-p2">📍</span> Municipio
+                                                                    <span className="text-sm text-gray-600 font-medium flex items-center gap-1">
+                                                                        <span className="text-p2" aria-hidden="true">📍</span> Municipio
                                                                     </span>
                                                                 </td>
-                                                                <td className="px-6 py-4">
+                                                                <td className="px-6 py-4 hidden md:table-cell">
                                                                     <div className="flex items-center gap-2">
                                                                         <div className="w-16 h-1 bg-gray-100 rounded-full overflow-hidden">
                                                                             <div className="h-full bg-p2" style={{ width: '85%' }}></div>
                                                                         </div>
-                                                                        <span className="text-xs font-bold text-n900">85%</span>
+                                                                        <span className="text-sm font-bold text-n900">85%</span>
                                                                     </div>
                                                                 </td>
-                                                                <td className="px-6 py-4">
-                                                                    <span className="text-xs text-gray-500 flex items-center gap-1.5 grayscale hover:grayscale-0 transition-all cursor-help" title="Preferencia Sensorial Detectada">
-                                                                        <span className="bg-gray-100 w-6 h-6 flex items-center justify-center rounded-lg text-xs">🔇</span>
+                                                                <td className="px-6 py-4 hidden md:table-cell">
+                                                                    <span className="text-sm text-gray-500 flex items-center gap-1.5 grayscale hover:grayscale-0 transition-all cursor-help" title="Preferencia Sensorial Detectada">
+                                                                        <span className="bg-gray-100 w-6 h-6 flex items-center justify-center rounded-lg text-sm" aria-hidden="true">🔇</span>
                                                                         Baja acústica
                                                                     </span>
                                                                 </td>
                                                                 <td className="px-6 py-4 text-right">
-                                                                    <button className="text-[10px] font-bold bg-white border border-[#F2D680] text-n900 px-4 py-2 rounded-xl hover:bg-[#F2D680] transition-all shadow-sm">
+                                                                    <button className="text-xs font-bold bg-white border border-[#F2D680] text-n900 px-4 py-2 rounded-xl hover:bg-[#F2D680] transition-all shadow-sm">
                                                                         Validar Residencia
                                                                     </button>
                                                                 </td>
@@ -661,30 +661,30 @@ const MunicipalityDashboard: React.FC = () => {
                                                                 <td className="px-6 py-4">
                                                                     <div className="flex items-center gap-2">
                                                                         <span className="font-bold text-n900 text-sm">RM-{102 + i}</span>
-                                                                        <span className="text-[9px] bg-emerald-600 text-white px-1.5 py-0.5 rounded font-black uppercase tracking-tighter">Externo</span>
+                                                                        <span className="text-xs bg-emerald-600 text-white px-2 py-0.5 rounded font-black uppercase tracking-tighter">Externo</span>
                                                                     </div>
                                                                 </td>
                                                                 <td className="px-6 py-4">
-                                                                    <span className="text-xs text-gray-600 font-medium flex items-center gap-1">
-                                                                        <span className="text-emerald-500">🏙️</span> {t.from_location || 'Madrid'} -&gt; Mudanza
+                                                                    <span className="text-sm text-gray-600 font-medium flex items-center gap-1">
+                                                                        <span className="text-emerald-500" aria-hidden="true">🧳</span> {t.from_location || 'Madrid'} -&gt; Mudanza
                                                                     </span>
                                                                 </td>
-                                                                <td className="px-6 py-4">
+                                                                <td className="px-6 py-4 hidden md:table-cell">
                                                                     <div className="flex items-center gap-2">
                                                                         <div className="w-16 h-1 bg-gray-100 rounded-full overflow-hidden">
                                                                             <div className="h-full bg-emerald-600" style={{ width: '92%' }}></div>
                                                                         </div>
-                                                                        <span className="text-xs font-bold text-n900">92%</span>
+                                                                        <span className="text-sm font-bold text-n900">92%</span>
                                                                     </div>
                                                                 </td>
-                                                                <td className="px-6 py-4">
-                                                                    <span className="text-xs text-gray-500 flex items-center gap-1.5 grayscale hover:grayscale-0 transition-all cursor-help" title="Necesidad de Accesibilidad">
-                                                                        <span className="bg-gray-100 w-6 h-6 flex items-center justify-center rounded-lg text-xs">💡</span>
+                                                                <td className="px-6 py-4 hidden md:table-cell">
+                                                                    <span className="text-sm text-gray-500 flex items-center gap-1.5 grayscale hover:grayscale-0 transition-all cursor-help" title="Necesidad de Accesibilidad">
+                                                                        <span className="bg-gray-100 w-6 h-6 flex items-center justify-center rounded-lg text-sm" aria-hidden="true">💡</span>
                                                                         Luz Natural
                                                                     </span>
                                                                 </td>
                                                                 <td className="px-6 py-4 text-right">
-                                                                    <div className="flex justify-end gap-2 text-[10px] font-black uppercase tracking-tighter">
+                                                                    <div className="flex justify-end gap-2 text-xs font-black uppercase tracking-tighter">
                                                                         <button
                                                                             onClick={() => handleContactTalent(t.id)}
                                                                             className="text-gray-400 hover:text-n900 underline decoration-gray-200 transition-colors"
