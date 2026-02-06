@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { PDFDownloadLink, BlobProvider } from '@react-pdf/renderer';
+import { PDFDownloadLink, pdf } from '@react-pdf/renderer';
 import InclusionManualPDF from '../components/InclusionManualPDF';
 import MunicipalityReportPDF from '../components/pdf/MunicipalityReportPDF';
 import axios from '../config/api';
@@ -258,26 +258,27 @@ const MunicipalityDashboard: React.FC = () => {
                         >
                             🧭 Contactar Talento Entrante
                         </button>
-                        <BlobProvider document={reportDocument}>
-                            {({ url, loading }) => (
-                                <button
-                                    onClick={() => {
-                                        if (url) {
-                                            const link = document.createElement('a');
-                                            link.href = url;
-                                            link.download = `Reporte_Impacto_${(user?.organization?.name || 'Municipio').replace(/[^a-z0-9]/gi, '_')}_${new Date().toISOString().slice(0, 10)}.pdf`;
-                                            document.body.appendChild(link);
-                                            link.click();
-                                            document.body.removeChild(link);
-                                        }
-                                    }}
-                                    disabled={loading}
-                                    className="bg-n900 text-white px-4 py-2.5 rounded-xl font-bold hover:bg-black transition-all flex items-center gap-2 text-xs shadow-md disabled:opacity-50 cursor-pointer no-underline"
-                                >
-                                    {loading ? '📄 Generando...' : '📄 Generar Reporte de Impacto'}
-                                </button>
-                            )}
-                        </BlobProvider>
+                        <button
+                            onClick={async () => {
+                                try {
+                                    const blob = await pdf(reportDocument).toBlob();
+                                    const url = URL.createObjectURL(blob);
+                                    const link = document.createElement('a');
+                                    link.href = url;
+                                    link.download = `Reporte_Impacto_${(user?.organization?.name || 'Municipio').replace(/[^a-z0-9]/gi, '_')}_${new Date().toISOString().slice(0, 10)}.pdf`;
+                                    document.body.appendChild(link);
+                                    link.click();
+                                    document.body.removeChild(link);
+                                    URL.revokeObjectURL(url);
+                                } catch (error) {
+                                    console.error("Error generating PDF:", error);
+                                    alert("Hubo un error al generar el reporte. Por favor, inténtalo de nuevo.");
+                                }
+                            }}
+                            className="bg-n900 text-white px-4 py-2.5 rounded-xl font-bold hover:bg-black transition-all flex items-center gap-2 text-xs shadow-md cursor-pointer no-underline"
+                        >
+                            📄 Generar Reporte de Impacto
+                        </button>
                         <button
                             onClick={() => { fetchProfileData(); setShowProfileEditor(true); }}
                             className="bg-white border border-gray-200 text-gray-600 px-4 py-2.5 rounded-xl font-bold hover:bg-gray-50 transition-all flex items-center gap-2 text-xs shadow-sm"
