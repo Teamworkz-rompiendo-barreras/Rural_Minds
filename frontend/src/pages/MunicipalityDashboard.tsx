@@ -269,7 +269,7 @@ const MunicipalityDashboard: React.FC = () => {
                             onClick={() => { fetchProfileData(); setShowProfileEditor(true); }}
                             className="bg-white border border-gray-200 text-gray-600 px-4 py-2.5 rounded-xl font-bold hover:bg-gray-50 transition-all flex items-center gap-2 text-xs shadow-sm"
                         >
-                            ⚙️ Configurar Ficha
+                            ⚙️ Configurar ficha de Ayuntamiento
                         </button>
                     </div>
                 </div>
@@ -750,16 +750,21 @@ const MunicipalityDashboard: React.FC = () => {
                                 <div className="p-4 bg-orange-50 border border-orange-100 rounded-xl">
                                     <h4 className="font-bold text-orange-800 text-sm mb-4 uppercase tracking-wider">Servicios Esenciales</h4>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        {['health', 'education', 'coworking', 'commerce'].map(s => (
-                                            <div key={s}>
-                                                <label className="block text-[10px] font-bold text-orange-700 mb-1 uppercase tracking-widest">{s}</label>
+                                        {[
+                                            { key: 'health', label: 'Salud' },
+                                            { key: 'education', label: 'Educación' },
+                                            { key: 'coworking', label: 'Coworking' },
+                                            { key: 'commerce', label: 'Comercio' }
+                                        ].map(s => (
+                                            <div key={s.key}>
+                                                <label className="block text-[10px] font-bold text-orange-700 mb-1 uppercase tracking-widest">{s.label}</label>
                                                 <input
                                                     type="text"
                                                     className="w-full px-3 py-2 bg-white border border-orange-100 rounded-lg outline-none text-sm"
-                                                    value={profileData.services[s]}
+                                                    value={profileData.services[s.key]}
                                                     onChange={(e) => setProfileData({
                                                         ...profileData,
-                                                        services: { ...profileData.services, [s]: e.target.value }
+                                                        services: { ...profileData.services, [s.key]: e.target.value }
                                                     })}
                                                 />
                                             </div>
