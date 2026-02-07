@@ -47,6 +47,8 @@ const TalentDashboard: React.FC = () => {
 
     // Municipal Support State
     const [supportMessages, setSupportMessages] = useState<any[]>([]);
+    const [responding, setResponding] = useState<{ id: string; type: 'A' | 'B' | 'C' } | null>(null);
+    const [shareContact, setShareContact] = useState(false);
 
     // Filters State
     const [locationFilter, _setLocationFilter] = useState('Todos');
@@ -94,8 +96,35 @@ const TalentDashboard: React.FC = () => {
             }
         };
 
-        fetchData();
-    }, []);
+        if (user) {
+            fetchData();
+        }
+    }, [user]);
+
+    const handleSupportResponse = async (id: string, type: 'A' | 'B' | 'C') => {
+        try {
+            await axios.post(`/api/profiles/me/support-messages/${id}/respond`, {
+                response_type: type,
+                privacy_consent: type === 'A' ? shareContact : false,
+                notes: ""
+            });
+
+            const msg = supportMessages.find(m => m.id === id);
+            const townName = msg?.municipality?.name || "el Ayuntamiento";
+
+            if (type === 'A' || type === 'B') {
+                alert(`¡Excelente elección! ${townName} ha sido notificado. Se abrirá un canal de comunicación pronto.`);
+            } else {
+                alert(`Entendido. Hemos agradecido el interés de ${townName}.`);
+            }
+
+            setSupportMessages(prev => prev.filter(m => m.id !== id));
+            setResponding(null);
+            setShareContact(false);
+        } catch (e) {
+            alert("Error al procesar la respuesta. Por favor, inténtalo de nuevo.");
+        }
+    };
 
     // Apply Filters
     useEffect(() => {
@@ -149,57 +178,114 @@ const TalentDashboard: React.FC = () => {
                 </p>
             </header>
 
-            {/* Municipal Support Offers Section */}
+            {/* Municipal Support Offers Section: El Buzón del Talento */}
             {supportMessages.length > 0 && (
-                <section className="bg-emerald-50 border border-emerald-100 rounded-[2rem] p-8 lg:p-10 shadow-sm animate-in fade-in slide-in-from-top duration-700">
-                    <div className="flex items-center gap-4 mb-6">
-                        <div className="bg-emerald-600 text-white p-3 rounded-2xl text-2xl shadow-lg shadow-emerald-200">🏘️</div>
-                        <div>
-                            <h2 className="text-2xl font-heading font-black text-n900">Centro de Apoyo Municipal</h2>
-                            <p className="text-emerald-800/80 font-medium">Ayuntamientos rurales interesados en tu perfil</p>
-                        </div>
-                    </div>
+                <section className="bg-white border-2 border-emerald-100 rounded-[2.5rem] p-8 lg:p-12 shadow-xl shadow-emerald-100/50 animate-in fade-in slide-in-from-top duration-700 overflow-hidden relative">
+                    {/* Decorative Background Element */}
+                    <div className="absolute -top-24 -right-24 w-64 h-64 bg-emerald-50 rounded-full blur-3xl opacity-60"></div>
 
-                    <div className="grid grid-cols-1 gap-6">
-                        {supportMessages.map((msg) => (
-                            <div key={msg.id} className="bg-white p-6 rounded-2xl border border-emerald-100 shadow-sm hover:shadow-md transition-all">
-                                <h3 className="font-bold text-lg text-n900 mb-2 flex items-center gap-2">
-                                    <span className="text-emerald-500">✉️</span> {msg.subject}
-                                </h3>
-                                <div className="bg-gray-50 p-4 rounded-xl mb-6 text-sm text-gray-700 whitespace-pre-wrap leading-relaxed italic border-l-4 border-emerald-500">
-                                    "{msg.content}"
+                    <div className="relative z-10">
+                        <div className="flex flex-col md:flex-row md:items-center gap-6 mb-10 border-b border-emerald-50 pb-8">
+                            <div className="w-24 h-24 bg-emerald-600/10 rounded-3xl flex items-center justify-center text-4xl shadow-inner border border-emerald-100/50">
+                                {supportMessages[0].municipality?.branding_logo_url ? (
+                                    <img src={supportMessages[0].municipality.branding_logo_url} alt="Logo" className="w-16 h-16 object-contain" />
+                                ) : (
+                                    <span className="filter grayscale-[0.5]">🏘️</span>
+                                )}
+                            </div>
+                            <div className="flex-grow">
+                                <div className="flex items-center gap-3 mb-1">
+                                    <h2 className="text-3xl font-heading font-black text-n900 tracking-tight">Propuesta de Acogida</h2>
+                                    <span className="bg-emerald-100 text-emerald-700 text-[10px] font-black uppercase px-2 py-0.5 rounded-full tracking-wider">Nueva Invitación</span>
                                 </div>
-                                <div className="flex flex-wrap gap-4 items-center justify-between">
-                                    <div className="flex gap-3">
+                                <p className="text-xl text-emerald-800/70 font-medium">
+                                    El Ayuntamiento de <span className="text-emerald-900 font-bold">{supportMessages[0].municipality?.name || 'tu zona'}</span> te ha enviado una propuesta.
+                                </p>
+                            </div>
+                        </div>
+
+                        {supportMessages.map(msg => (
+                            <div key={msg.id} className="space-y-10">
+                                {/* Message Body */}
+                                <div className="space-y-6">
+                                    {/* Help Tags */}
+                                    <div className="flex flex-wrap gap-2">
+                                        <span className="bg-blue-50 text-blue-700 px-4 py-1.5 rounded-full text-sm font-bold border border-blue-100 flex items-center gap-2">🏠 Vivienda Disponible</span>
+                                        <span className="bg-indigo-50 text-indigo-700 px-4 py-1.5 rounded-full text-sm font-bold border border-indigo-100 flex items-center gap-2">📡 Fibra Óptica 1Gbps</span>
+                                        <span className="bg-amber-50 text-amber-700 px-4 py-1.5 rounded-full text-sm font-bold border border-amber-100 flex items-center gap-2">🏫 Educación de Proximidad</span>
+                                        {msg.highlighted_need && (
+                                            <span className="bg-p2/10 text-p2 px-4 py-1.5 rounded-full text-sm font-bold border border-p2/20 flex items-center gap-2">✨ {msg.highlighted_need}</span>
+                                        )}
+                                    </div>
+
+                                    {/* Content with Atkinson Hyperlegible feel */}
+                                    <div className="bg-emerald-50/30 p-8 rounded-[2rem] border border-emerald-100/50 italic text-2xl text-emerald-900 font-medium leading-[1.6] tracking-tight">
+                                        "{msg.content}"
+                                    </div>
+                                </div>
+
+                                {/* Decision Center */}
+                                <div className="bg-white p-8 rounded-[2rem] border border-emerald-100 shadow-sm">
+                                    <h3 className="text-xl font-bold text-n900 mb-6 flex items-center gap-3">
+                                        <span className="w-8 h-8 bg-emerald-600 text-white rounded-full flex items-center justify-center text-sm">?</span>
+                                        ¿Cómo quieres responder al Ayuntamiento de {msg.municipality?.name || 'este pueblo'}?
+                                    </h3>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                        {/* Option A: Me interesa, hablemos */}
+                                        <div className="space-y-4">
+                                            <button
+                                                onClick={() => setResponding({ id: msg.id, type: 'A' })}
+                                                className="w-full min-h-[56px] px-6 py-4 bg-emerald-600 text-white font-bold rounded-2xl hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-200 flex items-center justify-center gap-3 active:scale-95"
+                                            >
+                                                <span className="text-xl">🤝</span> Me interesa, hablemos
+                                            </button>
+
+                                            {responding?.id === msg.id && responding?.type === 'A' && (
+                                                <div className="bg-emerald-50 p-4 rounded-xl border border-emerald-100 animate-in fade-in zoom-in duration-300">
+                                                    <label className="flex items-start gap-3 cursor-pointer">
+                                                        <input
+                                                            type="checkbox"
+                                                            id="share-contact"
+                                                            checked={shareContact}
+                                                            onChange={(e) => setShareContact(e.target.checked)}
+                                                            className="mt-1 h-5 w-5 rounded border-emerald-300 text-emerald-600 focus:ring-emerald-500"
+                                                        />
+                                                        <span className="text-sm font-medium text-emerald-900 leading-tight">
+                                                            ¿Deseas compartir tus datos de contacto reales (Email/Teléfono) ahora?
+                                                        </span>
+                                                    </label>
+                                                    <button
+                                                        onClick={() => handleSupportResponse(msg.id, 'A')}
+                                                        className="w-full mt-4 bg-emerald-900 text-white py-2 rounded-lg font-bold text-sm"
+                                                    >
+                                                        Confirmar Interés
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {/* Option B: Chat Interno */}
                                         <button
-                                            onClick={async () => {
-                                                try {
-                                                    await axios.post(`/api/profiles/me/support-messages/${msg.id}/respond`, { status: 'accepted' });
-                                                    alert("¡Genial! El Ayuntamiento recibirá tu interés.");
-                                                    setSupportMessages(prev => prev.filter(m => m.id !== msg.id));
-                                                } catch (e) {
-                                                    alert("Error al responder.");
-                                                }
-                                            }}
-                                            className="px-6 py-3 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700 transition-all shadow-md shadow-emerald-600/20"
+                                            onClick={() => handleSupportResponse(msg.id, 'B')}
+                                            className="min-h-[56px] px-6 py-4 bg-emerald-100 text-emerald-800 font-bold rounded-2xl hover:bg-emerald-200 transition-all border border-emerald-200 flex items-center justify-center gap-3 active:scale-95"
                                         >
-                                            Responder 🤝
+                                            <span className="text-xl">💬</span> Interés Anónimo (Chat)
                                         </button>
+
+                                        {/* Option C: Ahora no */}
                                         <button
-                                            onClick={async () => {
-                                                try {
-                                                    await axios.post(`/api/profiles/me/support-messages/${msg.id}/respond`, { status: 'declined' });
-                                                    setSupportMessages(prev => prev.filter(m => m.id !== msg.id));
-                                                } catch (e) {
-                                                    alert("Error al procesar.");
-                                                }
-                                            }}
-                                            className="px-6 py-3 bg-gray-100 text-gray-500 font-bold rounded-xl hover:bg-gray-200 transition-all"
+                                            onClick={() => handleSupportResponse(msg.id, 'C')}
+                                            className="min-h-[56px] px-6 py-4 bg-gray-50 text-gray-500 font-bold rounded-2xl hover:bg-gray-100 transition-all border border-gray-200 flex items-center justify-center gap-3 active:scale-95"
                                         >
-                                            Ahora no
+                                            <span className="text-xl">✖️</span> Ahora no me encaja
                                         </button>
                                     </div>
-                                    <span className="text-[10px] uppercase tracking-widest font-black text-emerald-600/50">Recibido {new Date(msg.created_at).toLocaleDateString()}</span>
+
+                                    <p className="mt-6 text-center text-xs text-gray-400 uppercase tracking-widest font-black flex items-center justify-center gap-2">
+                                        <span className="w-1.5 h-1.5 bg-emerald-300 rounded-full animate-pulse"></span>
+                                        Seguridad Rural Minds: Tus datos no se revelarán sin tu permiso explícito
+                                    </p>
                                 </div>
                             </div>
                         ))}

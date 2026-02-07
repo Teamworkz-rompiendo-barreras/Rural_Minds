@@ -286,6 +286,10 @@ class MunicipalSupportMessage(Base):
     highlighted_need = Column(String, nullable=True) # The dynamic variable {{Necesidad_Sensorial_Destacada}}
     
     status = Column(String, default="sent") # sent, accepted, declined
+    response_type = Column(String, nullable=True) # A (Interested), B (Chat only), C (Not now)
+    privacy_consent_shared = Column(Boolean, default=False)
+    response_notes = Column(String, nullable=True)
+
     responded_at = Column(DateTime, nullable=True)
     
     created_at = Column(DateTime, default=datetime.datetime.utcnow)

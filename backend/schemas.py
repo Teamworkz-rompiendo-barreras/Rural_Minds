@@ -323,6 +323,9 @@ class MunicipalSupportMessage(MunicipalSupportMessageBase):
     municipality_id: uuid.UUID
     talent_profile_id: uuid.UUID
     status: str
+    response_type: Optional[str] = None
+    privacy_consent_shared: bool = False
+    response_notes: Optional[str] = None
     created_at: datetime
     responded_at: Optional[datetime] = None
 

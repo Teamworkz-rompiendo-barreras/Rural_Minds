@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List
+import uuid
 
 import models, schemas, auth, database
 
@@ -104,7 +105,7 @@ def get_my_support_messages(
 @router.post("/me/support-messages/{message_id}/respond")
 def respond_to_support_message(
     message_id: uuid.UUID,
-    payload: dict, # {"status": "accepted" | "declined"}
+    payload: dict, # {"response_type": "A" | "B" | "C", "privacy_consent": bool, "notes": str}
     current_user: models.User = Depends(auth.get_current_user), 
     db: Session = Depends(database.get_db)
 ):
@@ -119,13 +120,32 @@ def respond_to_support_message(
     if not msg:
         raise HTTPException(status_code=404, detail="Message not found")
         
-    status_val = payload.get("status")
-    if status_val not in ["accepted", "declined"]:
-        raise HTTPException(status_code=400, detail="Invalid status")
+    response_type = payload.get("response_type")
+    # Compatibility with old 'status' payload
+    if not response_type:
+        status_val = payload.get("status")
+        if status_val == "accepted":
+            response_type = "A"
+        elif status_val == "declined":
+            response_type = "C"
+        else:
+            raise HTTPException(status_code=400, detail="Invalid status or response_type")
+
+    if response_type not in ["A", "B", "C"]:
+        raise HTTPException(status_code=400, detail="Invalid response type")
         
     import datetime
-    msg.status = status_val
+    msg.response_type = response_type
+    msg.privacy_consent_shared = payload.get("privacy_consent", False)
+    msg.response_notes = payload.get("notes")
+    
+    # Map technical response_type to human status
+    if response_type in ["A", "B"]:
+        msg.status = "accepted"
+    else:
+        msg.status = "declined"
+        
     msg.responded_at = datetime.datetime.utcnow()
     
     db.commit()
-    return {"message": f"Message {status_val} successfully"}
+    return {"message": f"Response {response_type} submitted successfully"}
