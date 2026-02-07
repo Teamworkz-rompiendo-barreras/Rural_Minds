@@ -577,18 +577,22 @@ const MunicipalityDashboard: React.FC = () => {
                             {activeTab === 'talent' && (
                                 <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-500">
                                     {/* Necesidades Agregadas UI */}
-                                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                                         {[
                                             { label: 'Demanda de Fibra > 600Mb', value: `${sensoryStats.fiber_demand_pct || 0}%`, icon: '🌐', color: 'bg-blue-50 text-blue-700' },
                                             { label: 'Entornos Silenciosos', value: `${sensoryStats.quiet_environment_pct || 0}%`, icon: '🔇', color: 'bg-indigo-50 text-indigo-700' },
                                             { label: 'Necesidad de Luz Natural', value: `${sensoryStats.low_lighting_pct || 0}%`, icon: '💡', color: 'bg-yellow-50 text-yellow-700' },
                                             { label: 'Flexibilidad Horaria', value: `${sensoryStats.flexible_hours_pct || 0}%`, icon: '⏰', color: 'bg-emerald-50 text-emerald-700' }
                                         ].map((stat, i) => (
-                                            <div key={i} className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex items-center gap-4">
-                                                <div className={`w-10 h-10 rounded-xl ${stat.color} flex items-center justify-center text-lg`}>{stat.icon}</div>
-                                                <div>
-                                                    <p className="text-sm text-gray-400 font-bold uppercase tracking-wider">{stat.label}</p>
-                                                    <p className="text-xl font-bold text-n900">{stat.value}</p>
+                                            <div key={i} className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex items-start gap-3 min-w-0">
+                                                <div className={`w-10 h-10 rounded-xl ${stat.color} flex-shrink-0 flex items-center justify-center text-lg`}>
+                                                    {stat.icon}
+                                                </div>
+                                                <div className="min-w-0">
+                                                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest leading-tight mb-1 break-words">
+                                                        {stat.label}
+                                                    </p>
+                                                    <p className="text-lg font-bold text-n900">{stat.value}</p>
                                                 </div>
                                             </div>
                                         ))}
