@@ -308,3 +308,23 @@ class OnboardingTask(OnboardingTaskBase):
     
     class Config:
         from_attributes = True
+
+# --- Municipal Support Messages ---
+class MunicipalSupportMessageBase(BaseModel):
+    content: str
+    subject: Optional[str] = None
+    highlighted_need: Optional[str] = None
+
+class MunicipalSupportMessageCreate(MunicipalSupportMessageBase):
+    pass
+
+class MunicipalSupportMessage(MunicipalSupportMessageBase):
+    id: uuid.UUID
+    municipality_id: uuid.UUID
+    talent_profile_id: uuid.UUID
+    status: str
+    created_at: datetime
+    responded_at: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True

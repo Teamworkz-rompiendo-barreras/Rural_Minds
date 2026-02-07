@@ -215,6 +215,7 @@ class TalentProfile(Base):
     updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
     
     user = relationship("User", backref=backref("talent_profile", cascade="all, delete-orphan"))
+    support_messages = relationship("MunicipalSupportMessage", back_populates="talent_profile")
 
 class AuditLog(Base):
     """Tracks admin-relevant events and errors for support/auditing."""
@@ -271,6 +272,26 @@ class Message(Base):
     
     application = relationship("Application", backref="messages")
     sender = relationship("User")
+
+class MunicipalSupportMessage(Base):
+    __tablename__ = "municipal_support_messages"
+
+    id = Column(GUID, primary_key=True, default=uuid.uuid4, index=True)
+    municipality_id = Column(GUID, ForeignKey("organizations.id"), nullable=False, index=True)
+    talent_profile_id = Column(GUID, ForeignKey("talent_profiles.id"), nullable=False, index=True)
+    
+    subject = Column(String, nullable=True) # Subject: El Ayuntamiento de {{Nombre_Municipio}} tiene un mensaje para ti 🌿
+    content = Column(String, nullable=False)
+    
+    highlighted_need = Column(String, nullable=True) # The dynamic variable {{Necesidad_Sensorial_Destacada}}
+    
+    status = Column(String, default="sent") # sent, accepted, declined
+    responded_at = Column(DateTime, nullable=True)
+    
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    
+    municipality = relationship("Organization")
+    talent_profile = relationship("TalentProfile", back_populates="support_messages")
 
 class LegalConsent(Base):
     __tablename__ = "legal_consents"

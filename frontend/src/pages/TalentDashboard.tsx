@@ -45,6 +45,9 @@ const TalentDashboard: React.FC = () => {
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [matchedApplication, setMatchedApplication] = useState<Application | null>(null);
 
+    // Municipal Support State
+    const [supportMessages, setSupportMessages] = useState<any[]>([]);
+
     // Filters State
     const [locationFilter, _setLocationFilter] = useState('Todos');
     const [sensoryFilters, setSensoryFilters] = useState({
@@ -79,6 +82,10 @@ const TalentDashboard: React.FC = () => {
                     });
                     setShowSuccessModal(true);
                 }
+
+                // 3. Fetch Municipal Support Messages
+                const supportRes = await axios.get('/api/profiles/me/support-messages');
+                setSupportMessages(supportRes.data.filter((m: any) => m.status === 'sent'));
 
             } catch (error) {
                 console.error("Error fetching data:", error);
@@ -141,6 +148,64 @@ const TalentDashboard: React.FC = () => {
                     Encuentra proyectos alineados con tus habilidades y <span className="font-bold text-p2">tu perfil sensorial</span>.
                 </p>
             </header>
+
+            {/* Municipal Support Offers Section */}
+            {supportMessages.length > 0 && (
+                <section className="bg-emerald-50 border border-emerald-100 rounded-[2rem] p-8 lg:p-10 shadow-sm animate-in fade-in slide-in-from-top duration-700">
+                    <div className="flex items-center gap-4 mb-6">
+                        <div className="bg-emerald-600 text-white p-3 rounded-2xl text-2xl shadow-lg shadow-emerald-200">🏘️</div>
+                        <div>
+                            <h2 className="text-2xl font-heading font-black text-n900">Centro de Apoyo Municipal</h2>
+                            <p className="text-emerald-800/80 font-medium">Ayuntamientos rurales interesados en tu perfil</p>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-6">
+                        {supportMessages.map((msg) => (
+                            <div key={msg.id} className="bg-white p-6 rounded-2xl border border-emerald-100 shadow-sm hover:shadow-md transition-all">
+                                <h3 className="font-bold text-lg text-n900 mb-2 flex items-center gap-2">
+                                    <span className="text-emerald-500">✉️</span> {msg.subject}
+                                </h3>
+                                <div className="bg-gray-50 p-4 rounded-xl mb-6 text-sm text-gray-700 whitespace-pre-wrap leading-relaxed italic border-l-4 border-emerald-500">
+                                    "{msg.content}"
+                                </div>
+                                <div className="flex flex-wrap gap-4 items-center justify-between">
+                                    <div className="flex gap-3">
+                                        <button
+                                            onClick={async () => {
+                                                try {
+                                                    await axios.post(`/api/profiles/me/support-messages/${msg.id}/respond`, { status: 'accepted' });
+                                                    alert("¡Genial! El Ayuntamiento recibirá tu interés.");
+                                                    setSupportMessages(prev => prev.filter(m => m.id !== msg.id));
+                                                } catch (e) {
+                                                    alert("Error al responder.");
+                                                }
+                                            }}
+                                            className="px-6 py-3 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700 transition-all shadow-md shadow-emerald-600/20"
+                                        >
+                                            Responder 🤝
+                                        </button>
+                                        <button
+                                            onClick={async () => {
+                                                try {
+                                                    await axios.post(`/api/profiles/me/support-messages/${msg.id}/respond`, { status: 'declined' });
+                                                    setSupportMessages(prev => prev.filter(m => m.id !== msg.id));
+                                                } catch (e) {
+                                                    alert("Error al procesar.");
+                                                }
+                                            }}
+                                            className="px-6 py-3 bg-gray-100 text-gray-500 font-bold rounded-xl hover:bg-gray-200 transition-all"
+                                        >
+                                            Ahora no
+                                        </button>
+                                    </div>
+                                    <span className="text-[10px] uppercase tracking-widest font-black text-emerald-600/50">Recibido {new Date(msg.created_at).toLocaleDateString()}</span>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </section>
+            )}
 
             {/* Main Layout: Filters (Left) + Grid (Right) */}
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">

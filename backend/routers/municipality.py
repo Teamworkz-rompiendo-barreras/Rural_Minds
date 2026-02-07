@@ -227,13 +227,25 @@ def get_local_talent(
     ).all()
     
     # Anonymous profiles
-    return [{
-        "id": p.id,
-        "skills": p.skills,
-        "work_style": p.work_style,
-        "created_at": p.created_at,
-        "needs_housing": p.preferences.get('needs_housing', False) if p.preferences else False
-    } for p in profiles]
+    results = []
+    for p in profiles:
+        # Check if already contacted by this municipality
+        contact = db.query(models.MunicipalSupportMessage).filter(
+            models.MunicipalSupportMessage.municipality_id == current_user.organization_id,
+            models.MunicipalSupportMessage.talent_profile_id == p.id
+        ).order_by(models.MunicipalSupportMessage.created_at.desc()).first()
+        
+        results.append({
+            "id": p.id,
+            "pseudonym": f"RM-{str(p.id)[:4].upper()}",
+            "skills": p.skills,
+            "work_style": p.work_style,
+            "created_at": p.created_at,
+            "needs_housing": p.preferences.get('needs_housing', False) if p.preferences else False,
+            "contacted_at": contact.created_at if contact else None,
+            "contact_status": contact.status if contact else None
+        })
+    return results
 
 @router.get("/talent/attraction")
 def get_talent_attraction(
@@ -258,13 +270,22 @@ def get_talent_attraction(
     for p in candidates:
         if p.target_locations and isinstance(p.target_locations, list):
             if loc_id_str in p.target_locations:
+                # Check if already contacted
+                contact = db.query(models.MunicipalSupportMessage).filter(
+                    models.MunicipalSupportMessage.municipality_id == current_user.organization_id,
+                    models.MunicipalSupportMessage.talent_profile_id == p.id
+                ).order_by(models.MunicipalSupportMessage.created_at.desc()).first()
+                
                 results.append({
                     "id": p.id,
+                    "pseudonym": f"RM-{str(p.id)[:4].upper()}",
                     "full_name": p.user.full_name if p.user else "Talento Interesado",
                     "email": p.user.email if p.user else "N/A",
                     "skills": p.skills,
                     "from_location": p.residence_location.municipality if p.residence_location else "Fuera",
-                    "needs_housing": p.preferences.get('needs_housing', False) if p.preferences else False
+                    "needs_housing": p.preferences.get('needs_housing', False) if p.preferences else False,
+                    "contacted_at": contact.created_at if contact else None,
+                    "contact_status": contact.status if contact else None
                 })
     return results
 
@@ -381,21 +402,65 @@ def update_municipality_profile_details(
     db.commit()
     return {"message": "Profile updated successfully"}
 
-@router.post("/talent/{talent_id}/contact")
+@router.post("/talent/{talent_id}/contact", response_model=schemas.MunicipalSupportMessage)
 def contact_talent(
     talent_id: uuid.UUID,
+    payload: schemas.MunicipalSupportMessageCreate,
     db: Session = Depends(database.get_db),
     current_user: models.User = Depends(auth.get_current_user)
 ):
     if current_user.role not in ["territory_admin", "municipality"]:
         raise HTTPException(status_code=403, detail="Permission denied")
     
-    talent = db.query(models.User).join(models.TalentProfile).filter(models.TalentProfile.id == talent_id).first()
-    if not talent:
+    org = db.query(models.Organization).filter(models.Organization.id == current_user.organization_id).first()
+    if not org:
+        raise HTTPException(status_code=404, detail="Municipality Org not found")
+        
+    talent_profile = db.query(models.TalentProfile).filter(models.TalentProfile.id == talent_id).first()
+    if not talent_profile:
         raise HTTPException(status_code=404, detail="Talent not found")
         
-    # Logic to register contact intent or send supportive message
-    return {"message": f"Solicitud de contacto enviada a {talent.full_name or talent.email}"}
+    # Pick "Most Important Sensory Need"
+    acc_profile = db.query(models.AccessibilityProfile).filter(models.AccessibilityProfile.user_id == talent_profile.user_id).first()
+    
+    important_need = "espacios adaptados" # Default
+    if acc_profile and acc_profile.sensory_needs:
+        mains = []
+        for k, v in acc_profile.sensory_needs.items():
+            if v in ['high', 'low']: # 'low' for noise/lighting, 'high' for internet/flexibility
+                mains.append(k)
+        
+        # Mapping key names to natural Spanish
+        need_labels = {
+            "internet": "una conexión a internet de alta velocidad",
+            "noise": "un entorno silencioso para trabajar",
+            "lighting": "una iluminación natural controlada",
+            "flexibility": "una flexibilidad horaria total"
+        }
+        if mains:
+            important_need = need_labels.get(mains[0], important_need)
+
+    # Dynamic Variables Substitution
+    msg_content = payload.content
+    msg_content = msg_content.replace("{{ID_Talento}}", f"RM-{str(talent_profile.id)[:4].upper()}")
+    msg_content = msg_content.replace("{{Nombre_Municipio}}", org.name)
+    msg_content = msg_content.replace("{{Necesidad_Sensorial_Destacada}}", important_need)
+
+    new_msg = models.MunicipalSupportMessage(
+        id=uuid.uuid4(),
+        municipality_id=org.id,
+        talent_profile_id=talent_profile.id,
+        subject=f"El Ayuntamiento de {org.name} tiene un mensaje para ti 🌿",
+        content=msg_content,
+        highlighted_need=important_need,
+        status="sent"
+    )
+    
+    db.add(new_msg)
+    db.commit()
+    db.refresh(new_msg)
+    
+    return new_msg
 
 @router.get("/stats")
 def get_municipality_stats(

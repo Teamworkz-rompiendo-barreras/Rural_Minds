@@ -33,7 +33,7 @@ def request_adjustment(
 ):
     log = models.AdjustmentsLog(
         id=uuid.uuid4(),
-        organization_id=current_user.organization_id,
+        organization_id=current_user.organization_id if current_user.organization_id else None,
         user_id=current_user.id,
         adjustment_type=req.solution_title,
         status="requested",

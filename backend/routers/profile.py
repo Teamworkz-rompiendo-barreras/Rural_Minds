@@ -84,3 +84,48 @@ def update_my_profile(profile_update: schemas.TalentProfileCreate, current_user:
                 )
 
     return profile
+
+@router.get("/me/support-messages", response_model=List[schemas.MunicipalSupportMessage])
+def get_my_support_messages(
+    current_user: models.User = Depends(auth.get_current_user), 
+    db: Session = Depends(database.get_db)
+):
+    if current_user.role != "talent":
+        raise HTTPException(status_code=403, detail="Only talent users can access these messages")
+    
+    profile = current_user.talent_profile
+    if not profile:
+        return []
+        
+    return db.query(models.MunicipalSupportMessage).filter(
+        models.MunicipalSupportMessage.talent_profile_id == profile.id
+    ).order_by(models.MunicipalSupportMessage.created_at.desc()).all()
+
+@router.post("/me/support-messages/{message_id}/respond")
+def respond_to_support_message(
+    message_id: uuid.UUID,
+    payload: dict, # {"status": "accepted" | "declined"}
+    current_user: models.User = Depends(auth.get_current_user), 
+    db: Session = Depends(database.get_db)
+):
+    if current_user.role != "talent":
+        raise HTTPException(status_code=403, detail="Permission denied")
+        
+    msg = db.query(models.MunicipalSupportMessage).filter(
+        models.MunicipalSupportMessage.id == message_id,
+        models.MunicipalSupportMessage.talent_profile_id == current_user.talent_profile.id
+    ).first()
+    
+    if not msg:
+        raise HTTPException(status_code=404, detail="Message not found")
+        
+    status_val = payload.get("status")
+    if status_val not in ["accepted", "declined"]:
+        raise HTTPException(status_code=400, detail="Invalid status")
+        
+    import datetime
+    msg.status = status_val
+    msg.responded_at = datetime.datetime.utcnow()
+    
+    db.commit()
+    return {"message": f"Message {status_val} successfully"}

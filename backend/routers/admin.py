@@ -97,10 +97,10 @@ def get_global_stats(
     
     return {
         "kpis": {
-            "rooting_index": rooting_index,
             "attraction_rate": attraction_rate,
             "sealed_companies": sealed_companies,
-            "active_municipalities": active_municipalities
+            "active_municipalities": active_municipalities,
+            "kindness_counter": db.query(models.MunicipalSupportMessage).count()
         },
         "total_organizations": total_orgs,
         "total_users": total_users,

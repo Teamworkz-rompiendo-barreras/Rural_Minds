@@ -9,6 +9,7 @@ interface KPI {
     attraction_rate: number;
     sealed_companies: number;
     active_municipalities: number;
+    kindness_counter: number;
 }
 
 interface HeatmapData {
@@ -175,6 +176,13 @@ const SuperAdminDashboard: React.FC = () => {
                     subtitle="Ayuntamientos conectados"
                     icon="🏛️"
                     color="purple"
+                />
+                <KpiCard
+                    title="Contador de Amabilidad"
+                    value={kpis?.kindness_counter || 0}
+                    subtitle="Apoyos proactivos enviados"
+                    icon="🤝"
+                    color="pink"
                 />
             </section>
 
@@ -368,6 +376,7 @@ const KpiCard: React.FC<{ title: string, value: string | number, subtitle: strin
         blue: 'border-blue-500 text-blue-600',
         yellow: 'border-yellow-500 text-yellow-600',
         purple: 'border-purple-500 text-purple-600',
+        pink: 'border-pink-500 text-pink-600',
     };
 
     return (

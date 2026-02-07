@@ -51,8 +51,8 @@ def update_accessibility(
     db: Session = Depends(database.get_db),
     current_user: models.User = Depends(auth.get_current_user)
 ):
-    if not current_user.organization_id:
-        raise HTTPException(status_code=400, detail="El usuario requiere una organización para registrar la evidencia.")
+    # Relaxed rule: Organization not strictly required to save basic accessibility preferences
+    # But strictly required to log corporate evidence
 
     profile = db.query(models.AccessibilityProfile).filter(models.AccessibilityProfile.user_id == current_user.id).first()
     if not profile:
@@ -77,8 +77,8 @@ def update_accessibility(
     db.commit()
     db.refresh(profile)
     
-    # STRICT RULE: Log to Adjustments_Log
-    if changes:
+    # STRICT RULE: Log to Adjustments_Log ONLY if user has an organization
+    if changes and current_user.organization_id:
         for change in changes:
             log_entry = models.AdjustmentsLog(
                 id=uuid.uuid4(),
