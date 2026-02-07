@@ -128,6 +128,7 @@ def diag():
             if hasattr(route, "path"):
                 methods = list(route.methods) if hasattr(route, "methods") else []
                 routes.append(f"{methods} {route.path}")
+        info["routes_count"] = len(real_app.routes)
         info["registered_routes"] = routes
     except Exception as e:
         errors.append(f"failed to import main app: {e}")
