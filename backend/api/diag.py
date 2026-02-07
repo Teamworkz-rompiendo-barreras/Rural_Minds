@@ -17,11 +17,12 @@ def diag():
     
     # Add parent directory to path to allow importing backend modules
     sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    db_url = os.getenv("DATABASE_URL", "not_set")
     info = {
         "python_version": sys.version,
         "platform": sys.platform,
         "vercel": os.getenv("VERCEL", "not_set"),
-        "database_url": "set" if os.getenv("DATABASE_URL") else "not_set"
+        "database_url_masked": db_url[:20] + "***" if db_url != "not_set" else "not_set"
     }
     
     # Try imports one by one to find the problematic one
