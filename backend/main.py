@@ -99,7 +99,11 @@ app.include_router(config.router)
 
 @app.get("/status")
 def health_check():
-    return {"status": "ok", "environment": "production" if os.getenv("VERCEL") else "development"}
+    return {
+        "status": "ok", 
+        "version": "v1.1-fixed-profile", 
+        "environment": "production" if os.getenv("VERCEL") else "development"
+    }
     
 @app.get("/")
 def read_root():

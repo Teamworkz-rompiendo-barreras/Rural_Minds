@@ -210,7 +210,7 @@ const TalentProfileWizard: React.FC = () => {
                 <div className="w-32 h-32 mx-auto bg-primary rounded-full flex items-center justify-center mb-6">
                     <span className="text-5xl text-accent">✨</span>
                 </div>
-                <h1 className="text-4xl font-heading font-bold text-primary mb-4">Bienvenido a Teamworkz</h1>
+                <h1 className="text-4xl font-heading font-bold text-primary mb-4">Bienvenido a Teamworkz (v1.1)</h1>
                 <p className="text-xl text-gray-600 max-w-md mx-auto leading-relaxed">
                     Vamos a preparar tu entorno de trabajo ideal en solo unos pasos.
                 </p>
