@@ -44,6 +44,18 @@ const MunicipalityDashboard: React.FC = () => {
     const [loadingTabs, setLoadingTabs] = useState(false);
     const [showContactModal, setShowContactModal] = useState(false);
 
+    // Municipal Support Initiative Modal State
+    const [supportModalOpen, setSupportModalOpen] = useState(false);
+    const [selectedTalent, setSelectedTalent] = useState<any>(null);
+    const [contactMsg, setContactMsg] = useState('');
+    const [sendingContact, setSendingContact] = useState(false);
+
+    const CONTACT_TEMPLATES = {
+        mudanza: "Hola, hemos visto que te interesa nuestro pueblo. Queremos ayudarte con la búsqueda de vivienda y servicios escolares.",
+        tech: "Hola, disponemos de un espacio de Coworking con fibra de 1Gb y zonas de descanso sensorial. ¿Te gustaría saber más?",
+        arraigo: "Hola, como vecino/a de nuestro municipio, queremos informarte de las ayudas locales para el empleo que tenemos disponibles para ti."
+    };
+
     // Profile Editor State
     const [showProfileEditor, setShowProfileEditor] = useState(false);
     const [profileData, setProfileData] = useState<any>({
@@ -205,12 +217,25 @@ const MunicipalityDashboard: React.FC = () => {
         document.body.removeChild(link);
     };
 
-    const handleContactTalent = async (talentId: string) => {
+    const handleContactTalent = (talent: any) => {
+        setSelectedTalent(talent);
+        setContactMsg('');
+        setSupportModalOpen(true);
+    };
+
+    const submitContactMessage = async () => {
+        if (!selectedTalent) return;
+        setSendingContact(true);
         try {
-            await axios.post(`/municipality/talent/${talentId}/contact`);
-            alert("Mensaje de apoyo enviado al talento interesado.");
+            await axios.post(`/municipality/talent/${selectedTalent.id}/contact`, {
+                message: contactMsg
+            });
+            alert("Iniciativa de apoyo enviada con éxito.");
+            setSupportModalOpen(false);
         } catch (err) {
-            alert("Error al contactar.");
+            alert("Error al enviar el mensaje de apoyo.");
+        } finally {
+            setSendingContact(false);
         }
     };
 
@@ -652,7 +677,10 @@ const MunicipalityDashboard: React.FC = () => {
                                                                     </span>
                                                                 </td>
                                                                 <td className="px-6 py-4 text-right">
-                                                                    <button className="text-xs font-bold bg-white border border-[#F2D680] text-n900 px-4 py-2 rounded-xl hover:bg-[#F2D680] transition-all shadow-sm">
+                                                                    <button
+                                                                        onClick={() => handleContactTalent({ ..._t, pseudonym: `RM-${429 + i}` })}
+                                                                        className="text-xs font-bold bg-white border border-[#F2D680] text-n900 px-4 py-2 rounded-xl hover:bg-[#F2D680] transition-all shadow-sm"
+                                                                    >
                                                                         Validar Residencia
                                                                     </button>
                                                                 </td>
@@ -693,7 +721,7 @@ const MunicipalityDashboard: React.FC = () => {
                                                                 <td className="px-6 py-4 text-right">
                                                                     <div className="flex justify-end gap-2 text-xs font-black uppercase tracking-tighter">
                                                                         <button
-                                                                            onClick={() => handleContactTalent(t.id)}
+                                                                            onClick={() => handleContactTalent({ ...t, pseudonym: `RM-${102 + i}` })}
                                                                             className="text-gray-400 hover:text-n900 underline decoration-gray-200 transition-colors"
                                                                         >
                                                                             Contactar
@@ -1148,7 +1176,7 @@ const MunicipalityDashboard: React.FC = () => {
                                                 </div>
                                             </div>
                                             <button
-                                                onClick={() => handleContactTalent(t.id)}
+                                                onClick={() => handleContactTalent(t)}
                                                 className="px-4 py-2 bg-emerald-600 text-white text-xs font-bold rounded-lg hover:bg-emerald-700 transition-all font-bold"
                                             >
                                                 Contactar 📩
@@ -1287,6 +1315,96 @@ const MunicipalityDashboard: React.FC = () => {
                                 <button
                                     onClick={() => setShowProfileEditor(false)}
                                     className="px-8 bg-gray-100 text-gray-600 font-bold py-4 rounded-xl hover:bg-gray-200 transition-all"
+                                >
+                                    Cancelar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )
+            }
+
+            {/* Municipal Support Initiative Modal */}
+            {
+                supportModalOpen && (
+                    <div className="fixed inset-0 bg-n900/70 backdrop-blur-md z-[60] flex items-center justify-center p-4">
+                        <div className="bg-white rounded-[2.5rem] shadow-2xl max-w-2xl w-full p-8 lg:p-10 relative animate-in slide-in-from-bottom duration-500">
+                            <button
+                                onClick={() => setSupportModalOpen(false)}
+                                className="absolute top-8 right-8 w-10 h-10 flex items-center justify-center rounded-full bg-gray-50 text-gray-400 hover:bg-gray-100 hover:text-n900 transition-all"
+                            >
+                                ✕
+                            </button>
+
+                            <div className="flex items-center gap-4 mb-8">
+                                <div className="bg-p2/10 text-p2 p-4 rounded-2xl text-3xl">🤝</div>
+                                <div>
+                                    <h3 className="text-3xl font-heading font-extrabold text-n900">Iniciativa de Apoyo Municipal</h3>
+                                    <p className="text-gray-500 font-medium">Contactar con Candidato <span className="text-p2 font-bold">{selectedTalent?.pseudonym}</span></p>
+                                </div>
+                            </div>
+
+                            <div className="p-4 bg-blue-50 border border-blue-100 rounded-2xl mb-8 flex items-start gap-3">
+                                <span className="text-blue-500 mt-0.5">ℹ️</span>
+                                <p className="text-sm text-blue-800 leading-relaxed">
+                                    Estás enviando este mensaje en nombre del <strong>Ayuntamiento de {user?.organization?.name}</strong>. El objetivo es facilitar el aterrizaje o la integración del talento en tu municipio.
+                                </p>
+                            </div>
+
+                            <div className="mb-8">
+                                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">¿Qué quieres ofrecerle?</label>
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                    <button
+                                        onClick={() => setContactMsg(CONTACT_TEMPLATES.mudanza)}
+                                        className="p-4 rounded-xl border-2 border-gray-100 hover:border-p2 transition-all text-left bg-gray-50/50 group"
+                                    >
+                                        <span className="text-2xl block mb-2">🏠</span>
+                                        <span className="text-sm font-bold text-n900">Apoyo Mudanza</span>
+                                        <span className="text-[10px] block text-gray-400 leading-tight mt-1 group-hover:text-p2">Vivienda y Colegios</span>
+                                    </button>
+                                    <button
+                                        onClick={() => setContactMsg(CONTACT_TEMPLATES.tech)}
+                                        className="p-4 rounded-xl border-2 border-gray-100 hover:border-blue-500 transition-all text-left bg-gray-50/50 group"
+                                    >
+                                        <span className="text-2xl block mb-2">💻</span>
+                                        <span className="text-sm font-bold text-n900">Infra Tech</span>
+                                        <span className="text-[10px] block text-gray-400 leading-tight mt-1 group-hover:text-blue-500">Fibra y Coworking</span>
+                                    </button>
+                                    <button
+                                        onClick={() => setContactMsg(CONTACT_TEMPLATES.arraigo)}
+                                        className="p-4 rounded-xl border-2 border-gray-100 hover:border-emerald-500 transition-all text-left bg-gray-50/50 group"
+                                    >
+                                        <span className="text-2xl block mb-2">🌱</span>
+                                        <span className="text-sm font-bold text-n900">Apoyo Local</span>
+                                        <span className="text-[10px] block text-gray-400 leading-tight mt-1 group-hover:text-emerald-500">Empleo y Vecindad</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div className="mb-8">
+                                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Personaliza tu mensaje</label>
+                                <textarea
+                                    className="w-full h-40 p-5 bg-gray-50 border border-gray-100 rounded-3xl outline-none focus:ring-2 focus:ring-p2 transition-all text-sm leading-relaxed"
+                                    placeholder="Escribe aquí tu mensaje personalizado..."
+                                    value={contactMsg}
+                                    onChange={(e) => setContactMsg(e.target.value)}
+                                />
+                                <p className="text-[10px] text-gray-400 mt-2 italic px-2">
+                                    * Consejo: Menciona necesidades sensoriales específicas si las has detectado en su perfil.
+                                </p>
+                            </div>
+
+                            <div className="flex gap-4">
+                                <button
+                                    onClick={submitContactMessage}
+                                    disabled={sendingContact || !contactMsg}
+                                    className="flex-1 bg-p2 text-white font-bold py-5 rounded-2xl hover:bg-p2/90 transition-all shadow-xl shadow-p2/20 flex items-center justify-center gap-2"
+                                >
+                                    {sendingContact ? 'Enviando...' : '🚀 Enviar Iniciativa de Apoyo'}
+                                </button>
+                                <button
+                                    onClick={() => setSupportModalOpen(false)}
+                                    className="px-10 bg-gray-100 text-gray-500 font-bold py-5 rounded-2xl hover:bg-gray-200 transition-all"
                                 >
                                     Cancelar
                                 </button>
