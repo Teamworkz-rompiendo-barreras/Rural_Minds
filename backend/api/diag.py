@@ -120,5 +120,13 @@ def diag():
     except Exception as e:
         errors.append(f"email_service: {e}")
 
+    # List all registered routes
+    routes = []
+    for route in app.routes:
+        if hasattr(route, "path"):
+            methods = list(route.methods) if hasattr(route, "methods") else []
+            routes.append(f"{methods} {route.path}")
+    info["registered_routes"] = routes
+
     info["errors"] = errors
     return info
