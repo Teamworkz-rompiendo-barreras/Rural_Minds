@@ -124,8 +124,8 @@ const MunicipalityDashboard: React.FC = () => {
     const fetchData = async () => {
         try {
             const [statsRes, statusRes] = await Promise.all([
-                axios.get('/municipality/stats'),
-                axios.get('/municipality/companies-status')
+                axios.get('/api/municipality/stats'),
+                axios.get('/api/municipality/companies-status')
             ]);
             setMetrics(statsRes.data);
             setInvitationStatus(statusRes.data);
@@ -138,7 +138,7 @@ const MunicipalityDashboard: React.FC = () => {
     const fetchVacancies = async () => {
         setLoadingTabs(true);
         try {
-            const res = await axios.get('/municipality/vacancies');
+            const res = await axios.get('/api/municipality/vacancies');
             setVacancies(res.data);
         } catch (err) {
             console.error(err);
@@ -150,7 +150,7 @@ const MunicipalityDashboard: React.FC = () => {
     const fetchExcellence = async () => {
         setLoadingTabs(true);
         try {
-            const res = await axios.get('/municipality/excellence-companies');
+            const res = await axios.get('/api/municipality/excellence-companies');
             setExcellenceCompanies(res.data);
         } catch (err) {
             console.error(err);
@@ -163,9 +163,9 @@ const MunicipalityDashboard: React.FC = () => {
         setLoadingTabs(true);
         try {
             const [localRes, attractionRes, statsRes] = await Promise.all([
-                axios.get('/municipality/talent/local'),
-                axios.get('/municipality/talent/attraction'),
-                axios.get('/municipality/talent/sensory-stats')
+                axios.get('/api/municipality/talent/local'),
+                axios.get('/api/municipality/talent/attraction'),
+                axios.get('/api/municipality/talent/sensory-stats')
             ]);
             setLocalTalent(localRes.data);
             setAttractionTalent(attractionRes.data);
@@ -179,7 +179,7 @@ const MunicipalityDashboard: React.FC = () => {
 
     const fetchProfileData = async () => {
         try {
-            const res = await axios.get('/municipality/profile/details');
+            const res = await axios.get('/api/municipality/profile/details');
             setProfileData(res.data);
         } catch (err) {
             console.error("Error fetching profile details", err);
@@ -189,7 +189,7 @@ const MunicipalityDashboard: React.FC = () => {
     const handleSaveProfile = async () => {
         setSavingProfile(true);
         try {
-            await axios.put('/municipality/profile/details', profileData);
+            await axios.put('/api/municipality/profile/details', profileData);
             alert("Configuración de ficha municipal guardada.");
             setShowProfileEditor(false);
         } catch (err) {
@@ -201,7 +201,7 @@ const MunicipalityDashboard: React.FC = () => {
 
     const handleSendWelcome = async (talentId: string) => {
         try {
-            await axios.post(`/municipality/talent/${talentId}/welcome`);
+            await axios.post(`/api/municipality/talent/${talentId}/welcome`);
             alert("Guía de bienvenida enviada correctamente.");
         } catch (err) {
             alert("Error al enviar la bienvenida.");
@@ -246,7 +246,7 @@ const MunicipalityDashboard: React.FC = () => {
         if (!selectedTalent) return;
         setSendingContact(true);
         try {
-            await axios.post(`/municipality/talent/${selectedTalent.id}/contact`, {
+            await axios.post(`/api/municipality/talent/${selectedTalent.id}/contact`, {
                 content: contactMsg
             });
             alert("Iniciativa de apoyo enviada con éxito.");
@@ -285,7 +285,7 @@ const MunicipalityDashboard: React.FC = () => {
         setInviting(true);
         const emailList = inviteEmails.split('\n').map(e => e.trim()).filter(e => e);
         try {
-            await axios.post('/municipality/invite-companies', {
+            await axios.post('/api/municipality/invite-companies', {
                 emails: emailList,
                 signature: `${user?.organization?.name || 'Ayuntamiento'}`
             });

@@ -7,7 +7,7 @@ import database, models, auth, schemas
 from utils.email_service import send_company_invitation_email
 
 router = APIRouter(
-    prefix="/municipality",
+    prefix="/api/municipality",
     tags=["municipality"],
 )
 
