@@ -584,15 +584,15 @@ const MunicipalityDashboard: React.FC = () => {
                                             { label: 'Necesidad de Luz Natural', value: `${sensoryStats.low_lighting_pct || 0}%`, icon: '💡', color: 'bg-yellow-50 text-yellow-700' },
                                             { label: 'Flexibilidad Horaria', value: `${sensoryStats.flexible_hours_pct || 0}%`, icon: '⏰', color: 'bg-emerald-50 text-emerald-700' }
                                         ].map((stat, i) => (
-                                            <div key={i} className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex items-start gap-3 min-w-0">
-                                                <div className={`w-10 h-10 rounded-xl ${stat.color} flex-shrink-0 flex items-center justify-center text-lg`}>
+                                            <div key={i} className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col items-center text-center gap-3 min-w-0 transition-all hover:shadow-md">
+                                                <div className={`w-12 h-12 rounded-2xl ${stat.color} flex-shrink-0 flex items-center justify-center text-2xl shadow-sm`} aria-hidden="true">
                                                     {stat.icon}
                                                 </div>
-                                                <div className="min-w-0">
-                                                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest leading-tight mb-1 break-words">
+                                                <div className="w-full">
+                                                    <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest leading-tight mb-2 min-h-[2.5rem] flex items-center justify-center">
                                                         {stat.label}
                                                     </p>
-                                                    <p className="text-lg font-bold text-n900">{stat.value}</p>
+                                                    <p className="text-2xl font-black text-n900">{stat.value}</p>
                                                 </div>
                                             </div>
                                         ))}
