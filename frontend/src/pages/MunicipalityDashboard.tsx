@@ -246,7 +246,7 @@ const MunicipalityDashboard: React.FC = () => {
         if (!selectedTalent) return;
         setSendingContact(true);
         try {
-            const resp = await axios.post(`/municipality/talent/${selectedTalent.id}/contact`, {
+            await axios.post(`/municipality/talent/${selectedTalent.id}/contact`, {
                 content: contactMsg
             });
             alert("Iniciativa de apoyo enviada con éxito.");
