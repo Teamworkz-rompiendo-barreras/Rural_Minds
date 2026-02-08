@@ -36,7 +36,9 @@ const FlowArcs: React.FC<{ flows: Flow[], points: Point[] }> = ({ flows, points 
     // Convert points array to a map for easy lookup
     const pointsMap = useMemo(() => {
         const m = new Map<string, Point>();
-        points.forEach(p => m.set(p.id, p));
+        if (Array.isArray(points)) {
+            points.forEach(p => m.set(p.id, p));
+        }
         return m;
     }, [points]);
 
@@ -144,22 +146,24 @@ const ImpactMap: React.FC = () => {
     if (error) return <div className="p-10 bg-red-50 text-red-700 rounded-xl border border-red-100">{error}</div>;
 
     const summaryData = useMemo(() => {
-        if (!data) return [];
+        if (!data || !data.points || !data.flows) return [];
         // Group by destination to show "X people want to go to Sigüenza"
         const stats = new Map<string, { name: string, province: string, interest: number, success: number }>();
 
-        data.flows.forEach(f => {
-            const dest = data.points.find(p => p.id === f.target_id);
-            if (!dest) return;
+        if (Array.isArray(data.flows)) {
+            data.flows.forEach(f => {
+                const dest = data.points.find(p => p.id === f.target_id);
+                if (!dest) return;
 
-            if (!stats.has(f.target_id)) {
-                stats.set(f.target_id, { name: dest.name, province: dest.province, interest: 0, success: 0 });
-            }
+                if (!stats.has(f.target_id)) {
+                    stats.set(f.target_id, { name: dest.name, province: dest.province, interest: 0, success: 0 });
+                }
 
-            const s = stats.get(f.target_id)!;
-            if (f.status === 'success') s.success += f.count;
-            else s.interest += f.count;
-        });
+                const s = stats.get(f.target_id)!;
+                if (f.status === 'success') s.success += f.count;
+                else s.interest += f.count;
+            });
+        }
 
         return Array.from(stats.values()).sort((a, b) => (b.interest + b.success) - (a.interest + a.success));
     }, [data]);
