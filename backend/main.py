@@ -81,6 +81,9 @@ app.include_router(organizations.router)
 from routers import municipality
 app.include_router(municipality.router)
 
+from routers import analytics_matches
+app.include_router(analytics_matches.router)
+
 from fastapi.staticfiles import StaticFiles
 # Ensure static directory exists
 try:

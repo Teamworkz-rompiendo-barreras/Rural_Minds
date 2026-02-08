@@ -5,6 +5,7 @@ import { PDFDownloadLink, pdf } from '@react-pdf/renderer';
 import InclusionManualPDF from '../components/InclusionManualPDF';
 import MunicipalityReportPDF from '../components/pdf/MunicipalityReportPDF';
 import axios from '../config/api';
+import RelocationLeadModal from '../components/RelocationLeadModal';
 
 const MunicipalityDashboard: React.FC = () => {
     const { user } = useAuth();
@@ -43,6 +44,13 @@ const MunicipalityDashboard: React.FC = () => {
 
     const [loadingTabs, setLoadingTabs] = useState(false);
     const [showContactModal, setShowContactModal] = useState(false);
+    const [notifications, setNotifications] = useState<any[]>([]);
+    const [showFichaModal, setShowFichaModal] = useState(false);
+
+    // Relocation Leads State
+    const [relocationLeads, setRelocationLeads] = useState<any[]>([]);
+    const [showRelocationModal, setShowRelocationModal] = useState(false);
+    const [selectedLead, setSelectedLead] = useState<any>(null);
 
     // Municipal Support Initiative Modal State
     const [supportModalOpen, setSupportModalOpen] = useState(false);
@@ -123,13 +131,17 @@ const MunicipalityDashboard: React.FC = () => {
 
     const fetchData = async () => {
         try {
-            const [statsRes, statusRes] = await Promise.all([
+            const [statsRes, statusRes, notifyRes, leadsRes] = await Promise.all([
                 axios.get('/api/municipality/stats'),
-                axios.get('/api/municipality/companies-status')
+                axios.get('/api/municipality/companies-status'),
+                axios.get('/api/municipality/notifications'),
+                axios.get('/api/municipality/relocation-leads')
             ]);
             setMetrics(statsRes.data);
             setInvitationStatus(statusRes.data);
             setCompanies(statusRes.data.active || []);
+            setNotifications(notifyRes.data);
+            setRelocationLeads(leadsRes.data || []);
         } catch (err) {
             console.error("Error fetching Dashboard data", err);
         }
@@ -301,6 +313,15 @@ const MunicipalityDashboard: React.FC = () => {
         }
     };
 
+    const handleUpdateLeadStatus = async (id: string, status: string) => {
+        try {
+            await axios.patch(`/api/municipality/relocation-leads/${id}/status`, { status });
+            setRelocationLeads(prev => prev.map(l => l.id === id ? { ...l, status } : l));
+        } catch (err) {
+            console.error("Error updating lead status", err);
+        }
+    };
+
     const getRefLink = () => {
         const baseUrl = window.location.origin.includes('localhost') ? 'http://localhost:5173' : 'https://rural-minds.vercel.app';
         return `${baseUrl}/register/company?ref=${user?.organization?.id}`;
@@ -405,6 +426,43 @@ const MunicipalityDashboard: React.FC = () => {
                             </div>
                         </div>
                     </header>
+
+                    {/* Relocation Leads Alerts */}
+                    {relocationLeads.filter(l => l.status === 'new').length > 0 && (
+                        <section className="mb-8 space-y-4">
+                            {relocationLeads.filter(l => l.status === 'new').map((lead, i) => (
+                                <div key={i} className="bg-white border-2 border-p2/20 rounded-2xl overflow-hidden shadow-lg animate-in slide-in-from-top-4 duration-500">
+                                    <div className="flex flex-col md:flex-row items-center gap-6 p-6">
+                                        <div className="w-16 h-16 bg-p2 rounded-2xl flex items-center justify-center text-3xl shadow-lg shadow-p2/20 relative">
+                                            🏠
+                                            <span className="absolute -top-1 -right-1 w-4 h-4 bg-accent rounded-full animate-ping"></span>
+                                        </div>
+                                        <div className="flex-1">
+                                            <div className="flex items-center gap-3 mb-1">
+                                                <span className="bg-p2 text-white px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest shadow-sm">
+                                                    Alerta: Nuevo Vecino Potencial
+                                                </span>
+                                                <span className="text-xs text-gray-400 font-bold uppercase">{new Date(lead.created_at).toLocaleDateString()}</span>
+                                            </div>
+                                            <h3 className="text-xl font-heading font-black text-n900">
+                                                Candidato {lead.talent_name || `RM-${lead.id.slice(0, 4).toUpperCase()}`} quiere mudarse aquí
+                                            </h3>
+                                            <p className="text-sm text-gray-600 mt-1 max-w-2xl">
+                                                Viene desde <span className="font-bold text-n900">{lead.origin_city}, {lead.origin_province}</span> movido por la oferta de <span className="font-bold text-p2">{lead.company_name}</span>.
+                                                Necesita un entorno con <span className="italic font-bold text-emerald-700">{lead.sensory_requirement_highlight}</span>.
+                                            </p>
+                                        </div>
+                                        <button
+                                            onClick={() => { setSelectedLead(lead); setShowRelocationModal(true); }}
+                                            className="w-full md:w-auto bg-p2 text-white px-8 py-4 rounded-xl font-black hover:bg-indigo-900 transition-all shadow-xl shadow-p2/10 flex items-center justify-center gap-2 active:scale-95"
+                                        >
+                                            Iniciar Acogida 🚀
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
+                        </section>
+                    )}
 
                     {/* Metrics Overview */}
                     <section className="mb-10">
@@ -679,8 +737,11 @@ const MunicipalityDashboard: React.FC = () => {
                                                             <tr key={`local-${i}`} className="hover:bg-gray-50/50 transition-colors border-l-4 border-[#F2D680]">
                                                                 <td className="px-6 py-4">
                                                                     <div className="flex items-center gap-2">
-                                                                        <span className="font-bold text-n900 text-sm">{_t.pseudonym || `RM-${429 + i}`}</span>
-                                                                        <span className="text-xs bg-[#F2D680] text-n900 px-2 py-0.5 rounded font-black uppercase tracking-tighter">Prioridad Local</span>
+                                                                        <span className="font-bold text-n900 text-sm">
+                                                                            {_t.privacy_shared ? _t.full_name : _t.pseudonym}
+                                                                        </span>
+                                                                        {_t.privacy_shared && <span className="text-[10px] bg-green-100 text-green-700 px-2 py-0.5 rounded font-bold uppercase">Datos Revelados</span>}
+                                                                        {!_t.privacy_shared && <span className="text-xs bg-[#F2D680] text-n900 px-2 py-0.5 rounded font-black uppercase tracking-tighter">Prioridad Local</span>}
                                                                     </div>
                                                                 </td>
                                                                 <td className="px-6 py-4">
@@ -728,8 +789,11 @@ const MunicipalityDashboard: React.FC = () => {
                                                             <tr key={`attr-${i}`} className="hover:bg-emerald-50/30 transition-colors">
                                                                 <td className="px-6 py-4">
                                                                     <div className="flex items-center gap-2">
-                                                                        <span className="font-bold text-n900 text-sm">{t.pseudonym || `RM-${102 + i}`}</span>
-                                                                        <span className="text-xs bg-emerald-600 text-white px-2 py-0.5 rounded font-black uppercase tracking-tighter">Externo</span>
+                                                                        <span className="font-bold text-n900 text-sm">
+                                                                            {t.privacy_shared ? t.full_name : t.pseudonym}
+                                                                        </span>
+                                                                        {t.privacy_shared && <span className="text-[10px] bg-green-100 text-green-700 px-2 py-0.5 rounded font-bold uppercase">Datos Revelados</span>}
+                                                                        {!t.privacy_shared && <span className="text-xs bg-emerald-600 text-white px-2 py-0.5 rounded font-black uppercase tracking-tighter">Externo</span>}
                                                                     </div>
                                                                 </td>
                                                                 <td className="px-6 py-4">
@@ -769,12 +833,21 @@ const MunicipalityDashboard: React.FC = () => {
                                                                                 </span>
                                                                             )}
                                                                         </div>
-                                                                        <button
-                                                                            onClick={() => handleSendWelcome(t.id)}
-                                                                            className="bg-emerald-600 text-white text-xs px-4 py-2 rounded-xl font-bold hover:bg-emerald-700 transition-all shadow-md shadow-emerald-600/20"
-                                                                        >
-                                                                            Enviar Bienvenida ✉️
-                                                                        </button>
+                                                                        {t.privacy_shared ? (
+                                                                            <button
+                                                                                onClick={() => { setSelectedTalent(t); setShowFichaModal(true); }}
+                                                                                className="bg-p2 text-white text-xs px-4 py-2 rounded-xl font-bold hover:bg-p2/90 transition-all shadow-md shadow-p2/20"
+                                                                            >
+                                                                                Ver Ficha 📄
+                                                                            </button>
+                                                                        ) : (
+                                                                            <button
+                                                                                onClick={() => handleSendWelcome(t.id)}
+                                                                                className="bg-emerald-600 text-white text-xs px-4 py-2 rounded-xl font-bold hover:bg-emerald-700 transition-all shadow-md shadow-emerald-600/20"
+                                                                            >
+                                                                                Enviar Bienvenida ✉️
+                                                                            </button>
+                                                                        )}
                                                                     </div>
                                                                 </td>
                                                             </tr>
@@ -837,8 +910,32 @@ const MunicipalityDashboard: React.FC = () => {
                             )}
                         </div>
 
-                        {/* Shared Resources Sidebar */}
                         <div className="space-y-6">
+                            {/* Activity Feed / Notifications */}
+                            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                                <h3 className="font-heading font-bold text-lg text-n900 mb-4 pb-3 border-b flex items-center justify-between">
+                                    🔔 Actividad Reciente
+                                    <span className="text-[10px] bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-bold uppercase">Live</span>
+                                </h3>
+                                <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
+                                    {notifications.length > 0 ? (
+                                        notifications.map((n, i) => (
+                                            <div key={i} className="flex gap-3 text-sm border-b border-gray-50 pb-3 last:border-0">
+                                                <div className="shrink-0 w-8 h-8 bg-green-50 rounded-full flex items-center justify-center text-xs">
+                                                    ✨
+                                                </div>
+                                                <div>
+                                                    <p className="text-gray-900 font-medium leading-tight mb-1">{n.message}</p>
+                                                    <p className="text-[10px] text-gray-400 font-bold uppercase">{new Date(n.created_at).toLocaleString()}</p>
+                                                </div>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <p className="text-center py-8 text-gray-500 italic text-sm">No hay actividad reciente.</p>
+                                    )}
+                                </div>
+                            </div>
+
                             <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
                                 <h3 className="font-heading font-bold text-lg text-n900 mb-4 pb-3 border-b">
                                     📚 Centro de Recursos
@@ -1475,7 +1572,70 @@ const MunicipalityDashboard: React.FC = () => {
                     </div>
                 )
             }
-        </div >
+            {/* Ficha de Presentación Modal */}
+            {showFichaModal && selectedTalent && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-n900/60 backdrop-blur-sm animate-in fade-in duration-300" role="dialog" aria-modal="true">
+                    <div className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in duration-300">
+                        <div className="bg-p2 p-8 text-white relative">
+                            <button onClick={() => setShowFichaModal(false)} className="absolute top-4 right-4 w-10 h-10 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition-all text-xl">✕</button>
+                            <div className="flex items-center gap-6">
+                                <div className="w-20 h-20 bg-white/20 rounded-2xl flex items-center justify-center text-4xl">🧬</div>
+                                <div>
+                                    <h2 className="text-3xl font-heading font-extrabold mb-1">Ficha de Presentación</h2>
+                                    <p className="text-p1 font-bold uppercase tracking-widest text-xs">Candidato Revelado: {selectedTalent.full_name}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="p-8 space-y-8">
+                            <div className="grid grid-cols-2 gap-6">
+                                <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                                    <h4 className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-2">Contacto Directo</h4>
+                                    <p className="text-sm font-bold text-n900">{selectedTalent.email}</p>
+                                    <p className="text-xs text-p2 mt-1">✓ Privacidad otorgada por el talento</p>
+                                </div>
+                                <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                                    <h4 className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-2">Estado de Relocalización</h4>
+                                    <p className="text-sm font-bold text-n900">{selectedTalent.from_location || 'Local'}</p>
+                                    <p className="text-xs text-emerald-600 mt-1 font-medium">{selectedTalent.from_location ? 'Dispuesto a mudanza' : 'Buscando arraigo'}</p>
+                                </div>
+                            </div>
+
+                            <div>
+                                <h4 className="text-lg font-bold text-n900 mb-4 flex items-center gap-2">🧠 Perfil Sensorial & Skills</h4>
+                                <div className="flex flex-wrap gap-2 mb-4">
+                                    {selectedTalent.skills?.map((s: string, i: number) => (
+                                        <span key={i} className="bg-white border border-gray-200 px-3 py-1 rounded-full text-xs font-medium text-gray-700">{s}</span>
+                                    ))}
+                                </div>
+                                <div className="bg-indigo-50/50 p-6 rounded-2xl border border-indigo-100">
+                                    <p className="text-sm text-indigo-900 leading-relaxed italic">
+                                        "Este candidato presenta una alta adaptación a entornos de <strong>flexibilidad horaria</strong> y valora especialmente el <strong>silencio acústico</strong> en el espacio de trabajo."
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="flex gap-4">
+                                <a href={`mailto:${selectedTalent.email}`} className="flex-1 bg-p2 text-white py-4 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-p2/90 transition-all shadow-lg shadow-p2/20 no-underline">
+                                    Enviar Email Directo 📩
+                                </a>
+                                <button onClick={() => setShowFichaModal(false)} className="px-8 py-4 border-2 border-gray-200 rounded-2xl font-bold hover:bg-gray-50 transition-all">
+                                    Cerrar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+            {/* Relocation Lead Modal */}
+            <RelocationLeadModal
+                isOpen={showRelocationModal}
+                onClose={() => setShowRelocationModal(false)}
+                lead={selectedLead}
+                municipalityName={user?.organization?.name || 'Municipio'}
+                onStatusUpdate={handleUpdateLeadStatus}
+            />
+        </div>
     );
 };
 

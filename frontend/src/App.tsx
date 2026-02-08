@@ -19,6 +19,7 @@ import Contact from './pages/Contact';
 import VerifyEmail from './pages/VerifyEmail';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
+import SuperadminMatchesDashboard from './pages/SuperadminMatchesDashboard';
 
 import LandingPage from './pages/LandingPage';
 import MainDashboard from './pages/MainDashboard';
@@ -62,6 +63,7 @@ function App() {
         <Route path="/municipality/:id" element={<MunicipalityProfile />} /> {/* New Route */}
         <Route path="/admin" element={<AdminDashboard />} /> {/* Superadmin */}
         <Route path="/admin/config" element={<SuperAdminConfig />} /> {/* Phase 14 */}
+        <Route path="/admin/matches" element={<SuperadminMatchesDashboard />} />
         <Route path="/project/:id" element={<ProjectDetail />} />
         <Route path="/chat/:applicationId" element={<Chat />} />
 

@@ -11,6 +11,18 @@ class Token(BaseModel):
 class TokenData(BaseModel):
     username: Optional[str] = None
 
+# --- Location ---
+class LocationBase(BaseModel):
+    municipality: str
+    province: str
+    autonomous_community: Optional[str] = None
+
+class Location(LocationBase):
+    id: uuid.UUID
+    
+    class Config:
+        from_attributes = True
+
 # --- Organization (formerly Tenant) ---
 class OrganizationBase(BaseModel):
     name: str
@@ -22,6 +34,8 @@ class OrganizationBase(BaseModel):
     org_type: Optional[str] = "enterprise"
     municipality_id: Optional[uuid.UUID] = None
     sensory_commitment: Optional[dict] = {}
+    street_address: Optional[str] = None
+    postal_code: Optional[str] = None
 
 class OrganizationCreate(OrganizationBase):
     pass
@@ -36,10 +50,41 @@ class OrganizationUpdate(BaseModel):
     org_type: Optional[str] = None
     municipality_id: Optional[uuid.UUID] = None
     sensory_commitment: Optional[dict] = None
+    street_address: Optional[str] = None
+    postal_code: Optional[str] = None
 
 class Organization(OrganizationBase):
     id: uuid.UUID
     created_at: Optional[datetime] = None
+    location: Optional[Location] = None
+    
+    class Config:
+        from_attributes = True
+
+# --- Relocation Leads ---
+class RelocationLeadBase(BaseModel):
+    origin_city: Optional[str] = None
+    origin_province: Optional[str] = None
+    target_municipality: Optional[str] = None
+    sensory_requirement_highlight: Optional[str] = None
+    status: str = "new"
+
+class RelocationLeadCreate(RelocationLeadBase):
+    application_id: uuid.UUID
+    talent_id: uuid.UUID
+    municipality_id: uuid.UUID
+
+class RelocationLead(RelocationLeadBase):
+    id: uuid.UUID
+    application_id: uuid.UUID
+    talent_id: uuid.UUID
+    municipality_id: uuid.UUID
+    created_at: datetime
+    
+    # Enrichment
+    talent_name: Optional[str] = None
+    challenge_title: Optional[str] = None
+    company_name: Optional[str] = None
     
     class Config:
         from_attributes = True
@@ -180,6 +225,10 @@ class ChallengeBase(BaseModel):
     compensation: Optional[str] = None
     deadline: Optional[datetime] = None
     is_public: bool = True
+    exact_address: Optional[str] = None
+    environment_info: Optional[str] = None
+    accessibility_info: Optional[str] = None
+    sensory_environment: Optional[dict] = {}
 
 class ChallengeCreate(ChallengeBase):
     pass
@@ -194,6 +243,10 @@ class ChallengeUpdate(BaseModel):
     deadline: Optional[datetime] = None
     status: Optional[str] = None
     is_public: Optional[bool] = None
+    exact_address: Optional[str] = None
+    environment_info: Optional[str] = None
+    accessibility_info: Optional[str] = None
+    sensory_environment: Optional[dict] = None
 
 class Challenge(ChallengeBase):
     id: uuid.UUID
@@ -201,6 +254,7 @@ class Challenge(ChallengeBase):
     creator_id: Optional[uuid.UUID] = None
     tenant_id: Optional[uuid.UUID] = None
     created_at: Optional[datetime] = None
+    tenant: Optional[Organization] = None
     
     # Matching Output
     match_score: Optional[float] = None
@@ -214,7 +268,8 @@ class ApplicationBase(BaseModel):
     cover_letter: Optional[str] = None
 
 class ApplicationCreate(ApplicationBase):
-    pass
+    challenge_id: uuid.UUID
+    willing_to_relocate: bool = False
 
 class ApplicationUpdate(BaseModel):
     status: Optional[str] = None
@@ -224,7 +279,12 @@ class Application(ApplicationBase):
     user_id: uuid.UUID
     challenge_id: uuid.UUID
     status: str = "pending"
+    is_local: Optional[bool] = None
+    willing_to_relocate: bool = False
+    location_label: Optional[str] = None
     created_at: Optional[datetime] = None
+    
+    relocation_lead: Optional["RelocationLead"] = None
     
     class Config:
         from_attributes = True

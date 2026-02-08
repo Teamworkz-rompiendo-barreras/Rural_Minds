@@ -10,6 +10,51 @@ router = APIRouter(
     tags=["locations"],
 )
 
+@router.get("/regions")
+def get_regions(db: Session = Depends(database.get_db)):
+    """Get all unique autonomous communities."""
+    regions = db.query(models_location.Location.autonomous_community).distinct().all()
+    return [r[0] for r in regions if r[0]]
+
+@router.get("/provinces")
+def get_provinces(region: str, db: Session = Depends(database.get_db)):
+    """Get all unique provinces for a given region."""
+    provinces = db.query(models_location.Location.province).filter(
+        models_location.Location.autonomous_community == region
+    ).distinct().all()
+    return [p[0] for p in provinces if p[0]]
+
+@router.get("/municipalities")
+def search_municipalities(
+    region: str,
+    province: str,
+    q: Optional[str] = Query(None, min_length=1),
+    db: Session = Depends(database.get_db)
+):
+    """
+    Search for municipalities within a specific Region and Province.
+    """
+    query = db.query(models_location.Location).filter(
+        models_location.Location.autonomous_community == region,
+        models_location.Location.province == province
+    )
+    
+    if q:
+        term = f"%{q}%"
+        query = query.filter(models_location.Location.municipality.ilike(term))
+        
+    locations = query.limit(20).all()
+    
+    return [
+        {
+            "id": str(loc.id),
+            "municipality": loc.municipality,
+            "province": loc.province,
+            "autonomous_community": loc.autonomous_community
+        }
+        for loc in locations
+    ]
+
 @router.get("/search")
 def search_locations(
     q: str = Query(..., min_length=2, description="Search term for municipality or province"),

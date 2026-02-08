@@ -27,6 +27,13 @@ const OrganizationSettings: React.FC = () => {
         mentorshipProgram: false
     });
     const [savingSensory, setSavingSensory] = useState(false);
+    const [hqAddress, setHqAddress] = useState({
+        street: '',
+        postal_code: '',
+        city: '',
+        province: ''
+    });
+    const [savingHq, setSavingHq] = useState(false);
 
     useEffect(() => {
         if (token) {
@@ -36,6 +43,13 @@ const OrganizationSettings: React.FC = () => {
                     ...sensoryCommitment,
                     ...user.organization.sensory_commitment
                 });
+            }
+            if (user?.organization?.street_address) {
+                setHqAddress(prev => ({
+                    ...prev,
+                    street: user.organization?.street_address || '',
+                    postal_code: user.organization?.postal_code || ''
+                }));
             }
         }
     }, [token, user]);
@@ -53,6 +67,30 @@ const OrganizationSettings: React.FC = () => {
         } finally {
             setSavingSensory(false);
         }
+    };
+
+    const handleSaveHq = async () => {
+        setSavingHq(true);
+        try {
+            await axios.put('/org/details', {
+                street_address: hqAddress.street,
+                postal_code: hqAddress.postal_code
+            });
+            alert("Ubicación de sede actualizada. El match por geolocalización ahora es más preciso.");
+        } catch (err) {
+            console.error(err);
+            alert("Error al guardar la ubicación.");
+        } finally {
+            setSavingHq(false);
+        }
+    };
+
+    const handleCPChange = (cp: string) => {
+        setHqAddress({ ...hqAddress, postal_code: cp });
+        // Mock Autocomplete
+        if (cp === '28001') setHqAddress(prev => ({ ...prev, postal_code: cp, city: 'Madrid', province: 'Madrid' }));
+        if (cp === '08001') setHqAddress(prev => ({ ...prev, postal_code: cp, city: 'Barcelona', province: 'Barcelona' }));
+        if (cp === '19250') setHqAddress(prev => ({ ...prev, postal_code: cp, city: 'Sigüenza', province: 'Guadalajara' }));
     };
 
     const fetchUsers = async () => {
@@ -168,6 +206,84 @@ const OrganizationSettings: React.FC = () => {
                         >
                             {savingSensory ? 'Guardando...' : 'Guardar Compromiso'}
                         </button>
+                    </div>
+                </section>
+            )}
+
+            {/* Physical Headquarters Section */}
+            {(user?.role?.toLowerCase().includes('enterprise')) && (
+                <section className="bg-white p-8 rounded-xl shadow-sm border border-gray-200">
+                    <div className="flex items-center gap-3 mb-6 border-b pb-4">
+                        <div className="bg-indigo-100 p-2 rounded-lg text-2xl">🏢</div>
+                        <h2 className="text-2xl font-heading font-bold text-n900">Sede Física (Ancla GPS)</h2>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        <div className="md:col-span-2 space-y-4">
+                            <p className="text-gray-600 text-sm">Esta es la ubicación donde el talento desempeñará sus funciones. Es vital para diferenciar entre **Arraigo** y **Atracción**.</p>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="md:col-span-2">
+                                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Calle y Número</label>
+                                    <input
+                                        type="text"
+                                        className="w-full p-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-p2/20"
+                                        placeholder="Ej: Calle Mayor, 14"
+                                        value={hqAddress.street}
+                                        onChange={e => setHqAddress({ ...hqAddress, street: e.target.value })}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Código Postal</label>
+                                    <input
+                                        type="text"
+                                        className="w-full p-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-p2/20 font-mono"
+                                        placeholder="28001"
+                                        value={hqAddress.postal_code}
+                                        onChange={e => handleCPChange(e.target.value)}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Municipio / Provincia</label>
+                                    <div className="p-3 bg-gray-100 border border-gray-100 rounded-xl text-gray-500 font-medium">
+                                        {hqAddress.city ? `${hqAddress.city} (${hqAddress.province})` : 'Introduce CP para detectar...'}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="flex justify-end pt-4">
+                                <button
+                                    onClick={handleSaveHq}
+                                    disabled={savingHq}
+                                    className="bg-n900 text-white font-bold py-3 px-8 rounded-lg hover:bg-black transition-all shadow-md disabled:opacity-50"
+                                >
+                                    {savingHq ? 'Guardando...' : 'Actualizar Sede'}
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Interactive SVG Pin Map */}
+                        <div className="bg-gray-50 rounded-2xl border border-gray-100 p-6 flex flex-col items-center justify-center text-center">
+                            <h3 className="text-xs font-bold text-gray-400 mb-4 uppercase">Vista de Mapa</h3>
+                            <div className="w-full aspect-square bg-white rounded-xl shadow-inner border border-gray-100 relative overflow-hidden flex items-center justify-center">
+                                {/* Conceptual Map Background (SVG) */}
+                                <svg viewBox="0 0 100 100" className="absolute inset-0 opacity-10">
+                                    <path d="M0,20 Q50,0 100,20 L100,80 Q50,100 0,80 Z" fill="none" stroke="#000" strokeWidth="0.5" />
+                                    <line x1="0" y1="50" x2="100" y2="50" stroke="#000" strokeWidth="0.5" />
+                                    <line x1="50" y1="0" x2="50" y2="100" stroke="#000" strokeWidth="0.5" />
+                                </svg>
+
+                                {hqAddress.street ? (
+                                    <div className="relative animate-bounce">
+                                        <span className="text-4xl">📍</span>
+                                        <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-4 h-1 bg-black/10 rounded-full blur-[2px]"></div>
+                                    </div>
+                                ) : (
+                                    <span className="text-xs text-gray-300 italic">Sin ubicación configurada</span>
+                                )}
+                            </div>
+                            <p className="mt-4 text-[10px] text-gray-400 leading-tight">Mapa conceptual accesible para orientación espacial rápida.</p>
+                        </div>
                     </div>
                 </section>
             )}

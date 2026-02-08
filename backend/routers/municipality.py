@@ -140,6 +140,19 @@ def get_companies_status(
         ]
     }
 
+@router.get("/notifications")
+def get_municipality_notifications(
+    db: Session = Depends(database.get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    if current_user.role not in ["territory_admin", "municipality"]:
+        raise HTTPException(status_code=403, detail="Permission denied")
+        
+    return db.query(models.AuditLog).filter(
+        models.AuditLog.organization_id == current_user.organization_id,
+        models.AuditLog.event_type == "info"
+    ).order_by(models.AuditLog.created_at.desc()).limit(20).all()
+
 @router.get("/vacancies")
 def get_municipality_vacancies(
     db: Session = Depends(database.get_db),
@@ -235,15 +248,20 @@ def get_local_talent(
             models.MunicipalSupportMessage.talent_profile_id == p.id
         ).order_by(models.MunicipalSupportMessage.created_at.desc()).first()
         
+        can_reveal = contact.privacy_consent_shared if contact else False
+        
         results.append({
             "id": p.id,
             "pseudonym": f"RM-{str(p.id)[:4].upper()}",
+            "full_name": p.user.full_name if (p.user and can_reveal) else "Talento Local",
+            "email": p.user.email if (p.user and can_reveal) else "N/A",
             "skills": p.skills,
             "work_style": p.work_style,
             "created_at": p.created_at,
             "needs_housing": p.preferences.get('needs_housing', False) if p.preferences else False,
             "contacted_at": contact.created_at if contact else None,
-            "contact_status": contact.status if contact else None
+            "contact_status": contact.status if contact else None,
+            "privacy_shared": can_reveal
         })
     return results
 
@@ -261,32 +279,63 @@ def get_talent_attraction(
 
     # Users willing to move to this location_id
     loc_id_str = str(org.location_id)
-    candidates = db.query(models.TalentProfile).filter(
+    
+    # 1. Broad attraction (via profile settings)
+    candidates_by_profile = db.query(models.TalentProfile).filter(
         models.TalentProfile.is_willing_to_move == True,
         models.TalentProfile.residence_location_id != org.location_id
     ).all()
     
+    # 2. Specific attraction (via Applications to local companies with willing_to_relocate=True)
+    # Get all company IDs in this municipality
+    municipality_companies = db.query(models.Organization).filter(models.Organization.municipality_id == org.id).all()
+    company_ids = [c.id for c in municipality_companies]
+    
+    app_query = db.query(models.TalentProfile).join(models.User).join(models.Application).join(models.Challenge).filter(
+        models.Challenge.tenant_id.in_(company_ids),
+        models.Application.willing_to_relocate == True,
+        models.TalentProfile.residence_location_id != org.location_id
+    )
+    candidates_by_app = app_query.all()
+    
+    # Union of both sets
+    seen_ids = set()
+    candidates = []
+    for p in candidates_by_profile + candidates_by_app:
+        if p.id not in seen_ids:
+            # For profile matches, verify target_locations
+            if p in candidates_by_profile:
+                if p.target_locations and isinstance(p.target_locations, list) and loc_id_str in p.target_locations:
+                    candidates.append(p)
+                    seen_ids.add(p.id)
+            else:
+                # App matches are always included
+                candidates.append(p)
+                seen_ids.add(p.id)
+    
     results = []
     for p in candidates:
-        if p.target_locations and isinstance(p.target_locations, list):
-            if loc_id_str in p.target_locations:
-                # Check if already contacted
-                contact = db.query(models.MunicipalSupportMessage).filter(
-                    models.MunicipalSupportMessage.municipality_id == current_user.organization_id,
-                    models.MunicipalSupportMessage.talent_profile_id == p.id
-                ).order_by(models.MunicipalSupportMessage.created_at.desc()).first()
-                
-                results.append({
-                    "id": p.id,
-                    "pseudonym": f"RM-{str(p.id)[:4].upper()}",
-                    "full_name": p.user.full_name if p.user else "Talento Interesado",
-                    "email": p.user.email if p.user else "N/A",
-                    "skills": p.skills,
-                    "from_location": p.residence_location.municipality if p.residence_location else "Fuera",
-                    "needs_housing": p.preferences.get('needs_housing', False) if p.preferences else False,
-                    "contacted_at": contact.created_at if contact else None,
-                    "contact_status": contact.status if contact else None
-                })
+        # Check if already contacted
+        contact = db.query(models.MunicipalSupportMessage).filter(
+            models.MunicipalSupportMessage.municipality_id == current_user.organization_id,
+            models.MunicipalSupportMessage.talent_profile_id == p.id
+        ).order_by(models.MunicipalSupportMessage.created_at.desc()).first()
+        
+        can_reveal = contact.privacy_consent_shared if contact else False
+        
+        results.append({
+            "id": p.id,
+            "pseudonym": f"RM-{str(p.id)[:4].upper()}",
+            "full_name": p.user.full_name if (p.user and can_reveal) else "Talento Interesado",
+            "email": p.user.email if (p.user and can_reveal) else "N/A",
+            "skills": p.skills,
+            "from_location": p.residence_location.municipality if p.residence_location else "Otras regiones",
+            "created_at": p.created_at,
+            "needs_housing": p.preferences.get('needs_housing', False) if p.preferences else False,
+            "contacted_at": contact.created_at if contact else None,
+            "contact_status": contact.status if contact else None,
+            "privacy_shared": can_reveal
+        })
     return results
 
 @router.get("/talent/sensory-stats")
@@ -588,3 +637,51 @@ def get_municipality_stats(
         "newResidents": new_residents,
         "jobsGeneratedQuarter": jobs_generated_quarter
     }
+@router.get("/relocation-leads", response_model=List[schemas.RelocationLead])
+def get_relocation_leads(
+    db: Session = Depends(database.get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    if current_user.role not in ["territory_admin", "municipality"]:
+        raise HTTPException(status_code=403, detail="Permission denied")
+        
+    leads = db.query(models.RelocationLead).filter(
+        models.RelocationLead.municipality_id == current_user.organization_id
+    ).order_by(models.RelocationLead.created_at.desc()).all()
+    
+    # Enrichment
+    for lead in leads:
+        if lead.talent:
+            lead.talent_name = lead.talent.full_name
+        if lead.application and lead.application.challenge:
+            lead.challenge_title = lead.application.challenge.title
+            if lead.application.challenge.tenant:
+                lead.company_name = lead.application.challenge.tenant.name
+                
+    return leads
+
+@router.patch("/relocation-leads/{lead_id}/status")
+def update_relocation_lead_status(
+    lead_id: uuid.UUID,
+    payload: dict, # {"status": "contacted" | "closed"}
+    db: Session = Depends(database.get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    if current_user.role not in ["territory_admin", "municipality"]:
+        raise HTTPException(status_code=403, detail="Permission denied")
+        
+    lead = db.query(models.RelocationLead).filter(
+        models.RelocationLead.id == lead_id,
+        models.RelocationLead.municipality_id == current_user.organization_id
+    ).first()
+    
+    if not lead:
+        raise HTTPException(status_code=404, detail="Lead not found")
+        
+    new_status = payload.get("status")
+    if new_status not in ["new", "contacted", "closed"]:
+        raise HTTPException(status_code=400, detail="Invalid status")
+        
+    lead.status = new_status
+    db.commit()
+    return {"message": "Lead status updated"}

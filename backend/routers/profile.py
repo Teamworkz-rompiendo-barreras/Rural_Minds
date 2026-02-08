@@ -142,6 +142,21 @@ def respond_to_support_message(
     # Map technical response_type to human status
     if response_type in ["A", "B"]:
         msg.status = "accepted"
+        
+        # Notify the Municipality
+        pseudonym = f"RM-{str(msg.talent_profile_id)[:4].upper()}"
+        response_desc = "Interés e Identidad" if response_type == "A" else "Interés Anónimo"
+        
+        db.add(models.AuditLog(
+            organization_id=msg.municipality_id,
+            event_type="info",
+            message=f"¡Buenas noticias! El Candidato {pseudonym} ha respondido con '{response_desc}' a tu propuesta.",
+            details={
+                "talent_id": str(msg.talent_profile_id),
+                "response_type": response_type,
+                "privacy_consent": payload.get("privacy_consent", False)
+            }
+        ))
     else:
         msg.status = "declined"
         

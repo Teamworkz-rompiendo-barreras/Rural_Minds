@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
 import LocationSelector from '../components/LocationSelector';
+import HierarchicalLocationSelector from '../components/HierarchicalLocationSelector';
 
 // Types
 interface AccessibilityPrefs {
@@ -393,11 +394,9 @@ const TalentProfileWizard: React.FC = () => {
                     <h3 className="font-bold text-lg text-primary mb-4">Ubicación y Movilidad</h3>
 
                     <div className="mb-6">
-                        <LocationSelector
+                        <HierarchicalLocationSelector
                             label="¿Dónde resides actualmente?"
-                            value={profileData.residence_location_id}
                             onChange={(id) => setProfileData(prev => ({ ...prev, residence_location_id: id }))}
-                            placeholder="Busca tu municipio..."
                         />
                         <p className="text-xs text-gray-500 mt-1">
                             Te mostraremos oportunidades cercanas y validadas.

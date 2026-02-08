@@ -8,6 +8,13 @@ interface Organization {
     municipality_id?: string;
     location_id?: string;
     sensory_commitment?: any;
+    street_address?: string;
+    postal_code?: string;
+    location?: {
+        municipality: string;
+        province: string;
+        autonomous_community?: string;
+    };
 }
 
 interface User {
@@ -24,6 +31,11 @@ interface User {
         target_locations?: string[];
         bio?: string;
         skills?: string[];
+        residence_location?: {
+            municipality: string;
+            province: string;
+            autonomous_community?: string;
+        };
     };
 }
 

@@ -216,14 +216,57 @@ def read_challenge(challenge_id: str, db: Session = Depends(database.get_db), cu
         raise HTTPException(status_code=404, detail="Challenge not found")
         
     # Visibility logic
+    authorized = False
     if challenge.is_public:
-        return challenge
+        authorized = True
+    elif current_user.role == "super_admin":
+        authorized = True
+    elif current_user.organization_id == challenge.tenant_id:
+        authorized = True
         
-    # If not public, must be creator or admin or tenant
-    if current_user.role == "super_admin":
-        return challenge
-    
-    if current_user.organization_id == challenge.tenant_id:
-        return challenge
+    if not authorized:
+        raise HTTPException(status_code=403, detail="Not authorized to view this challenge")
 
-    raise HTTPException(status_code=403, detail="Not authorized to view this challenge") 
+    # If talent, calculate sensory match details
+    if current_user.role == "talent":
+        acc_profile = db.query(models.AccessibilityProfile).filter(models.AccessibilityProfile.user_id == current_user.id).first()
+        sensory_needs = acc_profile.sensory_needs if acc_profile and acc_profile.sensory_needs else {}
+        
+        # Use sensory_environment (new field) or fallback to sensory_requirements
+        project_env = challenge.sensory_environment or challenge.sensory_requirements or {}
+        
+        score = 0
+        adjustments_needed = []
+        
+        # Light Analysis
+        p_light = project_env.get("light", "standard")
+        t_light = sensory_needs.get("light", "medium")
+        if t_light == "high" and p_light == "artificial_bright":
+            adjustments_needed.append("Filtro de pantalla o ubicación lejos de fluorescentes")
+            score -= 10
+        elif t_light == "high" and p_light == "natural":
+            score += 20
+            
+        # Sound Analysis
+        p_sound = project_env.get("sound", "moderate")
+        t_sound = sensory_needs.get("sound", "medium")
+        if t_sound == "high" and (p_sound == "loud" or p_sound == "moderate"):
+            adjustments_needed.append("Auriculares con cancelación de ruido recomendados")
+            score -= 5
+        elif t_sound == "high" and p_sound == "quiet":
+            score += 20
+
+        # Communication Analysis
+        p_comm = project_env.get("communication", "mixed")
+        t_comm = sensory_needs.get("communication", "minimal")
+        if t_comm == "async" and p_comm == "verbal":
+            adjustments_needed.append("Solicitar instrucciones por escrito (Slack/Email)")
+            score -= 5
+        elif t_comm == p_comm:
+            score += 15
+
+        final_score = 50 + score
+        challenge.match_score = min(100, max(0, final_score))
+        challenge.adjustments = adjustments_needed
+
+    return challenge

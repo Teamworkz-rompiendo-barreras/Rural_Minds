@@ -21,6 +21,9 @@ interface Application {
     cover_letter: string;
     created_at: string;
     user?: User;
+    is_local?: boolean;
+    willing_to_relocate?: boolean;
+    location_label?: string;
 }
 
 interface ApplicationListProps {
@@ -29,7 +32,7 @@ interface ApplicationListProps {
 }
 
 const ApplicationList: React.FC<ApplicationListProps> = ({ challengeId, onClose }) => {
-    const { token, user } = useAuth();
+    const { token } = useAuth();
     const [applications, setApplications] = useState<Application[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -104,24 +107,21 @@ const ApplicationList: React.FC<ApplicationListProps> = ({ challengeId, onClose 
                                     </span>
                                 </div>
 
-                                {/* Location Badge - NEW */}
-                                {app.user?.talent_profile?.residence_location_id &&
-                                    app.user?.talent_profile?.residence_location_id === user?.organization?.location_id && (
-                                        <div className="mb-3">
-                                            <span className="inline-flex items-center gap-1 bg-indigo-100 text-indigo-800 text-xs font-bold px-2 py-1 rounded-full border border-indigo-200">
-                                                <span>📍</span> Talento KM 0 ({user?.organization?.name})
-                                            </span>
-                                        </div>
-                                    )}
-
-                                {/* Willing to move - NEW */}
-                                {app.user?.talent_profile?.is_willing_to_move && (
-                                    <div className="mb-3 inline-block ml-2">
-                                        <span className="inline-flex items-center gap-1 bg-purple-100 text-purple-800 text-xs font-bold px-2 py-1 rounded-full border border-purple-200">
-                                            <span>🧳</span> Dispuesto a mudarse
+                                {/* Location Badge - Refined with Backend Label */}
+                                {app.location_label && (
+                                    <div className="mb-3 flex flex-wrap gap-2">
+                                        <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-tight shadow-sm border ${app.location_label === 'KM 0 / Arraigo'
+                                                ? 'bg-green-600 text-white border-green-700'
+                                                : app.location_label === 'Atracción / Mudanza'
+                                                    ? 'bg-p2 text-white border-p2/50'
+                                                    : 'bg-gray-100 text-gray-600 border-gray-200'
+                                            }`}>
+                                            <span>{app.location_label === 'KM 0 / Arraigo' ? '📍' : '🧳'}</span>
+                                            {app.location_label}
                                         </span>
                                     </div>
                                 )}
+
 
                                 <div className="space-y-3">
                                     {app.user?.talent_profile?.bio && (

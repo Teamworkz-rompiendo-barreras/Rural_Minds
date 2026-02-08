@@ -77,6 +77,10 @@ class Organization(Base):
     municipality_id = Column(GUID, ForeignKey("organizations.id"), nullable=True) # If enterprise, links to municipality
     location_id = Column(GUID, ForeignKey("locations.id"), nullable=True) # Link to geographic location
     
+    # Precise Location
+    street_address = Column(String, nullable=True)
+    postal_code = Column(String, nullable=True)
+    
     parent = relationship("Organization", remote_side=[id], backref="companies")
     location = relationship("Location") # Relationship
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
@@ -166,6 +170,12 @@ class Challenge(Base):
     status = Column(String, default="open")  # open, closed, in_progress
     is_public = Column(Boolean, default=True) # New field for visibility
     
+    # Detailed Project Info
+    exact_address = Column(String, nullable=True)
+    environment_info = Column(String, nullable=True) # e.g., "zona peatonal"
+    accessibility_info = Column(String, nullable=True) # e.g., "planta baja"
+    sensory_environment = Column(JSON, default=dict) # lighting, noise, communication preferences
+    
     tenant_id = Column(GUID, ForeignKey("organizations.id"), nullable=True)
     creator_id = Column(GUID, ForeignKey("users.id"), nullable=True)
     
@@ -184,6 +194,7 @@ class Application(Base):
     
     cover_letter = Column(String, nullable=True)
     status = Column(String, default="pending")  # pending, accepted, rejected
+    willing_to_relocate = Column(Boolean, default=False)
     
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
@@ -296,6 +307,28 @@ class MunicipalSupportMessage(Base):
     
     municipality = relationship("Organization")
     talent_profile = relationship("TalentProfile", back_populates="support_messages")
+
+class RelocationLead(Base):
+    __tablename__ = "relocation_leads"
+
+    id = Column(GUID, primary_key=True, default=uuid.uuid4, index=True)
+    application_id = Column(GUID, ForeignKey("applications.id"), nullable=False, index=True)
+    talent_id = Column(GUID, ForeignKey("users.id"), nullable=False, index=True)
+    municipality_id = Column(GUID, ForeignKey("organizations.id"), nullable=False, index=True)
+    
+    origin_city = Column(String, nullable=True) # e.g., "Madrid"
+    origin_province = Column(String, nullable=True) # e.g., "Madrid"
+    target_municipality = Column(String, nullable=True) # e.g., "Villanueva"
+    
+    sensory_requirement_highlight = Column(String, nullable=True) # e.g., "Baja luminosidad"
+    
+    status = Column(String, default="new") # new, contacted, closed
+    
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    
+    application = relationship("Application", backref="relocation_lead")
+    talent = relationship("User")
+    municipality = relationship("Organization")
 
 class LegalConsent(Base):
     __tablename__ = "legal_consents"

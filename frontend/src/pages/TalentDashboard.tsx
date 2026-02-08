@@ -49,6 +49,8 @@ const TalentDashboard: React.FC = () => {
     const [supportMessages, setSupportMessages] = useState<any[]>([]);
     const [responding, setResponding] = useState<{ id: string; type: 'A' | 'B' | 'C' } | null>(null);
     const [shareContact, setShareContact] = useState(false);
+    const [successMessage, setSuccessMessage] = useState<string | null>(null);
+    const [readingMode, setReadingMode] = useState(false);
 
     // Filters State
     const [locationFilter, _setLocationFilter] = useState('Todos');
@@ -113,10 +115,13 @@ const TalentDashboard: React.FC = () => {
             const townName = msg?.municipality?.name || "el Ayuntamiento";
 
             if (type === 'A' || type === 'B') {
-                alert(`¡Excelente elección! ${townName} ha sido notificado. Se abrirá un canal de comunicación pronto.`);
+                setSuccessMessage(`¡Excelente elección! ${townName} ha sido notificado.`);
             } else {
-                alert(`Entendido. Hemos agradecido el interés de ${townName}.`);
+                setSuccessMessage(`Entendido. Hemos agradecido el interés de ${townName}.`);
             }
+
+            // Clear message after 5 seconds
+            setTimeout(() => setSuccessMessage(null), 5000);
 
             setSupportMessages(prev => prev.filter(m => m.id !== id));
             setResponding(null);
@@ -179,6 +184,12 @@ const TalentDashboard: React.FC = () => {
             </header>
 
             {/* Municipal Support Offers Section: El Buzón del Talento */}
+            {successMessage && (
+                <div className="fixed top-8 right-8 z-50 bg-emerald-600 text-white px-6 py-4 rounded-2xl shadow-2xl animate-in fade-in slide-in-from-right font-bold flex items-center gap-3">
+                    <span className="text-2xl">✨</span> {successMessage}
+                </div>
+            )}
+
             {supportMessages.length > 0 && (
                 <section className="bg-white border-2 border-emerald-100 rounded-[2.5rem] p-8 lg:p-12 shadow-xl shadow-emerald-100/50 animate-in fade-in slide-in-from-top duration-700 overflow-hidden relative">
                     {/* Decorative Background Element */}
@@ -202,6 +213,13 @@ const TalentDashboard: React.FC = () => {
                                     El Ayuntamiento de <span className="text-emerald-900 font-bold">{supportMessages[0].municipality?.name || 'tu zona'}</span> te ha enviado una propuesta.
                                 </p>
                             </div>
+                            <button
+                                onClick={() => setReadingMode(!readingMode)}
+                                className={`px-5 py-2.5 rounded-xl border-2 font-bold text-xs transition-all shadow-sm ${readingMode ? 'bg-emerald-900 text-white border-emerald-900' : 'bg-white text-emerald-700 border-emerald-100 hover:border-emerald-300'}`}
+                                aria-label={readingMode ? "Desactivar modo lectura" : "Activar modo lectura para mayor claridad"}
+                            >
+                                {readingMode ? '👁️ Ver Diseño Original' : '📖 Modo Lectura (Fácil)'}
+                            </button>
                         </div>
 
                         {supportMessages.map(msg => (
@@ -219,7 +237,7 @@ const TalentDashboard: React.FC = () => {
                                     </div>
 
                                     {/* Content with Atkinson Hyperlegible feel */}
-                                    <div className="bg-emerald-50/30 p-8 rounded-[2rem] border border-emerald-100/50 italic text-2xl text-emerald-900 font-medium leading-[1.6] tracking-tight">
+                                    <div className={`transition-all duration-500 ${readingMode ? 'bg-white p-10 border-4 border-emerald-600 text-black not-italic text-3xl font-bold shadow-2xl' : 'bg-emerald-50/30 p-8 rounded-[2rem] border border-emerald-100/50 italic text-2xl text-emerald-900 font-medium'} leading-[1.6] tracking-tight`} style={{ fontFamily: 'Atkinson Hyperlegible, sans-serif' }}>
                                         "{msg.content}"
                                     </div>
                                 </div>

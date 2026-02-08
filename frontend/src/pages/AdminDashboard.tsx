@@ -47,6 +47,16 @@ interface SuccessStory {
     date: string;
 }
 
+interface MunicipalityRank {
+    id: string;
+    name: string;
+    logo: string | null;
+    msgs_sent: number;
+    matches: number;
+    score: number;
+    is_star: boolean;
+}
+
 const SuperAdminDashboard: React.FC = () => {
     const { token } = useAuth();
     const navigate = useNavigate();
@@ -58,6 +68,7 @@ const SuperAdminDashboard: React.FC = () => {
     const [invitations, setInvitations] = useState<Invitation[]>([]);
     const [auditItems, setAuditItems] = useState<AuditItem[]>([]);
     const [successStories, setSuccessStories] = useState<SuccessStory[]>([]);
+    const [ranking, setRanking] = useState<MunicipalityRank[]>([]);
 
     // UI State
     const [showInviteModal, setShowInviteModal] = useState(false);
@@ -71,12 +82,13 @@ const SuperAdminDashboard: React.FC = () => {
     const fetchAllData = async () => {
         setLoading(true);
         try {
-            const [statsRes, heatmapRes, auditRes, matchesRes, invitesRes] = await Promise.all([
+            const [statsRes, heatmapRes, auditRes, matchesRes, invitesRes, rankingRes] = await Promise.all([
                 axios.get('/admin/stats/global'),
                 axios.get('/admin/heatmap'),
                 axios.get('/admin/quality-audit'),
                 axios.get('/admin/latest-matches'),
-                axios.get('/admin/invitations')
+                axios.get('/admin/invitations'),
+                axios.get('/admin/analytics/municipality-ranking')
             ]);
 
             setKPIs(statsRes.data.kpis);
@@ -84,6 +96,7 @@ const SuperAdminDashboard: React.FC = () => {
             setAuditItems(auditRes.data);
             setSuccessStories(matchesRes.data);
             setInvitations(invitesRes.data);
+            setRanking(rankingRes.data);
         } catch (err) {
             console.error("Error fetching dashboard data:", err);
         } finally {
@@ -131,6 +144,12 @@ const SuperAdminDashboard: React.FC = () => {
                         <p className="text-gray-500 text-sm">Monitorización estratégica del ecosistema Rural Minds España.</p>
                     </div>
                     <div className="flex gap-4">
+                        <button
+                            onClick={() => navigate('/admin/matches')}
+                            className="bg-indigo-50 border border-indigo-200 text-indigo-700 font-bold py-2 px-4 rounded-lg shadow-sm hover:bg-indigo-100 flex items-center gap-2"
+                        >
+                            <span>📊</span> Seguimiento Matches
+                        </button>
                         <button
                             onClick={() => navigate('/admin/config')}
                             className="bg-white border border-gray-300 text-n700 font-bold py-2 px-4 rounded-lg shadow-sm hover:bg-gray-50 flex items-center gap-2"
@@ -315,6 +334,56 @@ const SuperAdminDashboard: React.FC = () => {
                         <div className="col-span-3 text-center py-8 opacity-80">
                             <p className="text-lg">Aún no hay historias de éxito registradas... ¡pero pronto llegarán!</p>
                         </div>
+                    )}
+                </div>
+            </section>
+
+            {/* 5. Star Municipalities Ranking (Gamification) */}
+            <section className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                <div className="p-8 border-b border-gray-100 flex justify-between items-center bg-indigo-50/30">
+                    <div>
+                        <h3 className="font-heading font-bold text-2xl text-n900 flex items-center gap-3">
+                            🏆 Tabla de Honor: Municipios Estrella
+                        </h3>
+                        <p className="text-gray-500 text-sm mt-1 font-medium">Reconocimiento a la proactividad en la conexión de talento.</p>
+                    </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-8">
+                    {ranking.slice(0, 6).map((muni, index) => (
+                        <div key={muni.id} className={`p-6 rounded-2xl border-2 transition-all hover:shadow-xl ${index === 0 ? 'border-yellow-400 bg-yellow-50/30' : 'border-gray-50 hover:border-indigo-100'}`}>
+                            <div className="flex justify-between items-start mb-4">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center overflow-hidden border border-gray-100">
+                                        {muni.logo ? <img src={muni.logo} className="w-8 h-8 object-contain" alt={muni.name} /> : <span className="text-xl">🏛️</span>}
+                                    </div>
+                                    <div>
+                                        <h4 className="font-bold text-n900 leading-tight">{muni.name}</h4>
+                                        <div className="flex items-center gap-1 mt-1">
+                                            {muni.is_star && <span className="bg-yellow-100 text-yellow-700 text-[10px] font-black px-1.5 py-0.5 rounded-full uppercase tracking-tighter">Gold Star</span>}
+                                            <span className="text-[10px] text-gray-400 font-bold uppercase">Puesto #{index + 1}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="text-right">
+                                    <span className="text-2xl font-black text-indigo-600 block">{muni.score}</span>
+                                    <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Puntos</span>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-2 mt-4 pt-4 border-t border-gray-100/50">
+                                <div className="bg-white p-2 rounded-lg border border-gray-50">
+                                    <span className="block text-xl font-bold text-n900">{muni.msgs_sent}</span>
+                                    <span className="text-[9px] text-gray-400 font-bold uppercase tracking-tighter text-center line-clamp-2">Msgs Enviados</span>
+                                </div>
+                                <div className="bg-white p-2 rounded-lg border border-gray-50">
+                                    <span className="block text-xl font-bold text-emerald-600">{muni.matches}</span>
+                                    <span className="text-[9px] text-gray-400 font-bold uppercase tracking-tighter text-center line-clamp-2">Matches Logrados</span>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                    {ranking.length === 0 && (
+                        <div className="col-span-full py-20 text-center text-gray-400 italic">Analizando proactividad municipal...</div>
                     )}
                 </div>
             </section>
