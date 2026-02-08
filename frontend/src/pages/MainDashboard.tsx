@@ -34,7 +34,7 @@ const MainDashboard: React.FC = () => {
                     adequacy_index: "78%",
                     wellbeing_level: 8.4,
                     activation_rate: "65%",
-                    roi_estimated: "$42,000",
+                    roi_estimated: "42.000€",
                     retention_rate: "94%",
                     activation_metrics: {
                         brand_setup: true,

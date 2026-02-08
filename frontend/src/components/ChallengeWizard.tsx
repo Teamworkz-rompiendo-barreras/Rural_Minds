@@ -22,7 +22,7 @@ interface FormData {
     budget: string;
 }
 
-const steps = ['Problem', 'Deliverable', 'Skills', 'Logistics', 'Review'];
+const steps = ['Problema', 'Entregable', 'Habilidades', 'Logística', 'Revisión'];
 
 const ChallengeWizard: React.FC = () => {
     const navigate = useNavigate();
@@ -125,7 +125,7 @@ const ChallengeWizard: React.FC = () => {
         } catch (error) {
             console.error(error);
             setSubmitStatus('error');
-            setErrorMessage('Failed to connect to the server. Please try again.');
+            setErrorMessage('Fallo al conectar con el servidor. Por favor, inténtalo de nuevo.');
         } finally {
             setIsSubmitting(false);
         }
@@ -170,16 +170,16 @@ const ChallengeWizard: React.FC = () => {
                 <div className="mb-8 min-h-[300px]">
                     {currentStep === 1 && (
                         <div>
-                            <h2 className="text-2xl font-heading font-bold mb-2 text-primary">The Problem</h2>
-                            <p className="text-gray-600 mb-6">What do you need to solve or improve?</p>
+                            <h2 className="text-2xl font-heading font-bold mb-2 text-primary">El Problema</h2>
+                            <p className="text-gray-600 mb-6">¿Qué necesitas resolver o mejorar?</p>
 
                             <div className="mb-6">
-                                <label className="block text-sm font-bold mb-2">My need is...</label>
+                                <label className="block text-sm font-bold mb-2">Mi necesidad es...</label>
                                 <input
                                     type="text"
                                     maxLength={100}
                                     className="w-full p-3 border border-gray-300 rounded focus:border-primary focus:ring-1 focus:ring-primary outline-none"
-                                    placeholder="e.g., I need to digitize my invoices..."
+                                    placeholder="ej: Necesito digitalizar mis facturas..."
                                     value={formData.title}
                                     onChange={e => setFormData({ ...formData, title: e.target.value })}
                                 />
@@ -187,9 +187,9 @@ const ChallengeWizard: React.FC = () => {
                             </div>
 
                             <div className="mb-6">
-                                <label className="block text-sm font-bold mb-2">Why is it a problem today?</label>
+                                <label className="block text-sm font-bold mb-2">¿Por qué es un problema hoy?</label>
                                 <div className="flex flex-wrap gap-3">
-                                    {['Repetitive tasks', 'Data loss', 'Lack of customers', 'Slow processes', 'High costs'].map(reason => (
+                                    {['Tareas repetitivas', 'Pérdida de datos', 'Falta de clientes', 'Procesos lentos', 'Costes altos'].map(reason => (
                                         <button
                                             key={reason}
                                             onClick={() => setFormData({ ...formData, problemReason: reason })}
@@ -202,10 +202,10 @@ const ChallengeWizard: React.FC = () => {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-bold mb-2">Description (Optional Details)</label>
+                                <label className="block text-sm font-bold mb-2">Descripción (Detalles opcionales)</label>
                                 <textarea
                                     className="w-full p-3 border border-gray-300 rounded focus:border-primary focus:ring-1 focus:ring-primary outline-none h-24"
-                                    placeholder="Any extra context..."
+                                    placeholder="Cualquier contexto extra..."
                                     value={formData.description}
                                     onChange={e => setFormData({ ...formData, description: e.target.value })}
                                 />
@@ -215,14 +215,14 @@ const ChallengeWizard: React.FC = () => {
 
                     {currentStep === 2 && (
                         <div>
-                            <h2 className="text-2xl font-heading font-bold mb-2 text-primary">The Deliverable</h2>
-                            <p className="text-gray-600 mb-6">What exactly should the professional deliver?</p>
+                            <h2 className="text-2xl font-heading font-bold mb-2 text-primary">El Entregable</h2>
+                            <p className="text-gray-600 mb-6">¿Qué debe entregar exactamente el profesional?</p>
 
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                                 {[
                                     { id: 'software', label: 'Software/Web', icon: '💻' },
-                                    { id: 'document', label: 'Report/Doc', icon: '📄' },
-                                    { id: 'design', label: 'Design/Visual', icon: '🎨' },
+                                    { id: 'document', label: 'Informe/Doc', icon: '📄' },
+                                    { id: 'design', label: 'Diseño/Visual', icon: '🎨' },
                                 ].map((item) => (
                                     <div
                                         key={item.id}
@@ -236,8 +236,8 @@ const ChallengeWizard: React.FC = () => {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-bold mb-2">Definition of Done (Acceptance Criteria)</label>
-                                <p className="text-xs text-gray-500 mb-2">The job is done when...</p>
+                                <label className="block text-sm font-bold mb-2">Definición de Hecho (Criterios de Aceptación)</label>
+                                <p className="text-xs text-gray-500 mb-2">El trabajo está terminado cuando...</p>
                                 <div className="space-y-2 mb-2">
                                     {formData.acceptanceCriteria.map((ac, idx) => (
                                         <div key={idx} className="flex items-center gap-2 p-2 bg-gray-50 rounded border border-gray-200">
@@ -252,7 +252,7 @@ const ChallengeWizard: React.FC = () => {
                                     value={acInput}
                                     onChange={(e) => setAcInput(e.target.value)}
                                     onKeyDown={addCriteria}
-                                    placeholder="Type a criterion and press Enter (e.g., 'Mobile responsive')"
+                                    placeholder="Escribe un criterio y pulsa Enter (ej: 'Adaptado a móvil')"
                                     className="w-full p-3 border border-gray-300 rounded focus:border-primary focus:ring-1 focus:ring-primary outline-none"
                                 />
                             </div>
@@ -261,9 +261,9 @@ const ChallengeWizard: React.FC = () => {
 
                     {currentStep === 3 && (
                         <div>
-                            <h2 className="text-2xl font-heading font-bold mb-6 text-primary">Skills & Autonomy</h2>
+                            <h2 className="text-2xl font-heading font-bold mb-6 text-primary">Habilidades y Autonomía</h2>
                             <div className="mb-8">
-                                <label className="block text-sm font-bold mb-2">Required Technologies/Skills</label>
+                                <label className="block text-sm font-bold mb-2">Tecnologías/Habilidades requeridas</label>
                                 <div className="flex flex-wrap gap-2 mb-2 p-2 border border-gray-300 rounded bg-white">
                                     {formData.skills.map(skill => (
                                         <span key={skill} className="bg-primary text-white px-3 py-1 rounded-full text-sm flex items-center gap-2">
@@ -276,15 +276,15 @@ const ChallengeWizard: React.FC = () => {
                                         value={skillInput}
                                         onChange={(e) => setSkillInput(e.target.value)}
                                         onKeyDown={addSkill}
-                                        placeholder={formData.skills.length === 0 ? "Type tag & Enter..." : ""}
+                                        placeholder={formData.skills.length === 0 ? "Escribe y pulsa Enter..." : ""}
                                         className="flex-grow outline-none bg-transparent min-w-[150px]"
                                     />
                                 </div>
                             </div>
                             <div>
                                 <label className="block text-sm font-bold mb-4 flex justify-between">
-                                    <span>Autonomy Level</span>
-                                    <span className="text-primary font-bold">Level {formData.autonomyLevel}</span>
+                                    <span>Nivel de Autonomía</span>
+                                    <span className="text-primary font-bold">Nivel {formData.autonomyLevel}</span>
                                 </label>
                                 <input
                                     type="range"
@@ -294,8 +294,8 @@ const ChallengeWizard: React.FC = () => {
                                     className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary"
                                 />
                                 <div className="flex justify-between text-xs text-gray-500 mt-2">
-                                    <span>Needs Guide</span>
-                                    <span>Fully Autonomous</span>
+                                    <span>Necesita Guía</span>
+                                    <span>Totalmente Autónomo</span>
                                 </div>
                             </div>
                         </div>
@@ -303,31 +303,31 @@ const ChallengeWizard: React.FC = () => {
 
                     {currentStep === 4 && (
                         <div>
-                            <h2 className="text-2xl font-heading font-bold mb-6 text-primary">Logistics</h2>
+                            <h2 className="text-2xl font-heading font-bold mb-6 text-primary">Logística</h2>
 
                             <div className="mb-8">
-                                <label className="block text-sm font-bold mb-3">Modality</label>
+                                <label className="block text-sm font-bold mb-3">Modalidad</label>
                                 <div className="flex gap-4">
                                     <label className={`flex-1 p-4 border rounded-lg cursor-pointer transition-all ${formData.modality === 'remote' ? 'bg-blue-50 border-primary ring-1 ring-primary' : 'bg-white border-gray-200 hover:border-gray-300'}`}>
                                         <input type="radio" name="modality" value="remote" checked={formData.modality === 'remote'} onChange={() => setFormData({ ...formData, modality: 'remote' })} className="hidden" />
-                                        <div className="font-bold text-lg mb-1">🏠 Remote</div>
-                                        <div className="text-sm text-gray-500">Work from anywhere (Preferred)</div>
+                                        <div className="font-bold text-lg mb-1">🏠 Remoto</div>
+                                        <div className="text-sm text-gray-500">Trabajo desde cualquier lugar (Preferido)</div>
                                     </label>
                                     <label className={`flex-1 p-4 border rounded-lg cursor-pointer transition-all ${formData.modality === 'onsite' ? 'bg-blue-50 border-primary ring-1 ring-primary' : 'bg-white border-gray-200 hover:border-gray-300'}`}>
                                         <input type="radio" name="modality" value="onsite" checked={formData.modality === 'onsite'} onChange={() => setFormData({ ...formData, modality: 'onsite' })} className="hidden" />
-                                        <div className="font-bold text-lg mb-1">🏢 Onsite</div>
-                                        <div className="text-sm text-gray-500">Only if strictly necessary</div>
+                                        <div className="font-bold text-lg mb-1">🏢 Presencial</div>
+                                        <div className="text-sm text-gray-500">Solo si es estrictamente necesario</div>
                                     </label>
                                 </div>
                             </div>
 
                             <div>
-                                <label className="block text-sm font-bold mb-3">Communication Preference</label>
+                                <label className="block text-sm font-bold mb-3">Preferencia de Comunicación</label>
                                 <div className="space-y-3">
                                     {[
-                                        { id: 'video', label: 'Video Call (Weekly)' },
-                                        { id: 'chat', label: 'Chat/Email Only (Async)' },
-                                        { id: 'phone', label: 'Phone Call' },
+                                        { id: 'video', label: 'Videollamada (Semanal)' },
+                                        { id: 'chat', label: 'Solo Chat/Email (Asíncrono)' },
+                                        { id: 'phone', label: 'Llamada telefónica' },
                                     ].map(pref => (
                                         <label key={pref.id} className="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
                                             <input
@@ -348,28 +348,28 @@ const ChallengeWizard: React.FC = () => {
 
                     {currentStep === 5 && (
                         <div>
-                            <h2 className="text-2xl font-heading font-bold mb-6 text-primary">Budget & Review</h2>
+                            <h2 className="text-2xl font-heading font-bold mb-6 text-primary">Presupuesto y Revisión</h2>
 
                             <div className="mb-8">
-                                <label className="block text-sm font-bold mb-2">Budget / Reward</label>
+                                <label className="block text-sm font-bold mb-2">Presupuesto / Recompensa</label>
                                 <input
                                     type="text"
                                     className="w-full p-3 border border-gray-300 rounded focus:border-primary focus:ring-1 focus:ring-primary outline-none"
-                                    placeholder="e.g., 500€ - 1000€ or Hourly Rate"
+                                    placeholder="ej: 500€ - 1000€ o tarifa por hora"
                                     value={formData.budget}
                                     onChange={e => setFormData({ ...formData, budget: e.target.value })}
                                 />
                             </div>
 
                             <div className="bg-gray-50 p-6 rounded-lg text-sm border border-gray-200">
-                                <h3 className="font-heading font-bold mb-4 text-lg">Challenge Summary</h3>
+                                <h3 className="font-heading font-bold mb-4 text-lg">Resumen del Reto</h3>
                                 <div className="grid grid-cols-2 gap-y-4 gap-x-2">
-                                    <div><span className="text-xs uppercase text-gray-500 block">Title</span> <strong>{formData.title}</strong></div>
-                                    <div><span className="text-xs uppercase text-gray-500 block">Problem</span> <strong>{formData.problemReason}</strong></div>
-                                    <div><span className="text-xs uppercase text-gray-500 block">Type</span> <strong>{formData.deliverableType}</strong></div>
-                                    <div><span className="text-xs uppercase text-gray-500 block">Modality</span> <strong>{formData.modality}</strong></div>
+                                    <div><span className="text-xs uppercase text-gray-500 block">Título</span> <strong>{formData.title}</strong></div>
+                                    <div><span className="text-xs uppercase text-gray-500 block">Problema</span> <strong>{formData.problemReason}</strong></div>
+                                    <div><span className="text-xs uppercase text-gray-500 block">Tipo</span> <strong>{formData.deliverableType}</strong></div>
+                                    <div><span className="text-xs uppercase text-gray-500 block">Modalidad</span> <strong>{formData.modality}</strong></div>
                                     <div className="col-span-2">
-                                        <span className="text-xs uppercase text-gray-500 block">Definition of Done</span>
+                                        <span className="text-xs uppercase text-gray-500 block">Definición de Hecho</span>
                                         <ul className="list-disc list-inside pl-1 text-gray-700">
                                             {formData.acceptanceCriteria.map(ac => <li key={ac}>{ac}</li>)}
                                         </ul>

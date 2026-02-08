@@ -82,8 +82,8 @@ def generate_impact_report_pdf(org_name: str, metrics: dict):
     data = [
         [Paragraph(f"Score Inclusión: {metrics.get('inclusion_score', '--')}", style_metric_value),
          Paragraph(f"Bienestar Promedio: {metrics.get('wellbeing_level', '--')}/10", style_metric_value)],
-        [Paragraph("Score compuesto basado en activación y adecuación.", style_metric_label),
-         Paragraph("Basado en feedback directo de colaboradores.", style_metric_label)],
+        [Paragraph("Social Score basado en activación y adecuación.", style_metric_label),
+         Paragraph("Basado en el feedback directo de los colaboradores.", style_metric_label)],
         
         [Paragraph(f"ROI Estimado: {metrics.get('roi_estimated', '--')}", style_metric_value),
          Paragraph(f"Retención: {metrics.get('retention_rate', '--')}", style_metric_value)],

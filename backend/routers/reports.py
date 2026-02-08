@@ -48,7 +48,7 @@ def get_impact_data(db: Session, org_id: str):
         "adequacy_index": f"{adequacy_index}%",
         "wellbeing_level": round(avg_wellbeing, 1),
         "activation_rate": f"{activation_rate}%",
-        "roi_estimated": f"${roi:,}",
+        "roi_estimated": f"{roi:,}€",
         "retention_rate": "94%", # Mocked
         "activation_metrics": {
             "brand_setup": brand_setup_completed,
@@ -174,7 +174,7 @@ def get_monthly_impact_data(db: Session, municipality_id: str):
         top_companies = [{"name": "Sin empresas activas", "offers": 0, "seal": "N/A"}]
 
     return {
-        "month": now.strftime("%B"),
+        "month": now.strftime("%B").replace("January", "Enero").replace("February", "Febrero").replace("March", "Marzo").replace("April", "Abril").replace("May", "Mayo").replace("June", "Junio").replace("July", "Julio").replace("August", "Agosto").replace("September", "Septiembre").replace("October", "Octubre").replace("November", "Noviembre").replace("December", "Diciembre"),
         "total_interested": total_interested,
         "num_attraction": num_attraction,
         "num_rooting": num_rooting,

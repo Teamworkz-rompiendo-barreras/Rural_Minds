@@ -37,10 +37,10 @@ def get_impact_report(
             "adequacy_index": "82%",
             "wellbeing_level": 8.5,
             "activation_rate": "70%",
-            "roi_estimated": "$50,000",
+            "roi_estimated": "50.000€",
             "neurodivergent_hires": 150,
             "retention_rate": "95%",
-            "hiring_velocity": "12 days",
+            "hiring_velocity": "12 días",
             "activation_metrics": {
                 "brand_setup": True,
                 "sensory_adoption": 70,
@@ -56,7 +56,7 @@ def get_impact_report(
             "inclusion_score": 0,
             "retention_rate": "N/A",
             "hiring_velocity": "N/A",
-            "roi_estimated": "$0"
+            "roi_estimated": "0€"
         }
 
     # Determine scope: Single Org or Municipality Aggregation
@@ -126,10 +126,10 @@ def get_impact_report(
         "adequacy_index": f"{adequacy_index}%",
         "wellbeing_level": round(avg_wellbeing, 1),
         "activation_rate": f"{activation_rate}%",
-        "roi_estimated": f"${roi:,}",
+        "roi_estimated": f"{roi:,}€",
         "neurodivergent_hires": 2, 
         "retention_rate": "94%",
-        "hiring_velocity": "14 days",
+        "hiring_velocity": "14 días",
         # New Activation Metrics
         "activation_metrics": {
             "brand_setup": brand_setup_completed,
