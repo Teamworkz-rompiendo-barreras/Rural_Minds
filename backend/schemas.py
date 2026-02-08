@@ -16,6 +16,8 @@ class LocationBase(BaseModel):
     municipality: str
     province: str
     autonomous_community: Optional[str] = None
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
 
 class Location(LocationBase):
     id: uuid.UUID
@@ -34,6 +36,8 @@ class OrganizationBase(BaseModel):
     org_type: Optional[str] = "enterprise"
     municipality_id: Optional[uuid.UUID] = None
     sensory_commitment: Optional[dict] = {}
+    has_excellence_seal: bool = False
+    seal_metadata: Optional[dict] = {}
     street_address: Optional[str] = None
     postal_code: Optional[str] = None
 
@@ -104,7 +108,8 @@ class UserPublic(UserBase):
     status: str
     organization_id: Optional[uuid.UUID] = None
     organization: Optional[Organization] = None
-
+    notification_settings: Optional[dict] = {}
+    
     class Config:
         from_attributes = True
 
@@ -167,7 +172,11 @@ class TalentProfileBase(BaseModel):
     # Location Module
     residence_location_id: Optional[uuid.UUID] = None
     is_willing_to_move: Optional[bool] = False
+    relocation_commitment: Optional[bool] = False
     target_locations: Optional[List[str]] = []
+    
+    visibility_settings: Optional[dict] = {"status": "public", "accessible_to": ["enterprise", "municipality"]}
+    achievements: Optional[List[dict]] = []
 
 class TalentProfileCreate(TalentProfileBase):
     pass
@@ -183,11 +192,22 @@ class TalentProfile(TalentProfileBase):
 class MunicipalityDetailsBase(BaseModel):
     slogan: Optional[str] = None
     description: Optional[str] = None
+    population: Optional[int] = None
+    altitude: Optional[int] = None
+    average_climate: Optional[str] = None
     internet_speed: Optional[str] = None
+    has_fiber_600: bool = False
     connectivity_info: Optional[str] = None
+    environment_type: Optional[str] = None # Montaña, Costa, Valle, Interior
+    noise_level: Optional[str] = None
+    light_pollution: Optional[str] = None
+    life_pace: Optional[str] = None
+    mobile_coverage: Optional[str] = None
+    has_coworking: bool = False
     climate_co2: Optional[str] = None
     landing_guide_url: Optional[str] = None
     services: Optional[dict] = {}
+    has_essential_services: bool = False
     gallery_urls: Optional[List[str]] = []
 
 class MunicipalityDetails(MunicipalityDetailsBase):
@@ -229,6 +249,7 @@ class ChallengeBase(BaseModel):
     environment_info: Optional[str] = None
     accessibility_info: Optional[str] = None
     sensory_environment: Optional[dict] = {}
+    stimulus_level: str = "low"
 
 class ChallengeCreate(ChallengeBase):
     pass
@@ -259,6 +280,7 @@ class Challenge(ChallengeBase):
     # Matching Output
     match_score: Optional[float] = None
     adjustments: Optional[List[str]] = None
+    has_excellence_seal: bool = False
     
     class Config:
         from_attributes = True
@@ -282,6 +304,8 @@ class Application(ApplicationBase):
     is_local: Optional[bool] = None
     willing_to_relocate: bool = False
     location_label: Optional[str] = None
+    hiring_start_date: Optional[datetime] = None
+    is_verification_sent: bool = False
     created_at: Optional[datetime] = None
     
     relocation_lead: Optional["RelocationLead"] = None
@@ -391,3 +415,97 @@ class MunicipalSupportMessage(MunicipalSupportMessageBase):
 
     class Config:
         from_attributes = True
+# --- Certification/Seal ---
+class WorkplaceAdjustmentTaskBase(BaseModel):
+    task_description: str
+    category: Optional[str] = None
+    status: str = "pending"
+    evidence_url: Optional[str] = None
+    evidence_type: Optional[str] = None
+
+class WorkplaceAdjustmentTaskCreate(WorkplaceAdjustmentTaskBase):
+    organization_id: uuid.UUID
+    user_id: uuid.UUID
+    application_id: uuid.UUID
+
+class WorkplaceAdjustmentTaskUpdate(BaseModel):
+    status: Optional[str] = None
+    evidence_url: Optional[str] = None
+    evidence_type: Optional[str] = None
+    talent_feedback: Optional[str] = None
+
+class WorkplaceAdjustmentTask(WorkplaceAdjustmentTaskBase):
+    id: uuid.UUID
+    organization_id: uuid.UUID
+    user_id: uuid.UUID
+    application_id: uuid.UUID
+    talent_feedback: Optional[str] = None
+    created_at: datetime
+    verified_at: Optional[datetime] = None
+    
+    class Config:
+        from_attributes = True
+
+class EnterpriseSealStatusBase(BaseModel):
+    status: str = "pending"
+    progress_percentage: int = 0
+    total_tasks: int = 0
+    completed_tasks: int = 0
+
+class EnterpriseSealStatusResponse(EnterpriseSealStatusBase):
+    id: uuid.UUID
+    organization_id: uuid.UUID
+    last_updated: datetime
+    
+    class Config:
+        from_attributes = True
+
+# --- Sensory Verification ---
+class SensoryVerificationBase(BaseModel):
+    lighting_feedback: str
+    acoustics_feedback: str
+    instructions_feedback: str
+    social_feedback: str
+    adjustments_results: dict
+    needs_mediation: bool = False
+
+class SensoryVerificationCreate(SensoryVerificationBase):
+    application_id: uuid.UUID
+
+class SensoryVerificationResponse(SensoryVerificationBase):
+    id: uuid.UUID
+    application_id: uuid.UUID
+    created_at: datetime
+    
+    class Config:
+        from_attributes = True
+
+# --- Certification Incidents ---
+class CertificationIncidentBase(BaseModel):
+    priority: str = "moderate"
+    category: str
+    enterprise_version: Optional[str] = None
+    talent_version: Optional[str] = None
+    status: str = "open"
+    interaction_history: List[dict] = []
+
+class CertificationIncidentResponse(CertificationIncidentBase):
+    id: uuid.UUID
+    organization_id: uuid.UUID
+    application_id: uuid.UUID
+    created_at: datetime
+    resolved_at: Optional[datetime] = None
+    
+    class Config:
+        from_attributes = True
+
+# --- Explorer ---
+class ChallengeExplorerQuery(BaseModel):
+    stimulus_level: Optional[str] = None # low, medium, high
+    environment_type: Optional[str] = None # Montaña, Costa, etc.
+    min_connectivity: bool = False # Fibra > 600Mb
+    has_services: bool = False # Essential services < 15min
+    min_match_score: int = 0 # Match slider (0-100)
+    user_latitude: Optional[float] = None
+    user_longitude: Optional[float] = None
+    max_distance_km: Optional[float] = None

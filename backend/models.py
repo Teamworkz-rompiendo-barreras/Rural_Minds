@@ -85,6 +85,10 @@ class Organization(Base):
     location = relationship("Location") # Relationship
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
+    # Excellence Seal
+    has_excellence_seal = Column(Boolean, default=False)
+    seal_metadata = Column(JSON, default=dict) # Points, history, last_validated
+
     users = relationship("User", back_populates="organization")
     # challenges = relationship("Challenge", back_populates="organization") # Updating Challenge later if needed
 
@@ -104,6 +108,8 @@ class User(Base):
     email_verified = Column(Boolean, default=False)
     verification_token = Column(String, nullable=True) # UUID token for email confirmation
     verification_token_expires = Column(DateTime, nullable=True)
+    
+    notification_settings = Column(JSON, default=dict) # {email: bool, push: bool, in_app: bool}
     
     organization = relationship("Organization", back_populates="users")
     
@@ -169,6 +175,7 @@ class Challenge(Base):
     deadline = Column(DateTime, nullable=True)
     status = Column(String, default="open")  # open, closed, in_progress
     is_public = Column(Boolean, default=True) # New field for visibility
+    stimulus_level = Column(String, default="low") # low, medium, high
     
     # Detailed Project Info
     exact_address = Column(String, nullable=True)
@@ -193,8 +200,12 @@ class Application(Base):
     challenge_id = Column(GUID, ForeignKey("challenges.id"))
     
     cover_letter = Column(String, nullable=True)
-    status = Column(String, default="pending")  # pending, accepted, rejected
+    status = Column(String, default="pending")  # pending, accepted, rejected, hired
     willing_to_relocate = Column(Boolean, default=False)
+    
+    # Hiring Tracking
+    hiring_start_date = Column(DateTime, nullable=True)
+    is_verification_sent = Column(Boolean, default=False)
     
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
@@ -218,7 +229,11 @@ class TalentProfile(Base):
     # Location Module
     residence_location_id = Column(GUID, ForeignKey("locations.id"), nullable=True)
     is_willing_to_move = Column(Boolean, default=False)
-    target_locations = Column(JSON, default=list) # List of Location IDs or names
+    target_locations = Column(JSON, default=list) # List of municipality IDs
+    relocation_commitment = Column(Boolean, default=False) # Check de Compromiso de Mudanza
+    
+    visibility_settings = Column(JSON, default=lambda: {"status": "public", "accessible_to": ["enterprise", "municipality"]})
+    achievements = Column(JSON, default=list) # List of awarded badges or milestones
 
     residence_location = relationship("Location")
     
@@ -409,3 +424,88 @@ class SuccessStory(Base):
 
 # Import from models_location to make them available via models module
 from models_location import MunicipalityDetails, MunicipalityResource, Location
+
+class WorkplaceAdjustmentTask(Base):
+    __tablename__ = "workplace_adjustment_tasks"
+    
+    id = Column(GUID, primary_key=True, default=uuid.uuid4, index=True)
+    organization_id = Column(GUID, ForeignKey("organizations.id"), nullable=False)
+    user_id = Column(GUID, ForeignKey("users.id"), nullable=False) # The talent
+    application_id = Column(GUID, ForeignKey("applications.id"), nullable=False)
+    
+    task_description = Column(String, nullable=False)
+    category = Column(String) # lighting, noise, physical, etc.
+    evidence_url = Column(String, nullable=True) # Supabase Storage
+    evidence_type = Column(String, nullable=True) # photo, invoice
+    
+    status = Column(String, default="pending") # pending, ready_for_validation, verified, rejected
+    talent_feedback = Column(String, nullable=True)
+    
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    verified_at = Column(DateTime, nullable=True)
+    
+    organization = relationship("Organization")
+    user = relationship("User")
+    application = relationship("Application")
+
+class EnterpriseSealStatus(Base):
+    __tablename__ = "enterprise_seal_status"
+    
+    id = Column(GUID, primary_key=True, default=uuid.uuid4, index=True)
+    organization_id = Column(GUID, ForeignKey("organizations.id"), unique=True, nullable=False)
+    
+    status = Column(String, default="pending") # pending, in_progress, verified
+    progress_percentage = Column(Integer, default=0)
+    
+    total_tasks = Column(Integer, default=0)
+    completed_tasks = Column(Integer, default=0)
+    
+    last_updated = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
+    
+    organization = relationship("Organization")
+
+class SensoryVerification(Base):
+    __tablename__ = "sensory_verifications"
+    
+    id = Column(GUID, primary_key=True, default=uuid.uuid4, index=True)
+    application_id = Column(GUID, ForeignKey("applications.id"), unique=True, nullable=False)
+    
+    # 1. Environment
+    lighting_feedback = Column(String)  # perfect, too_bright, no_natural
+    acoustics_feedback = Column(String) # adequate, noises, needs_panels
+    
+    # 2. Dynamics
+    instructions_feedback = Column(String) # clear_written, too_verbal
+    social_feedback = Column(String)       # respectful, overstimulated
+    
+    # 3. Specific Adjustments (JSON results of the task-by-task check)
+    adjustments_results = Column(JSON, default=dict) # {task_id: "yes" | "no" | "adjust"}
+    
+    needs_mediation = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    
+    application = relationship("Application", backref=backref("sensory_verification", uselist=False))
+
+class CertificationIncident(Base):
+    __tablename__ = "certification_incidents"
+    
+    id = Column(GUID, primary_key=True, default=uuid.uuid4, index=True)
+    organization_id = Column(GUID, ForeignKey("organizations.id"), nullable=False)
+    application_id = Column(GUID, ForeignKey("applications.id"), nullable=False)
+    
+    priority = Column(String, default="moderate") # critical (Red), moderate (Orange)
+    category = Column(String) # e.g., Acústica, Iluminación
+    
+    enterprise_version = Column(String, nullable=True)
+    talent_version = Column(String, nullable=True)
+    
+    status = Column(String, default="open") # open, in_mediation, resolved, seal_paused
+    
+    # History of interactions/messages
+    interaction_history = Column(JSON, default=list) # [{timestamp, user, text}]
+    
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    resolved_at = Column(DateTime, nullable=True)
+    
+    organization = relationship("Organization")
+    application = relationship("Application")

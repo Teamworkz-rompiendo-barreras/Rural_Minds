@@ -189,11 +189,16 @@ def update_application_status(
         raise HTTPException(status_code=403, detail="Not authorized to update this application")
         
     new_status = status_update.get("status")
-    if new_status not in ["pending", "accepted", "rejected"]:
+    if new_status not in ["pending", "accepted", "rejected", "hired"]:
         raise HTTPException(status_code=400, detail="Invalid status")
         
     previous_status = application.status
     application.status = new_status
+    
+    if new_status == "hired" and previous_status != "hired":
+        import datetime
+        application.hiring_start_date = datetime.datetime.utcnow()
+        
     db.commit()
     db.refresh(application)
     
@@ -208,6 +213,14 @@ def update_application_status(
         ]
         db.add_all(tasks)
         db.commit()
+        
+        # 3. Generate Excellence Seal Tasks (Workplace Adjustments)
+        from utils.seal_service import generate_tasks_from_profile
+        try:
+            generate_tasks_from_profile(db, application.id)
+            print(f"🏅 EXCELLENCE SEAL TASKS GENERATED for application {application.id}")
+        except Exception as e:
+            print(f"⚠️ Error generating seal tasks: {e}")
         
         # 2. (Mock) Trigger Notification logic here if needed
         # print(f"Notification: Match Accepted for {application.id}")

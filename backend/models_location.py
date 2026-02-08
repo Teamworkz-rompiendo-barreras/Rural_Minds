@@ -54,9 +54,9 @@ class Location(Base):
     province = Column(String, index=True)
     autonomous_community = Column(String)
     
-    # Optional: Lat/Lon for radius search later?
-    # latitude = Column(Float, nullable=True)
-    # longitude = Column(Float, nullable=True)
+    # Geospatial data for radius search
+    latitude = Column(types.Float, nullable=True)
+    longitude = Column(types.Float, nullable=True)
 
 class MunicipalityResource(Base):
     __tablename__ = "municipality_resources"
@@ -79,14 +79,32 @@ class MunicipalityDetails(Base):
     slogan = Column(String, nullable=True)
     description = Column(String, nullable=True)
     
+    # Vital Stats
+    population = Column(types.Integer, nullable=True)
+    altitude = Column(types.Integer, nullable=True)
+    average_climate = Column(String, nullable=True)
+    
     # Infrastructure (Semaphore)
     internet_speed = Column(String, nullable=True) # e.g. "1Gbps Fibra"
+    has_fiber_600 = Column(types.Boolean, default=False)
+    
     connectivity_info = Column(String, nullable=True) # e.g. "45 min a Madrid"
+    environment_type = Column(String, nullable=True) # Montaña, Costa, Valle, Interior
+    
+    # Sensory Pulse
+    noise_level = Column(String, nullable=True) # Silencio profundo, etc.
+    light_pollution = Column(String, nullable=True) # Baja, Media, Alta
+    life_pace = Column(String, nullable=True) # Tranquilo, Vibrante, etc.
+    
+    mobile_coverage = Column(String, nullable=True) # 4G, 5G
+    has_coworking = Column(types.Boolean, default=False)
+    
     climate_co2 = Column(String, nullable=True) # e.g. "Baja densidad"
     
     # Services JSON
     # { "health": "...", "education": "...", "coworking": "...", "commerce": "..." }
     services = Column(types.JSON, default=dict)
+    has_essential_services = Column(types.Boolean, default=False) # Farmacia, Super, Salud < 15min
     
     # Gallery
     gallery_urls = Column(types.JSON, default=list) # ["url1", "url2"]

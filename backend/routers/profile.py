@@ -55,6 +55,13 @@ def update_my_profile(profile_update: schemas.TalentProfileCreate, current_user:
     if profile_update.target_locations is not None:
         profile.target_locations = profile_update.target_locations
         
+    # Relocation Commitment Trigger
+    relocation_triggered = False
+    if profile_update.relocation_commitment is not None:
+        if profile_update.relocation_commitment and not profile.relocation_commitment:
+            relocation_triggered = True
+        profile.relocation_commitment = profile_update.relocation_commitment
+
     db.commit()
     db.refresh(profile)
 
@@ -62,20 +69,25 @@ def update_my_profile(profile_update: schemas.TalentProfileCreate, current_user:
     new_target_locations = set(profile.target_locations or [])
     added_locations = new_target_locations - old_target_locations
     
-    if added_locations:
+    # If relocation commitment was just triggered, we treat all current target locations as "new" for notification purposes
+    # or at least send a special notification.
+    notify_locations = added_locations
+    if relocation_triggered:
+        notify_locations = new_target_locations
+    
+    if notify_locations:
         from utils import email_service
         from models_location import Location, MunicipalityResource
         
-        for loc_id in added_locations:
+        for loc_id in notify_locations:
             # Fetch Municipality Name
             location = db.query(Location).filter(Location.id == loc_id).first()
             if location:
-                # Fetch Resources (if any)
+                # 1. Email to Talent (Welcome Guide)
                 resource = db.query(MunicipalityResource).filter(MunicipalityResource.location_id == loc_id).first()
                 guide_url = resource.landing_guide_url if resource else "#"
                 contact_email = resource.adl_contact_email if resource else "info@ruralminds.com"
                 
-                # Send Email
                 email_service.send_municipality_welcome_email(
                     to_email=current_user.email,
                     talent_name=current_user.full_name,
@@ -83,6 +95,29 @@ def update_my_profile(profile_update: schemas.TalentProfileCreate, current_user:
                     guide_url=guide_url,
                     contact_email=contact_email
                 )
+                
+                # 2. Notify Municipality (Audit Log / Notification)
+                # Find the organization representing this municipality
+                muni_org = db.query(models.Organization).filter(
+                    models.Organization.location_id == loc_id,
+                    models.Organization.role == 'municipality'
+                ).first()
+                
+                if muni_org:
+                    pseudonym = f"RM-{str(profile.id)[:4].upper()}"
+                    event_msg = f"¡Nuevo Compromiso de Mudanza! El candidato {pseudonym} ha confirmado su intención de mudarse a {location.municipality}."
+                    
+                    db.add(models.AuditLog(
+                        organization_id=muni_org.id,
+                        event_type="info",
+                        message=event_msg,
+                        details={
+                            "talent_id": str(profile.id),
+                            "type": "relocation_commitment",
+                            "municipality": location.municipality
+                        }
+                    ))
+        db.commit()
 
     return profile
 

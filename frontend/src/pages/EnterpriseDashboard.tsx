@@ -3,6 +3,7 @@ import { PDFDownloadLink } from '@react-pdf/renderer';
 import axios from '../config/api';
 import InclusionManualPDF from '../components/InclusionManualPDF';
 import { useAuth } from '../context/AuthContext';
+import ExcellenceSealBadge from '../components/ExcellenceSealBadge';
 import { Link } from 'react-router-dom';
 import LocalSeal from '../components/badges/LocalSeal';
 
@@ -89,18 +90,21 @@ const EnterpriseDashboard: React.FC = () => {
                         <div className="flex-grow">
                             <h3 className="font-heading font-bold text-2xl text-p2 mb-2 flex items-center gap-2">
                                 <span>🏅</span> Mis Distintivos
+                                {user?.organization?.has_excellence_seal && <ExcellenceSealBadge size={32} />}
                             </h3>
                             <p className="text-gray-600 mb-4">
                                 Este sello certifica tu compromiso con la inclusión y el desarrollo local.
                                 Utilízalo en tu web, firma de correo y redes sociales.
                             </p>
                             <div className="flex flex-wrap gap-3">
+                                <Link
+                                    to="/camino-excelencia"
+                                    className="text-sm font-bold bg-p2 text-white px-4 py-2 rounded shadow hover:bg-p1 hover:text-p2 transition-all flex items-center gap-2"
+                                >
+                                    <span>🚀</span> Mi Camino a la Excelencia
+                                </Link>
                                 <button
                                     onClick={() => {
-                                        // Trigger SVG download via logic similar to Modal
-                                        // For brevity in Dashboard, maybe just a simple alert or reuse logic?
-                                        // We can't reuse the Modal logic easily without props.
-                                        // I'll leave as simple download link for now or implement inline.
                                         alert("Descarga iniciada via componente...");
                                     }}
                                     className="text-sm font-bold text-p2 border border-p2 px-4 py-2 rounded hover:bg-p2 hover:text-white transition-colors"

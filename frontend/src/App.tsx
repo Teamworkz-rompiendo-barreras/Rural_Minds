@@ -20,6 +20,10 @@ import VerifyEmail from './pages/VerifyEmail';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import SuperadminMatchesDashboard from './pages/SuperadminMatchesDashboard';
+import CaminoExcelencia from './pages/CaminoExcelencia';
+import SensoryVerificationSheet from './pages/SensoryVerificationSheet';
+import OpportunityExplorer from './pages/OpportunityExplorer';
+import SensoryOnboardingWizard from './pages/SensoryOnboardingWizard';
 
 import LandingPage from './pages/LandingPage';
 import MainDashboard from './pages/MainDashboard';
@@ -55,6 +59,7 @@ function App() {
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/profile" element={<TalentProfileWizard />} />
+        <Route path="/sensory-wizard" element={<SensoryOnboardingWizard />} />
 
         {/* Dashboards by Profile */}
         <Route path="/talent-dashboard" element={<TalentDashboard />} />
@@ -70,6 +75,8 @@ function App() {
         <Route path="/dashboard" element={<MainDashboard />} /> {/* Legacy/Generic */}
 
         <Route path="/onboarding" element={<CompanyOnboarding />} />
+        <Route path="/camino-excelencia" element={<CaminoExcelencia />} />
+        <Route path="/verify-sensory/:applicationId" element={<SensoryVerificationSheet />} />
         <Route path="/org-settings" element={<OrganizationSettings />} />
         <Route path="/learning" element={<LearningCenter />} />
         <Route path="/reports" element={<ReportsDashboard />} />
@@ -78,6 +85,7 @@ function App() {
         <Route path="/sensory-profile" element={<SensoryProfile />} />
         <Route path="/solutions" element={<SolutionsCatalog />} />
         <Route path="/my-adjustments" element={<MyAdjustments />} />
+        <Route path="/explorer" element={<OpportunityExplorer />} />
 
         <Route path="*" element={<NotFound />} />
       </Routes>

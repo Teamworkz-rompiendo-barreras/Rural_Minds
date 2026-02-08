@@ -1,512 +1,209 @@
-
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Link } from 'react-router-dom';
+import {
+    Box, Typography, Container, Grid, Stack, Tabs, Tab,
+    Paper, Button, Avatar, Chip
+} from '@mui/material';
+import {
+    DirectionsRun, Favorite, Public,
+    ChatBubble, Handyman, EmojiEvents
+} from '@mui/icons-material';
 import axios from '../config/api';
+import ProcessTimeline from '../components/talent/ProcessTimeline';
+import SensoryPassport from '../components/talent/SensoryPassport';
+import TalentInbox from '../components/talent/TalentInbox';
+import MunicipalityMiniCard from '../components/talent/MunicipalityMiniCard';
 
-interface Challenge {
-    id: string;
-    title: string;
-    description: string;
-    requirements: string[]; // e.g., ["Bajo ruido", "Luz natural"]
-    skills_needed: string[];
-    location_type: string;
-    compensation: string;
-    deadline?: string;
-    status: string;
-    tenant?: {
-        name: string;
-        municipality_id?: string;
-        location_id?: string;
-    };
-    created_at: string;
-}
-
-import MatchSuccessModal from '../components/MatchSuccessModal';
-
-interface Application {
-    id: string;
-    status: string;
-    challenge: {
-        title: string;
-        tenant: {
-            name: string;
-        }
-    }
+interface DashboardData {
+    applications: any[];
+    favorites: any[];
+    profile: any;
+    achievements: any[];
 }
 
 const TalentDashboard: React.FC = () => {
     const { user } = useAuth();
-    const [challenges, setChallenges] = useState<Challenge[]>([]);
-    const [filteredChallenges, setFilteredChallenges] = useState<Challenge[]>([]);
+    const [tab, setTab] = useState(0);
+    const [data, setData] = useState<DashboardData | null>(null);
     const [loading, setLoading] = useState(true);
 
-    // Match Success Modal State
-    const [showSuccessModal, setShowSuccessModal] = useState(false);
-    const [matchedApplication, setMatchedApplication] = useState<Application | null>(null);
-
-    // Municipal Support State
-    const [supportMessages, setSupportMessages] = useState<any[]>([]);
-    const [responding, setResponding] = useState<{ id: string; type: 'A' | 'B' | 'C' } | null>(null);
-    const [shareContact, setShareContact] = useState(false);
-    const [successMessage, setSuccessMessage] = useState<string | null>(null);
-    const [readingMode, setReadingMode] = useState(false);
-
-    // Filters State
-    const [locationFilter, _setLocationFilter] = useState('Todos');
-    const [sensoryFilters, setSensoryFilters] = useState({
-        lowNoise: false,
-        naturalLight: false,
-        asyncComm: false,
-        nearMe: false
-    });
-
     useEffect(() => {
-        const fetchData = async () => {
+        const fetchDashboard = async () => {
             try {
-                // 1. Fetch Challenges
-                const challengesRes = await axios.get('/api/challenges');
-                setChallenges(challengesRes.data);
-                setFilteredChallenges(challengesRes.data);
-
-                // 2. Check for Accepted Applications (Mocking check for "unseen" accepted match)
-                const appsRes = await axios.get('/api/applications/me');
-                const acceptedApp = appsRes.data.find((app: any) => app.status === 'accepted');
-
-                if (acceptedApp) {
-                    setMatchedApplication({
-                        id: acceptedApp.id,
-                        status: acceptedApp.status,
-                        challenge: {
-                            title: acceptedApp.challenge?.title || "Proyecto",
-                            tenant: {
-                                name: acceptedApp.challenge?.tenant?.name || "Empresa Confidencial"
-                            }
-                        }
-                    });
-                    setShowSuccessModal(true);
-                }
-
-                // 3. Fetch Municipal Support Messages
-                const supportRes = await axios.get('/api/profiles/me/support-messages');
-                setSupportMessages(supportRes.data.filter((m: any) => m.status === 'sent'));
-
-            } catch (error) {
-                console.error("Error fetching data:", error);
+                const res = await axios.get('/api/talent/dashboard');
+                setData(res.data);
+            } catch (err) {
+                console.error("Error fetching dashboard", err);
             } finally {
                 setLoading(false);
             }
         };
-
-        if (user) {
-            fetchData();
-        }
+        if (user) fetchDashboard();
     }, [user]);
 
-    const handleSupportResponse = async (id: string, type: 'A' | 'B' | 'C') => {
+    const handleRemoveFavorite = async (id: string) => {
         try {
-            await axios.post(`/api/profiles/me/support-messages/${id}/respond`, {
-                response_type: type,
-                privacy_consent: type === 'A' ? shareContact : false,
-                notes: ""
-            });
-
-            const msg = supportMessages.find(m => m.id === id);
-            const townName = msg?.municipality?.name || "el Ayuntamiento";
-
-            if (type === 'A' || type === 'B') {
-                setSuccessMessage(`¡Excelente elección! ${townName} ha sido notificado.`);
-            } else {
-                setSuccessMessage(`Entendido. Hemos agradecido el interés de ${townName}.`);
-            }
-
-            // Clear message after 5 seconds
-            setTimeout(() => setSuccessMessage(null), 5000);
-
-            setSupportMessages(prev => prev.filter(m => m.id !== id));
-            setResponding(null);
-            setShareContact(false);
-        } catch (e) {
-            alert("Error al procesar la respuesta. Por favor, inténtalo de nuevo.");
+            const current = data?.profile?.target_locations || [];
+            const next = current.filter((l: string) => l !== id);
+            await axios.put('/api/profiles/me', { target_locations: next });
+            setData(prev => prev ? { ...prev, favorites: prev.favorites.filter(f => f.id !== id), profile: { ...prev.profile, target_locations: next } } : null);
+        } catch (err) {
+            console.error("Error removing favorite", err);
         }
     };
 
-    // Apply Filters
-    useEffect(() => {
-        let result = challenges;
-
-        // 1. Sensory Filters
-        if (sensoryFilters.lowNoise) {
-            result = result.filter(c =>
-                c.requirements?.some(r => r.includes("Silencioso") || r.includes("ruido"))
-            );
-        }
-        if (sensoryFilters.asyncComm) {
-            result = result.filter(c =>
-                c.requirements?.some(r => r.includes("Asíncrono") || r.includes("asíncrona"))
-            );
-        }
-        if (sensoryFilters.naturalLight) {
-            result = result.filter(c =>
-                c.requirements?.some(r => r.includes("Luz natural") || r.includes("Iluminación"))
-            );
-        }
-
-        // 2. Location (Near Me)
-        if (sensoryFilters.nearMe && user?.talent_profile?.residence_location_id) {
-            result = result.filter(c =>
-                c.tenant?.location_id === user.talent_profile?.residence_location_id
-            );
-        } else if (sensoryFilters.nearMe && !user?.talent_profile?.residence_location_id) {
-            // User checked 'near me' but has no location set
-            // Optional: could show a warning or empty list. For now, empty list is safer as "nothing is near nowhere"
-            result = [];
-        }
-
-        setFilteredChallenges(result);
-    }, [sensoryFilters, locationFilter, challenges]);
-
-    const getTimeAgo = (dateString: string) => {
-        const diff = Date.now() - new Date(dateString).getTime();
-        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-        if (days === 0) return "Hoy";
-        if (days === 1) return "Hace 1 día";
-        return `Hace ${days} días`;
-    };
+    if (loading) return <Box sx={{ p: 10, textAlign: 'center' }}><Typography>Cargando tu camino...</Typography></Box>;
 
     return (
-        <div className="flex flex-col gap-8 max-w-6xl mx-auto px-4">
-            <header className="mb-4">
-                <h1 className="text-4xl font-heading font-bold text-p2 mb-2">Hola, {user?.full_name || 'Talento'}</h1>
-                <p className="text-xl text-n900 leading-relaxed">
-                    Encuentra proyectos alineados con tus habilidades y <span className="font-bold text-p2">tu perfil sensorial</span>.
-                </p>
-            </header>
-
-            {/* Municipal Support Offers Section: El Buzón del Talento */}
-            {successMessage && (
-                <div className="fixed top-8 right-8 z-50 bg-emerald-600 text-white px-6 py-4 rounded-2xl shadow-2xl animate-in fade-in slide-in-from-right font-bold flex items-center gap-3">
-                    <span className="text-2xl">✨</span> {successMessage}
-                </div>
-            )}
-
-            {supportMessages.length > 0 && (
-                <section className="bg-white border-2 border-emerald-100 rounded-[2.5rem] p-8 lg:p-12 shadow-xl shadow-emerald-100/50 animate-in fade-in slide-in-from-top duration-700 overflow-hidden relative">
-                    {/* Decorative Background Element */}
-                    <div className="absolute -top-24 -right-24 w-64 h-64 bg-emerald-50 rounded-full blur-3xl opacity-60"></div>
-
-                    <div className="relative z-10">
-                        <div className="flex flex-col md:flex-row md:items-center gap-6 mb-10 border-b border-emerald-50 pb-8">
-                            <div className="w-24 h-24 bg-emerald-600/10 rounded-3xl flex items-center justify-center text-4xl shadow-inner border border-emerald-100/50">
-                                {supportMessages[0].municipality?.branding_logo_url ? (
-                                    <img src={supportMessages[0].municipality.branding_logo_url} alt="Logo" className="w-16 h-16 object-contain" />
-                                ) : (
-                                    <span className="filter grayscale-[0.5]">🏘️</span>
-                                )}
-                            </div>
-                            <div className="flex-grow">
-                                <div className="flex items-center gap-3 mb-1">
-                                    <h2 className="text-3xl font-heading font-black text-n900 tracking-tight">Propuesta de Acogida</h2>
-                                    <span className="bg-emerald-100 text-emerald-700 text-[10px] font-black uppercase px-2 py-0.5 rounded-full tracking-wider">Nueva Invitación</span>
-                                </div>
-                                <p className="text-xl text-emerald-800/70 font-medium">
-                                    El Ayuntamiento de <span className="text-emerald-900 font-bold">{supportMessages[0].municipality?.name || 'tu zona'}</span> te ha enviado una propuesta.
-                                </p>
-                            </div>
-                            <button
-                                onClick={() => setReadingMode(!readingMode)}
-                                className={`px-5 py-2.5 rounded-xl border-2 font-bold text-xs transition-all shadow-sm ${readingMode ? 'bg-emerald-900 text-white border-emerald-900' : 'bg-white text-emerald-700 border-emerald-100 hover:border-emerald-300'}`}
-                                aria-label={readingMode ? "Desactivar modo lectura" : "Activar modo lectura para mayor claridad"}
-                            >
-                                {readingMode ? '👁️ Ver Diseño Original' : '📖 Modo Lectura (Fácil)'}
-                            </button>
-                        </div>
-
-                        {supportMessages.map(msg => (
-                            <div key={msg.id} className="space-y-10">
-                                {/* Message Body */}
-                                <div className="space-y-6">
-                                    {/* Help Tags */}
-                                    <div className="flex flex-wrap gap-2">
-                                        <span className="bg-blue-50 text-blue-700 px-4 py-1.5 rounded-full text-sm font-bold border border-blue-100 flex items-center gap-2">🏠 Vivienda Disponible</span>
-                                        <span className="bg-indigo-50 text-indigo-700 px-4 py-1.5 rounded-full text-sm font-bold border border-indigo-100 flex items-center gap-2">📡 Fibra Óptica 1Gbps</span>
-                                        <span className="bg-amber-50 text-amber-700 px-4 py-1.5 rounded-full text-sm font-bold border border-amber-100 flex items-center gap-2">🏫 Educación de Proximidad</span>
-                                        {msg.highlighted_need && (
-                                            <span className="bg-p2/10 text-p2 px-4 py-1.5 rounded-full text-sm font-bold border border-p2/20 flex items-center gap-2">✨ {msg.highlighted_need}</span>
-                                        )}
-                                    </div>
-
-                                    {/* Content with Atkinson Hyperlegible feel */}
-                                    <div className={`transition-all duration-500 ${readingMode ? 'bg-white p-10 border-4 border-emerald-600 text-black not-italic text-3xl font-bold shadow-2xl' : 'bg-emerald-50/30 p-8 rounded-[2rem] border border-emerald-100/50 italic text-2xl text-emerald-900 font-medium'} leading-[1.6] tracking-tight`} style={{ fontFamily: 'Atkinson Hyperlegible, sans-serif' }}>
-                                        "{msg.content}"
-                                    </div>
-                                </div>
-
-                                {/* Decision Center */}
-                                <div className="bg-white p-8 rounded-[2rem] border border-emerald-100 shadow-sm">
-                                    <h3 className="text-xl font-bold text-n900 mb-6 flex items-center gap-3">
-                                        <span className="w-8 h-8 bg-emerald-600 text-white rounded-full flex items-center justify-center text-sm">?</span>
-                                        ¿Cómo quieres responder al Ayuntamiento de {msg.municipality?.name || 'este pueblo'}?
-                                    </h3>
-
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                        {/* Option A: Me interesa, hablemos */}
-                                        <div className="space-y-4">
-                                            <button
-                                                onClick={() => setResponding({ id: msg.id, type: 'A' })}
-                                                className="w-full min-h-[56px] px-6 py-4 bg-emerald-600 text-white font-bold rounded-2xl hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-200 flex items-center justify-center gap-3 active:scale-95"
-                                            >
-                                                <span className="text-xl">🤝</span> Me interesa, hablemos
-                                            </button>
-
-                                            {responding?.id === msg.id && responding?.type === 'A' && (
-                                                <div className="bg-emerald-50 p-4 rounded-xl border border-emerald-100 animate-in fade-in zoom-in duration-300">
-                                                    <label className="flex items-start gap-3 cursor-pointer">
-                                                        <input
-                                                            type="checkbox"
-                                                            id="share-contact"
-                                                            checked={shareContact}
-                                                            onChange={(e) => setShareContact(e.target.checked)}
-                                                            className="mt-1 h-5 w-5 rounded border-emerald-300 text-emerald-600 focus:ring-emerald-500"
-                                                        />
-                                                        <span className="text-sm font-medium text-emerald-900 leading-tight">
-                                                            ¿Deseas compartir tus datos de contacto reales (Email/Teléfono) ahora?
-                                                        </span>
-                                                    </label>
-                                                    <button
-                                                        onClick={() => handleSupportResponse(msg.id, 'A')}
-                                                        className="w-full mt-4 bg-emerald-900 text-white py-2 rounded-lg font-bold text-sm"
-                                                    >
-                                                        Confirmar Interés
-                                                    </button>
-                                                </div>
-                                            )}
-                                        </div>
-
-                                        {/* Option B: Chat Interno */}
-                                        <button
-                                            onClick={() => handleSupportResponse(msg.id, 'B')}
-                                            className="min-h-[56px] px-6 py-4 bg-emerald-100 text-emerald-800 font-bold rounded-2xl hover:bg-emerald-200 transition-all border border-emerald-200 flex items-center justify-center gap-3 active:scale-95"
-                                        >
-                                            <span className="text-xl">💬</span> Interés Anónimo (Chat)
-                                        </button>
-
-                                        {/* Option C: Ahora no */}
-                                        <button
-                                            onClick={() => handleSupportResponse(msg.id, 'C')}
-                                            className="min-h-[56px] px-6 py-4 bg-gray-50 text-gray-500 font-bold rounded-2xl hover:bg-gray-100 transition-all border border-gray-200 flex items-center justify-center gap-3 active:scale-95"
-                                        >
-                                            <span className="text-xl">✖️</span> Ahora no me encaja
-                                        </button>
-                                    </div>
-
-                                    <p className="mt-6 text-center text-xs text-gray-400 uppercase tracking-widest font-black flex items-center justify-center gap-2">
-                                        <span className="w-1.5 h-1.5 bg-emerald-300 rounded-full animate-pulse"></span>
-                                        Seguridad Rural Minds: Tus datos no se revelarán sin tu permiso explícito
-                                    </p>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </section>
-            )}
-
-            {/* Main Layout: Filters (Left) + Grid (Right) */}
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-
-                {/* Sidebar Filters */}
-                <aside className="lg:col-span-1 space-y-6">
-                    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 card-radius">
-                        <h3 className="font-heading font-bold text-lg text-n900 mb-4">Filtrar por Ajustes</h3>
-
-                        <div className="space-y-3">
-                            {/* Proximidad - NEW */}
-                            <label className="flex items-center gap-3 cursor-pointer group bg-indigo-50 p-2 rounded-lg border border-indigo-100 hover:border-indigo-200 transition-colors">
-                                <div className="relative flex items-center">
-                                    <input
-                                        type="checkbox"
-                                        className="peer h-5 w-5 cursor-pointer appearance-none rounded-md border border-indigo-300 transition-all checked:border-indigo-600 checked:bg-indigo-600 focus:ring-2 focus:ring-indigo-200 focus:ring-offset-2"
-                                        checked={sensoryFilters.nearMe}
-                                        onChange={e => setSensoryFilters({ ...sensoryFilters, nearMe: e.target.checked })}
-                                    />
-                                    <span className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-white opacity-0 peer-checked:opacity-100">
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
-                                    </span>
-                                </div>
-                                <div className="flex flex-col">
-                                    <span className="text-gray-900 font-bold text-sm">📍 Cerca de Mí</span>
-                                    <span className="text-xs text-indigo-600">KM 0</span>
-                                </div>
-                            </label>
-
-                            <hr className="border-gray-100 my-2" />
-                            <label className="flex items-center gap-3 cursor-pointer group">
-                                <div className="relative flex items-center">
-                                    <input
-                                        type="checkbox"
-                                        className="peer h-5 w-5 cursor-pointer appearance-none rounded-md border border-gray-300 transition-all checked:border-p2 checked:bg-p2 focus:ring-2 focus:ring-focus-ring focus:ring-offset-2"
-                                        checked={sensoryFilters.lowNoise}
-                                        onChange={e => setSensoryFilters({ ...sensoryFilters, lowNoise: e.target.checked })}
-                                    />
-                                    <span className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-white opacity-0 peer-checked:opacity-100">
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
-                                    </span>
-                                </div>
-                                <span className="text-gray-700 group-hover:text-p2 transition-colors">Bajo Ruido</span>
-                            </label>
-
-                            <label className="flex items-center gap-3 cursor-pointer group">
-                                <div className="relative flex items-center">
-                                    <input
-                                        type="checkbox"
-                                        className="peer h-5 w-5 cursor-pointer appearance-none rounded-md border border-gray-300 transition-all checked:border-p2 checked:bg-p2 focus:ring-2 focus:ring-focus-ring focus:ring-offset-2"
-                                        checked={sensoryFilters.asyncComm}
-                                        onChange={e => setSensoryFilters({ ...sensoryFilters, asyncComm: e.target.checked })}
-                                    />
-                                    <span className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-white opacity-0 peer-checked:opacity-100">
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
-                                    </span>
-                                </div>
-                                <span className="text-gray-700 group-hover:text-p2 transition-colors">Comunicación Asíncrona</span>
-                            </label>
-
-                            <label className="flex items-center gap-3 cursor-pointer group">
-                                <div className="relative flex items-center">
-                                    <input
-                                        type="checkbox"
-                                        className="peer h-5 w-5 cursor-pointer appearance-none rounded-md border border-gray-300 transition-all checked:border-p2 checked:bg-p2 focus:ring-2 focus:ring-focus-ring focus:ring-offset-2"
-                                        checked={sensoryFilters.naturalLight}
-                                        onChange={e => setSensoryFilters({ ...sensoryFilters, naturalLight: e.target.checked })}
-                                    />
-                                    <span className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-white opacity-0 peer-checked:opacity-100">
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
-                                    </span>
-                                </div>
-                                <span className="text-gray-700 group-hover:text-p2 transition-colors">Luz Natural</span>
-                            </label>
-                        </div>
-                    </div>
-
-                    {/* Account Management */}
-                    <div className="bg-red-50 p-6 rounded-xl border border-red-100 card-radius">
-                        <h3 className="font-heading font-bold text-lg text-red-800 mb-2">Mi Cuenta</h3>
-                        <p className="text-sm text-red-700 mb-4">Gestiona tu privacidad o elimina tu perfil completamente.</p>
-                        <button
-                            onClick={async () => {
-                                if (window.confirm("¿Estás seguro de que quieres eliminar tu perfil? Esta acción borrará tus datos y preferencias de accesibilidad.")) {
-                                    try {
-                                        await axios.delete('/user/me');
-                                        alert("Tu cuenta ha sido eliminada.");
-                                        window.location.href = '/login';
-                                    } catch (e) {
-                                        alert("Error al eliminar la cuenta.");
-                                    }
-                                }
-                            }}
-                            className="w-full text-red-700 bg-white border border-red-200 font-bold py-2 rounded hover:bg-red-50 transition-colors text-sm"
+        <Box sx={{ bgcolor: '#F8FAFC', minHeight: '100vh', pb: 10, fontFamily: '"Atkinson Hyperlegible", sans-serif' }}>
+            {/* Header / Hero */}
+            <Box sx={{ bgcolor: 'white', borderBottom: '1px solid #E2E8F0', pt: 6, pb: 2 }}>
+                <Container maxWidth="lg">
+                    <Stack direction={{ xs: 'column', md: 'row' }} spacing={4} alignItems="center" sx={{ mb: 4 }}>
+                        <Avatar
+                            sx={{ width: 100, height: 100, bgcolor: '#374BA6', fontSize: 40, border: '4px solid #E2E8F0' }}
                         >
-                            Eliminar Cuenta
-                        </button>
-                    </div>
-                </aside>
+                            {user?.full_name?.charAt(0) || 'T'}
+                        </Avatar>
+                        <Box sx={{ flexGrow: 1, textAlign: { xs: 'center', md: 'left' } }}>
+                            <Typography variant="h4" fontWeight="900" sx={{ color: '#1A202C', mb: 1 }}>
+                                ¡Hola, {user?.full_name || 'Talento'}! ✨
+                            </Typography>
+                            <Typography variant="body1" color="text.secondary">
+                                Estas gestionando tu transición al mundo rural. Inspírate, conecta y arraiga.
+                            </Typography>
+                        </Box>
+                        <Stack direction="row" spacing={2}>
+                            <Paper sx={{ p: 2, textAlign: 'center', borderRadius: 4, bgcolor: '#F0FFF4', border: '1px solid #C6F6D5' }}>
+                                <Typography variant="caption" fontWeight="bold" color="#2F855A" sx={{ display: 'block' }}>LOGROS</Typography>
+                                <Typography variant="h6" fontWeight="bold">{data?.achievements?.length || 0}</Typography>
+                            </Paper>
+                            <Paper sx={{ p: 2, textAlign: 'center', borderRadius: 4, bgcolor: '#EBF8FF', border: '1px solid #BEE3F8' }}>
+                                <Typography variant="caption" fontWeight="bold" color="#2B6CB0" sx={{ display: 'block' }}>AFINIDAD MEDIA</Typography>
+                                <Typography variant="h6" fontWeight="bold">88%</Typography>
+                            </Paper>
+                        </Stack>
+                    </Stack>
 
-                {/* Project Grid */}
-                <section className="lg:col-span-3">
-                    <div className="flex justify-between items-center mb-6">
-                        <h2 className="text-2xl font-heading font-bold text-n900">
-                            {filteredChallenges.length} Proyectos Disponibles
-                        </h2>
-                        <select className="border border-gray-300 rounded-md p-2 text-sm bg-white focus:ring-2 focus:ring-focus-ring focus:border-p2">
-                            <option>Más recientes</option>
-                            <option>Mayor compatibilidad</option>
-                        </select>
-                    </div>
+                    <Tabs
+                        value={tab}
+                        onChange={(_, v) => setTab(v)}
+                        sx={{
+                            '& .MuiTabs-indicator': { height: 4, borderRadius: '4px 4px 0 0', bgcolor: '#374BA6' },
+                            '& .MuiTab-root': { fontWeight: 'bold', textTransform: 'none', fontSize: '1rem', minWidth: 120 }
+                        }}
+                    >
+                        <Tab icon={<DirectionsRun sx={{ mr: 1 }} />} iconPosition="start" label="Mi Camino" />
+                        <Tab icon={<Favorite sx={{ mr: 1 }} />} iconPosition="start" label="Muro de Inspiración" />
+                        <Tab icon={<Handyman sx={{ mr: 1 }} />} iconPosition="start" label="Pasaporte Sensorial" />
+                        <Tab icon={<ChatBubble sx={{ mr: 1 }} />} iconPosition="start" label="Buzón Único" />
+                    </Tabs>
+                </Container>
+            </Box>
 
-                    {loading ? (
-                        <div className="text-center py-20 text-gray-500">Cargando oportunidades...</div>
-                    ) : filteredChallenges.length === 0 ? (
-                        <div className="text-center py-20 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">
-                            <p className="text-xl text-gray-600 font-bold mb-2">No se encontraron proyectos.</p>
-                            <p className="text-gray-500">Intenta ajustar los filtros de accesibilidad.</p>
-                        </div>
-                    ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            {filteredChallenges.map(challenge => (
-                                <article
-                                    key={challenge.id}
-                                    className="bg-n100 rounded-[12px] overflow-hidden border border-gray-200 flex flex-col h-full hover:shadow-md transition-all duration-200 relative group focus-within:ring-4 focus-within:ring-focus-ring"
-                                >
-                                    <div className="p-6 flex-grow">
-                                        <div className="flex justify-between items-start mb-4">
-                                            <span className="bg-white text-n900 text-xs font-bold px-3 py-1 rounded-full border border-gray-200 shadow-sm">
-                                                {challenge.tenant?.municipality_id ? "📍 Municipio Vinculado" : "📍 Oportunidad Rural"}
-                                            </span>
-                                            <span className="text-gray-500 text-xs font-medium">{getTimeAgo(challenge.created_at)}</span>
-                                        </div>
+            <Container maxWidth="lg" sx={{ mt: 6 }}>
+                {/* Tab 0: Mi Camino (Active Processes) */}
+                {tab === 0 && (
+                    <Grid container spacing={4}>
+                        <Grid size={{ xs: 12, md: 8 }}>
+                            <Typography variant="h6" fontWeight="bold" sx={{ mb: 3 }}>Procesos Activos</Typography>
+                            <Stack spacing={3}>
+                                {data?.applications?.map((app) => (
+                                    <Paper key={app.id} sx={{ p: 4, borderRadius: 6, border: '1px solid #E2E8F0', boxShadow: 'none' }}>
+                                        <Stack direction="row" justifyContent="space-between" alignItems="flex-start" sx={{ mb: 3 }}>
+                                            <Box>
+                                                <Typography variant="h6" fontWeight="bold">{app.challenge?.title || "Proyecto Rural"}</Typography>
+                                                <Typography variant="body2" color="text.secondary">{app.challenge?.tenant?.name || "Empresa"}</Typography>
+                                            </Box>
+                                            <Chip label={app.status} color="primary" variant="outlined" size="small" sx={{ textTransform: 'capitalize' }} />
+                                        </Stack>
+                                        <ProcessTimeline status={app.status} />
+                                        <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end' }}>
+                                            <Button variant="text" size="small" endIcon={<ChatBubble />}>Ir al chat</Button>
+                                        </Box>
+                                    </Paper>
+                                ))}
+                                {data?.applications?.length === 0 && (
+                                    <Paper sx={{ p: 10, textAlign: 'center', borderRadius: 6, border: '2px dashed #CBD5E1', bgcolor: 'transparent' }}>
+                                        <Typography variant="h6" color="text.secondary">¿Aún no has dado el primer paso?</Typography>
+                                        <Button variant="contained" sx={{ mt: 2, bgcolor: '#0F5C2E' }}>Explorar Oportunidades</Button>
+                                    </Paper>
+                                )}
+                            </Stack>
+                        </Grid>
 
-                                        <h3 className="font-heading font-bold text-xl text-n900 mb-2 group-hover:text-p2 transition-colors">
-                                            <Link to={`/project/${challenge.id}`} className="focus:outline-none before:absolute before:inset-0">
-                                                {challenge.title}
-                                            </Link>
-                                        </h3>
+                        <Grid size={{ xs: 12, md: 4 }}>
+                            {/* Logros de Arraigo */}
+                            <Paper sx={{ p: 4, borderRadius: 6, bgcolor: '#0F5C2E', color: 'white' }}>
+                                <Typography variant="h6" fontWeight="bold" sx={{ mb: 3, display: 'flex', alignItems: 'center', gap: 1 }}>
+                                    <EmojiEvents /> Logros de Arraigo
+                                </Typography>
+                                <Stack spacing={2}>
+                                    {[
+                                        { title: 'Primer Match', done: true, icon: '🎯' },
+                                        { title: 'Pasaporte Completo', done: true, icon: '📑' },
+                                        { title: 'Primera Entrevista', done: false, icon: '🤝' },
+                                        { title: '¡Mudanza!', done: false, icon: '🏡' }
+                                    ].map((l, i) => (
+                                        <Stack key={i} direction="row" alignItems="center" spacing={2} sx={{ opacity: l.done ? 1 : 0.5 }}>
+                                            <Box sx={{ fontSize: 24 }}>{l.icon}</Box>
+                                            <Typography variant="body2" fontWeight={l.done ? "bold" : "normal"}>{l.title}</Typography>
+                                            {l.done && <Box sx={{ flexGrow: 1, textAlign: 'right' }}>✅</Box>}
+                                        </Stack>
+                                    ))}
+                                </Stack>
+                            </Paper>
 
-                                        <p className="text-n900 text-sm mb-6 line-clamp-3 leading-relaxed opacity-80">
-                                            {challenge.description}
-                                        </p>
+                            <Box sx={{ mt: 4, p: 3, borderRadius: 4, bgcolor: '#EDF2F7', border: '1px solid #E2E8F0' }}>
+                                <Typography variant="subtitle2" fontWeight="bold" gutterBottom>Consejo del día</Typography>
+                                <Typography variant="body2" color="text.secondary">
+                                    "La adecuación sensorial no es un lujo, es tu derecho al bienestar laboral. No dudes en preguntar por el ambiente sonoro."
+                                </Typography>
+                            </Box>
+                        </Grid>
+                    </Grid>
+                )}
 
-                                        {/* Wellbeing Score Indicator */}
-                                        <div className="mb-4">
-                                            <div className="flex items-center gap-2 mb-1">
-                                                <span className="text-sm font-bold text-n900">Bienestar Esperado</span>
-                                                <span className="text-xs text-gray-500">(Basado en tu perfil)</span>
-                                            </div>
-                                            <div className="w-full bg-gray-200 rounded-full h-2.5">
-                                                <div
-                                                    className="bg-p2 h-2.5 rounded-full"
-                                                    style={{ width: `${Math.floor(Math.random() * (98 - 75) + 75)}%` }}
-                                                    aria-label="Nivel de bienestar esperado alto"
-                                                ></div>
-                                            </div>
-                                        </div>
+                {/* Tab 1: Favoritos (Muro de Inspiración) */}
+                {tab === 1 && (
+                    <Box>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
+                            <Box>
+                                <Typography variant="h5" fontWeight="900" sx={{ color: '#1A202C' }}>Tu Muro de Inspiración</Typography>
+                                <Typography variant="body2" color="text.secondary">Municipios que has guardado para tu futuro proyecto de vida.</Typography>
+                            </Box>
+                            <Button variant="outlined" startIcon={<Public />}>Ver Mapa</Button>
+                        </Box>
 
-                                        {/* Tags con Iconos */}
-                                        <div className="space-y-2">
-                                            {challenge.requirements && challenge.requirements.length > 0 ? (
-                                                challenge.requirements.slice(0, 3).map((req, idx) => (
-                                                    <div key={idx} className="flex items-center gap-2 text-xs font-bold text-p2 bg-white px-3 py-1.5 rounded-lg w-fit border border-gray-100">
-                                                        <span aria-hidden="true" className="text-lg">✨</span>
-                                                        {req}
-                                                    </div>
-                                                ))
-                                            ) : (
-                                                <div className="text-xs text-gray-500 italic px-1">Sin ajustes especificados</div>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    <div className="p-6 pt-0 mt-auto">
-                                        <button className="w-full bg-p2 text-white font-bold py-3 px-4 rounded-lg hover:bg-opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-p2 pointer-events-none group-hover:pointer-events-auto">
-                                            Ver Detalles
-                                        </button>
-                                    </div>
-                                </article>
+                        <Grid container spacing={3}>
+                            {data?.favorites?.map((m) => (
+                                <Grid size={{ xs: 12, sm: 6, md: 4 }} key={m.id}>
+                                    <MunicipalityMiniCard municipality={m} onRemove={handleRemoveFavorite} />
+                                </Grid>
                             ))}
-                        </div>
-                    )}
-                </section>
-            </div>
-            {/* Match Success Modal */}
-            {matchedApplication && (
-                <MatchSuccessModal
-                    isOpen={showSuccessModal}
-                    onClose={() => setShowSuccessModal(false)}
-                    companyName={matchedApplication.challenge.tenant.name}
-                    projectName={matchedApplication.challenge.title}
-                    candidateName={user?.full_name || "Talento"}
-                    applicationId={matchedApplication.id}
-                />
-            )}
-        </div>
+                            {data?.favorites?.length === 0 && (
+                                <Grid size={{ xs: 12 }}>
+                                    <Box sx={{ py: 10, textAlign: 'center', bgcolor: 'white', borderRadius: 6, border: '1px dashed #CBD5E1' }}>
+                                        <Favorite sx={{ fontSize: 40, color: '#CBD5E1', mb: 2 }} />
+                                        <Typography color="text.disabled">Tu muro está vacío. ¡Empieza a explorar pueblos!</Typography>
+                                    </Box>
+                                </Grid>
+                            )}
+                        </Grid>
+                    </Box>
+                )}
+
+                {/* Tab 2: Mi Pasaporte */}
+                {tab === 2 && (
+                    <SensoryPassport />
+                )}
+
+                {/* Tab 3: Mensajes */}
+                {tab === 3 && (
+                    <TalentInbox />
+                )}
+            </Container>
+        </Box>
     );
 };
 

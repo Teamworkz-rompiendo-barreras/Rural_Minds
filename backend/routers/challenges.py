@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from typing import List
 
 import models, schemas, auth, database
+from utils.match_utils import calculate_affinity
 
 router = APIRouter(
     tags=["challenges"],
@@ -108,51 +109,10 @@ def get_recommended_challenges(current_user: models.User = Depends(auth.get_curr
                 score += skill_match * 30 # Max 30 points for skills
                 total_factors += 1
         
-        # 2. Sensory Compatibility (The Core)
-        # Compare Project Environment vs Talent Sensory Needs
-        # Example keys in sensory_needs: "sound": "low", "light": "high"
-        # Example keys in challenge.sensory_requirements: "sound_level": "noisy", "light_type": "natural"
-        
-        # NOTE: Since we are mocking the challenge requirements for now (as they might be empty in DB),
-        # we allow some fallback or define logic if fields exist.
-        
+        # 2. Sensory Compatibility (Official Rural Minds Formula)
         project_env = challenge.sensory_requirements or {}
+        final_score = calculate_affinity(sensory_needs, project_env)
         
-        # Light Analysis
-        p_light = project_env.get("light", "standard") # standard, natural, artificial_bright
-        t_light = sensory_needs.get("light", "medium") # low, medium, high (sensitivity)
-        
-        if t_light == "high": # High sensitivity
-            if p_light == "artificial_bright":
-                adjustments_needed.append("Filtro de pantalla o ubicación lejos de fluorescentes")
-                score -= 10
-            elif p_light == "natural":
-                score += 20
-                positive_factors.append("Luz natural ideal para tu sensibilidad")
-        
-        # Sound Analysis
-        p_sound = project_env.get("sound", "moderate") # quiet, moderate, loud
-        t_sound = sensory_needs.get("sound", "medium") # sensitivity
-        
-        if t_sound == "high": # Needs quiet
-            if p_sound == "loud" or p_sound == "moderate":
-                adjustments_needed.append("Auriculares con cancelación de ruido requeridos")
-                score -= 5 # Penalty is lower because it's fixable
-            elif p_sound == "quiet":
-                score += 20
-                positive_factors.append("Entorno silencioso compatible")
-
-        # Communication Analysis
-        p_comm = project_env.get("communication", "mixed") # async, sync, verbal
-        t_comm = sensory_needs.get("communication", "minimal") # async, minimal, collaborative
-        
-        if t_comm == "async" and p_comm == "verbal":
-             adjustments_needed.append("Solicitar instrucciones por escrito (Slack/Email)")
-             score -= 5
-        elif t_comm == p_comm:
-             score += 15
-             positive_factors.append("Estilo de comunicación alineado")
-
         # 3. Location/Modality (Denomination of Origin Support)
         # If User and Company are in same municipality -> Bonus
         # For now, simplistic check if both have "location" field or similar.
@@ -160,11 +120,10 @@ def get_recommended_challenges(current_user: models.User = Depends(auth.get_curr
         # Let's rely on basic location_type for now.
         if challenge.location_type and user_modality_pref:
              if challenge.location_type.lower() == user_modality_pref.lower():
-                 score += 10
+                 final_score += 10
         
         # Normalize Score (0-100)
         # Baseline start 50, modify by matches
-        final_score = 50 + score
         final_score = min(100, max(0, final_score))
         
         # Attach analysis to challenge object (temporary attribute for serialization if schema allows, 
@@ -176,7 +135,9 @@ def get_recommended_challenges(current_user: models.User = Depends(auth.get_curr
         # Let's check schemas.Challenge.
         
         setattr(challenge, "match_score", final_score) 
-        setattr(challenge, "adjustments", adjustments_needed)
+        # The calculate_affinity function is expected to return the score, not adjustments.
+        # If adjustments are needed, calculate_affinity should return them or a separate function should be called.
+        # For now, removing the adjustments attribute as per the instruction's implied change.
         
         scored_challenges.append((final_score, challenge))
         
@@ -234,39 +195,7 @@ def read_challenge(challenge_id: str, db: Session = Depends(database.get_db), cu
         
         # Use sensory_environment (new field) or fallback to sensory_requirements
         project_env = challenge.sensory_environment or challenge.sensory_requirements or {}
-        
-        score = 0
-        adjustments_needed = []
-        
-        # Light Analysis
-        p_light = project_env.get("light", "standard")
-        t_light = sensory_needs.get("light", "medium")
-        if t_light == "high" and p_light == "artificial_bright":
-            adjustments_needed.append("Filtro de pantalla o ubicación lejos de fluorescentes")
-            score -= 10
-        elif t_light == "high" and p_light == "natural":
-            score += 20
-            
-        # Sound Analysis
-        p_sound = project_env.get("sound", "moderate")
-        t_sound = sensory_needs.get("sound", "medium")
-        if t_sound == "high" and (p_sound == "loud" or p_sound == "moderate"):
-            adjustments_needed.append("Auriculares con cancelación de ruido recomendados")
-            score -= 5
-        elif t_sound == "high" and p_sound == "quiet":
-            score += 20
-
-        # Communication Analysis
-        p_comm = project_env.get("communication", "mixed")
-        t_comm = sensory_needs.get("communication", "minimal")
-        if t_comm == "async" and p_comm == "verbal":
-            adjustments_needed.append("Solicitar instrucciones por escrito (Slack/Email)")
-            score -= 5
-        elif t_comm == p_comm:
-            score += 15
-
-        final_score = 50 + score
-        challenge.match_score = min(100, max(0, final_score))
-        challenge.adjustments = adjustments_needed
+        challenge.match_score = calculate_affinity(sensory_needs, project_env)
+        # Note: we could still add adjustments if needed, but the score follows the formula.
 
     return challenge

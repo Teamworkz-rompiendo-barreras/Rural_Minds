@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from '../config/api';
 import { useAuth } from '../context/AuthContext';
 import SpainHeatmap from '../components/charts/SpainHeatmap';
+import IncidentAlerts from '../components/IncidentAlerts';
 
 interface KPI {
     rooting_index: number;
@@ -165,6 +166,8 @@ const SuperAdminDashboard: React.FC = () => {
                     </div>
                 </div>
             </header>
+
+            <IncidentAlerts />
 
             {/* 1. The 4 Grandes (KPIs) */}
             <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

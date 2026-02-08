@@ -81,6 +81,9 @@ app.include_router(organizations.router)
 from routers import municipality
 app.include_router(municipality.router)
 
+from routers import certification
+app.include_router(certification.router)
+
 from routers import analytics_matches
 app.include_router(analytics_matches.router)
 
@@ -97,6 +100,11 @@ if os.path.exists("static"):
 
 from routers import config
 app.include_router(config.router)
+
+from routers import explorer
+app.include_router(explorer.router)
+from routers import talent
+app.include_router(talent.router)
 
 
 

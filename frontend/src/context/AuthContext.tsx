@@ -15,6 +15,7 @@ interface Organization {
         province: string;
         autonomous_community?: string;
     };
+    has_excellence_seal?: boolean;
 }
 
 interface User {

@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from '../config/api';
 import { useAuth } from '../context/AuthContext';
+import ExcellenceSealBadge from '../components/ExcellenceSealBadge';
 
 interface Challenge {
     id: string;
@@ -34,6 +35,7 @@ interface Challenge {
     // Matching Info (from backend)
     match_score?: number;
     adjustments?: string[];
+    has_excellence_seal?: boolean;
 }
 
 const ProjectDetail: React.FC = () => {
@@ -141,7 +143,10 @@ const ProjectDetail: React.FC = () => {
                             {challenge.title}
                         </h1>
                         <div className="flex flex-wrap items-center gap-6 text-gray-500 text-lg">
-                            <span className="flex items-center gap-2 font-bold"><span className="text-2xl">🏢</span> {challenge.tenant?.name}</span>
+                            <span className="flex items-center gap-2 font-bold">
+                                <span className="text-2xl">🏢</span> {challenge.tenant?.name}
+                                {challenge.has_excellence_seal && <ExcellenceSealBadge size={28} />}
+                            </span>
                             <span className="w-1.5 h-1.5 bg-gray-200 rounded-full hidden md:block"></span>
                             <span className="font-medium bg-gray-100 px-3 py-1 rounded-lg text-sm uppercase">{challenge.location_type}</span>
                             <span className="w-1.5 h-1.5 bg-gray-200 rounded-full hidden md:block"></span>

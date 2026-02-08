@@ -4,7 +4,7 @@ from typing import List
 import uuid
 import datetime
 import database, models, auth, schemas
-from utils.email_service import send_company_invitation_email
+from utils.email_service import send_company_invitation_email, send_municipality_welcome_email
 
 router = APIRouter(
     prefix="/api/municipality",
@@ -392,9 +392,35 @@ def send_welcome_guide(
     if not talent_profile or not talent_profile.user:
         raise HTTPException(status_code=404, detail="Talent not found")
         
-    # Logic to send email with org.landing_guide_url
-    # For now, simulate or call existing service if available
-    return {"message": f"Guía de bienvenida enviada a {talent_profile.user.email}"}
+    from models_location import MunicipalityDetails
+    details = db.query(MunicipalityDetails).filter(MunicipalityDetails.location_id == org.location_id).first()
+    guide_url = details.landing_guide_url if details and details.landing_guide_url else "#"
+    
+    # Send Email
+    success = send_municipality_welcome_email(
+        to_email=talent_profile.user.email,
+        talent_name=talent_profile.user.full_name,
+        municipality_name=org.name,
+        guide_url=guide_url,
+        contact_email=current_user.email # Use the admin's email as contact
+    )
+    
+    if not success:
+        raise HTTPException(status_code=500, detail="Failed to send welcome guide email")
+        
+    # Log the action
+    audit = models.AuditLog(
+        id=uuid.uuid4(),
+        organization_id=org.id,
+        user_id=current_user.id,
+        event_type="info",
+        message=f"Guía de bienvenida enviada a {talent_profile.user.full_name}",
+        details={"talent_id": str(talent_id)}
+    )
+    db.add(audit)
+    db.commit()
+    
+    return {"message": f"Guía de bienvenida enviada correctamente a {talent_profile.user.email}"}
 
 @router.get("/profile/details")
 def get_municipality_profile_details(
