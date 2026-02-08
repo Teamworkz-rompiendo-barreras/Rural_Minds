@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, CardContent, CardMedia, Typography, Box, Chip, Stack, IconButton } from '@mui/material';
+import { Card, CardContent, CardMedia, Typography, Chip, Stack, IconButton } from '@mui/material';
 import { Favorite, LocationOn, Wifi, Thermostat } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 

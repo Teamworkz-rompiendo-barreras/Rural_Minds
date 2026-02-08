@@ -4,7 +4,7 @@ import {
     Card, CardContent, Typography, Box, Chip, Stack, Button
 } from '@mui/material';
 import {
-    LocationOn, Wifi, Speed, Favorite, FavoriteBorder,
+    LocationOn, Wifi, Favorite, FavoriteBorder,
     Park, Waves, Terrain, HomeWork
 } from '@mui/icons-material';
 

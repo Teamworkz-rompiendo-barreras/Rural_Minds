@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Typography, Stack, Skeleton } from '@mui/material';
 import {
-    WbSunny, Cloud, WaterDrop, Air, Thermostat
+    WbSunny, WaterDrop, Air
 } from '@mui/icons-material';
 
 interface WeatherWidgetProps {
