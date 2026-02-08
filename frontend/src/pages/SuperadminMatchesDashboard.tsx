@@ -65,7 +65,7 @@ const ImpactReport: React.FC<{ funnel: FunnelItem[], links: MatchLink[] }> = ({ 
         <Page size="A4" style={styles.page}>
             <View style={styles.header}>
                 <Text style={styles.title}>Rural Minds - Informe de Impacto</Text>
-                <Text style={subtitle}>Generado el {new Date().toLocaleDateString()} | Seguimiento Estratégico de Matches</Text>
+                <Text style={styles.subtitle}>Generado el {new Date().toLocaleDateString()} | Seguimiento Estratégico de Matches</Text>
             </View>
 
             <View style={styles.section}>
