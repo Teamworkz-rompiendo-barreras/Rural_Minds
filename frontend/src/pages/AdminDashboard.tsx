@@ -71,6 +71,7 @@ const SuperAdminDashboard: React.FC = () => {
     const [sendingInvite, setSendingInvite] = useState(false);
 
     useEffect(() => {
+        console.log("AdminDashboard loaded - Build Time: " + new Date().toISOString());
         fetchAllData();
     }, [token]);
 
