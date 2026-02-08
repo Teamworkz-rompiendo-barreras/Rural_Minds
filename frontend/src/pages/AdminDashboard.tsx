@@ -169,8 +169,8 @@ const SuperAdminDashboard: React.FC = () => {
 
             <IncidentAlerts />
 
-            {/* 1. The 4 Grandes (KPIs) */}
-            <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {/* 1. The 5 Grandes (KPIs) */}
+            <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
                 <KpiCard
                     title="Índice de Arraigo"
                     value={`${kpis?.rooting_index || 0}%`}
@@ -455,7 +455,7 @@ const KpiCard: React.FC<{ title: string, value: string | number, subtitle: strin
         <div className={`bg-white p-6 rounded-xl shadow-sm border-t-4 ${colors[color] || 'border-gray-500'} flex flex-col`}>
             <div className="flex justify-between items-start mb-2">
                 <h4 className="text-gray-500 text-xs font-bold uppercase tracking-wider">{title}</h4>
-                <span className="text-2xl">{icon}</span>
+                <span className="text-2xl" aria-hidden="true">{icon}</span>
             </div>
             <span className="text-4xl font-heading font-bold text-n900 mb-1">{value}</span>
             <p className="text-xs text-gray-400">{subtitle}</p>
