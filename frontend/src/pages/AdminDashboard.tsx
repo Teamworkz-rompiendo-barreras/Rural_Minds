@@ -3,7 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import axios from '../config/api';
 import { useAuth } from '../context/AuthContext';
 import SpainHeatmap from '../components/charts/SpainHeatmap';
+import ImpactMap from '../components/admin/ImpactMap';
 import IncidentAlerts from '../components/IncidentAlerts';
+import SmartInsights from '../components/admin/SmartInsights';
 
 interface KPI {
     rooting_index: number;
@@ -146,10 +148,13 @@ const SuperAdminDashboard: React.FC = () => {
                     </div>
                     <div className="flex gap-4">
                         <button
-                            onClick={() => navigate('/admin/matches')}
+                            onClick={() => {
+                                const section = document.getElementById('mapa-flujo');
+                                section?.scrollIntoView({ behavior: 'smooth' });
+                            }}
                             className="bg-indigo-50 border border-indigo-200 text-indigo-700 font-bold py-2 px-4 rounded-lg shadow-sm hover:bg-indigo-100 flex items-center gap-2"
                         >
-                            <span>📊</span> Seguimiento Matches
+                            <span>📊</span> Mapa de Flujo
                         </button>
                         <button
                             onClick={() => navigate('/admin/config')}
@@ -208,20 +213,31 @@ const SuperAdminDashboard: React.FC = () => {
                 />
             </section>
 
-            {/* 2. Heatmap & Audit Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* Heatmap (2/3) */}
-                <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex flex-col">
-                    <div className="flex justify-between items-center mb-6">
-                        <h3 className="font-heading font-bold text-xl text-n900">🗺️ Mapa de Impacto Nacional</h3>
-                        <div className="flex gap-2 text-xs">
-                            <button className="px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded-full font-medium">Demanda Empleo</button>
-                            <button className="px-3 py-1 bg-p2 text-white rounded-full font-medium">Actividad General</button>
+            {/* 2. Impact Map & Audit Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-1 gap-8" id="mapa-flujo">
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 flex flex-col">
+                    <div className="flex justify-between items-center mb-8">
+                        <div>
+                            <h3 className="font-heading font-bold text-2xl text-n900">🗺️ Mapa de Impacto: "De la Ciudad al Campo"</h3>
+                            <p className="text-sm text-gray-500 mt-1">Visualiza los flujos de talento y el éxito de la repoblación rural en tiempo real.</p>
                         </div>
                     </div>
-                    <div className="flex-grow flex items-center justify-center bg-gray-50 rounded-lg border border-gray-100 p-4">
-                        <SpainHeatmap data={heatmapData} />
+                    <ImpactMap />
+                </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                {/* Smart Insights (2/3) */}
+                <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-200 p-8 flex flex-col">
+                    <div className="flex justify-between items-center mb-8">
+                        <div>
+                            <h3 className="font-heading font-bold text-2xl text-n900 flex items-center gap-3">
+                                <span>🔥</span> Smart Insights: Radar de Tendencias
+                            </h3>
+                            <p className="text-sm text-gray-500 mt-1">Detección algorítmica de picos de interés en municipios rurales.</p>
+                        </div>
                     </div>
+                    <SmartInsights />
                 </div>
 
                 {/* Audit Feed (1/3) */}

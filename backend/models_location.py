@@ -1,7 +1,8 @@
-from sqlalchemy import Column, String
+from sqlalchemy import Column, String, DateTime, ForeignKey, Integer
 from sqlalchemy.dialects.postgresql import UUID
 from database import Base
 import uuid
+import datetime
 import sqlalchemy.types as types
 
 # Reusing GUID helper if needed, or importing it if we move it to a utils file.
@@ -111,3 +112,19 @@ class MunicipalityDetails(Base):
     
     status = Column(String, default="draft") # draft, active
 
+
+class TownInteraction(Base):
+    """Logs talent interest events for trend analysis (Smart Insights)."""
+    __tablename__ = "town_interactions"
+
+    id = Column(GUID, primary_key=True, default=uuid.uuid4, index=True)
+    talent_id = Column(GUID, index=True, nullable=False) # Refers to users.id
+    location_id = Column(GUID, index=True, nullable=False) # Refers to locations.id
+    
+    # Types: 'favorite' (target_locations), 'commitment' (willing_to_move toggle)
+    interaction_type = Column(String, nullable=False)
+    
+    # Denormalized for TR formula speed
+    origin_province = Column(String, nullable=True) 
+    
+    timestamp = Column(DateTime, default=datetime.datetime.utcnow, index=True)

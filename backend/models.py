@@ -228,6 +228,7 @@ class TalentProfile(Base):
 
     # Location Module
     residence_location_id = Column(GUID, ForeignKey("locations.id"), nullable=True)
+    residence_international = Column(String, nullable=True) # Text field for non-Spanish locations
     is_willing_to_move = Column(Boolean, default=False)
     target_locations = Column(JSON, default=list) # List of municipality IDs
     relocation_commitment = Column(Boolean, default=False) # Check de Compromiso de Mudanza
@@ -423,7 +424,7 @@ class SuccessStory(Base):
     updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
 
 # Import from models_location to make them available via models module
-from models_location import MunicipalityDetails, MunicipalityResource, Location
+from models_location import MunicipalityDetails, MunicipalityResource, Location, TownInteraction
 
 class WorkplaceAdjustmentTask(Base):
     __tablename__ = "workplace_adjustment_tasks"

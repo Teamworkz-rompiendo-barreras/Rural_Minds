@@ -50,6 +50,9 @@ def update_my_profile(profile_update: schemas.TalentProfileCreate, current_user:
     # Location Module Updates
     if profile_update.residence_location_id is not None:
         profile.residence_location_id = profile_update.residence_location_id
+    if hasattr(profile_update, 'residence_international') and profile_update.residence_international is not None:
+        profile.residence_international = profile_update.residence_international
+    
     if profile_update.is_willing_to_move is not None:
         profile.is_willing_to_move = profile_update.is_willing_to_move
     if profile_update.target_locations is not None:

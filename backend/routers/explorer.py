@@ -58,16 +58,16 @@ def search_challenges(
         score = 0
         dist_km = None
         
-        # 1. Wellness & Infrastructure Filters (Hard Filters but in-memory for some)
+        # 1. Wellness & Infrastructure Filters (Optional)
         details = db.query(models.MunicipalityDetails).filter(models.MunicipalityDetails.location_id == challenge.tenant.location_id).first() if challenge.tenant else None
         
-        if query.environment_type and (not details or details.environment_type != query.environment_type):
+        if query.environment_type and details and details.environment_type != query.environment_type:
             continue
             
-        if query.min_connectivity and (not details or not details.has_fiber_600):
+        if query.min_connectivity and details and not details.has_fiber_600:
             continue
             
-        if query.has_services and (not details or not details.has_essential_services):
+        if query.has_services and details and not details.has_essential_services:
             continue
             
         # 2. Geospatial Distance
@@ -77,10 +77,11 @@ def search_challenges(
             if query.max_distance_km and dist_km > query.max_distance_km:
                 continue
         
-        # 3. Sensory Affinity Matching (Official Rural Minds Formula: sum(R * A) / n)
+        # 3. Sensory Affinity Matching (Official Rural Minds Formula)
+        project_env = challenge.sensory_environment or {}
         final_score = calculate_affinity(sensory_needs, project_env)
         
-        if final_score < query.min_match_score:
+        if query.min_match_score and final_score < query.min_match_score:
             continue
             
         # Enrich object with dynamic data

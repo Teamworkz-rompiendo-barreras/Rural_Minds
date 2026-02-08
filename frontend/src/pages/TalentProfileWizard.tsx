@@ -3,7 +3,7 @@ import axios from '../config/api';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
-import LocationSelector from '../components/LocationSelector';
+
 import HierarchicalLocationSelector from '../components/HierarchicalLocationSelector';
 
 // Types
@@ -22,6 +22,8 @@ interface ProfileData {
     bio: string;
     skills: string[];
     residence_location_id?: string;
+    residence_international?: string;
+    is_international?: boolean;
     is_willing_to_move: boolean;
     target_locations: string[]; // List of location IDs
     preferences: {
@@ -31,6 +33,7 @@ interface ProfileData {
 }
 
 const TalentProfileWizard: React.FC = () => {
+    // ... (AUTH AND NAVIGATION)
     const { user } = useAuth();
     const navigate = useNavigate();
 
@@ -41,10 +44,7 @@ const TalentProfileWizard: React.FC = () => {
     // Toast State
     const [toast, setToast] = useState<{ message: string; visible: boolean }>({ message: '', visible: false });
 
-    const showToast = (municipalityName: string) => {
-        setToast({ message: municipalityName, visible: true });
-        setTimeout(() => setToast(prev => ({ ...prev, visible: false })), 5000);
-    };
+
 
     // Data States
     const [accessibilityPrefs, setAccessibilityPrefs] = useState<AccessibilityPrefs>({
@@ -60,6 +60,8 @@ const TalentProfileWizard: React.FC = () => {
         bio: '',
         skills: [],
         residence_location_id: '',
+        residence_international: '',
+        is_international: false,
         is_willing_to_move: false,
         target_locations: [],
         preferences: {
@@ -67,6 +69,17 @@ const TalentProfileWizard: React.FC = () => {
         }
     });
     const [skillInput, setSkillInput] = useState('');
+    const [lastLoggedLocation, setLastLoggedLocation] = useState<string | null>(null);
+
+    const logInteraction = async (locationId: string, type: 'favorite' | 'commitment') => {
+        if (!locationId || locationId === lastLoggedLocation) return;
+        try {
+            await axios.post('/stats/interaction', { location_id: locationId, type });
+            setLastLoggedLocation(locationId);
+        } catch (err) {
+            console.error("Error logging interaction", err);
+        }
+    };
 
     // Generated Checklist
     const [checklist, setChecklist] = useState<string[]>([]);
@@ -80,8 +93,6 @@ const TalentProfileWizard: React.FC = () => {
     // FETCH EXISTING DATA FOR EDITING
     useEffect(() => {
         const fetchExistingData = async () => {
-            // Avoid reloading if we already have data (simplistic check)
-            // But actually we want to load fresh from DB on mount
             try {
                 // 1. Fetch Accessibility Prefs
                 const accessRes = await axios.get('/user/profile/accessibility');
@@ -102,6 +113,8 @@ const TalentProfileWizard: React.FC = () => {
                         bio: profileRes.data.bio || '',
                         skills: profileRes.data.skills || [],
                         residence_location_id: profileRes.data.residence_location_id || '',
+                        residence_international: profileRes.data.residence_international || '',
+                        is_international: !!profileRes.data.residence_international,
                         is_willing_to_move: profileRes.data.is_willing_to_move || false,
                         target_locations: profileRes.data.target_locations || [],
                         preferences: profileRes.data.preferences || { needs_housing: false }
@@ -133,15 +146,24 @@ const TalentProfileWizard: React.FC = () => {
     }, [accessibilityPrefs]);
 
     const handleNext = () => {
+        // Validation for Location & Mobility Block 3
+        if (step === 3 && profileData.is_willing_to_move) {
+            if (profileData.target_locations.length === 0) {
+                setError("Por favor, selecciona al menos una comunidad o municipio de destino si estás abierto a mudarte.");
+                return;
+            }
+        }
+
         if (step === 3) {
-            // Generate checklist before showing it
             generateChecklist();
         }
-        setStep(s => s + 1);
+        setError(null);
+        setStep(prev => prev + 1);
     };
 
     const handleSkip = () => {
-        setStep(s => s + 1);
+        setError(null);
+        setStep(prev => prev + 1);
     };
 
     const generateChecklist = () => {
@@ -160,8 +182,6 @@ const TalentProfileWizard: React.FC = () => {
     };
 
     const [error, setError] = useState<string | null>(null);
-
-    // ... (rest of states)
 
     const handleSave = async () => {
         setSaving(true);
@@ -222,7 +242,7 @@ const TalentProfileWizard: React.FC = () => {
         </div>
     );
 
-    // Step 1: Accessibility Preferences (BEFORE data)
+    // Step 1: Accessibility Preferences
     const renderAccessibility = () => (
         <div className="py-8">
             <h1 className="text-2xl font-heading font-bold text-primary mb-2">Ajustes de Interfaz</h1>
@@ -271,7 +291,7 @@ const TalentProfileWizard: React.FC = () => {
         </div>
     );
 
-    // Step 2: Sensory Preferences (Cards)
+    // Step 2: Sensory Preferences
     const renderSensory = () => (
         <div className="py-8">
             <h1 className="text-2xl font-heading font-bold text-primary mb-2">Perfil Sensorial</h1>
@@ -349,7 +369,7 @@ const TalentProfileWizard: React.FC = () => {
         </div>
     );
 
-    // Step 3: Profile Data (Bio, Skills)
+    // Step 3: Profile Data (Bio, Skills, Location)
     const renderProfile = () => (
         <div className="py-8">
             <h1 className="text-2xl font-heading font-bold text-primary mb-2">Tu Perfil</h1>
@@ -389,82 +409,131 @@ const TalentProfileWizard: React.FC = () => {
                     <p className="text-xs text-gray-500">Pulsa Enter para añadir.</p>
                 </div>
 
-                {/* Location - NEW */}
-                <div className="pt-4 border-t border-gray-100">
-                    <h3 className="font-bold text-lg text-primary mb-4">Ubicación y Movilidad</h3>
+                {/* Ubicación y Movilidad - Reactive Form */}
+                <div className="pt-6 border-t border-gray-100 space-y-8">
+                    <h3 className="font-bold text-xl text-primary flex items-center gap-2">
+                        <span>📍</span> Ubicación y Movilidad
+                    </h3>
 
-                    <div className="mb-6">
-                        <HierarchicalLocationSelector
-                            label="¿Dónde resides actualmente?"
-                            onChange={(id) => setProfileData(prev => ({ ...prev, residence_location_id: id }))}
-                        />
-                        <p className="text-xs text-gray-500 mt-1">
-                            Te mostraremos oportunidades cercanas y validadas.
+                    {/* Bloque 1: Residencia Actual (Obligatorio) */}
+                    <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-4">
+                        <div className="flex justify-between items-center">
+                            <label className="block text-sm font-bold text-n900">1. ¿Dónde resides actualmente?</label>
+                            <div className="flex bg-gray-100 p-1 rounded-xl">
+                                <button
+                                    type="button"
+                                    onClick={() => setProfileData(prev => ({ ...prev, is_international: false }))}
+                                    className={`px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all ${!profileData.is_international ? 'bg-white shadow-sm text-p2' : 'text-gray-400 hover:text-gray-600'}`}
+                                >
+                                    España
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setProfileData(prev => ({ ...prev, is_international: true }))}
+                                    className={`px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all ${profileData.is_international ? 'bg-white shadow-sm text-p2' : 'text-gray-400 hover:text-gray-600'}`}
+                                >
+                                    Internacional
+                                </button>
+                            </div>
+                        </div>
+
+                        {!profileData.is_international ? (
+                            <HierarchicalLocationSelector
+                                initialValue={profileData.residence_location_id}
+                                onChange={(id) => setProfileData(prev => ({ ...prev, residence_location_id: id, residence_international: '' }))}
+                            />
+                        ) : (
+                            <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+                                <label className="block text-[10px] font-black uppercase text-gray-400 mb-1 tracking-widest">Ciudad y País de Residencia</label>
+                                <input
+                                    type="text"
+                                    className="w-full p-4 border-2 border-dashed border-gray-200 rounded-2xl focus:border-p2 focus:border-solid outline-none bg-white font-medium"
+                                    placeholder="Ej: Berlín, Alemania"
+                                    value={profileData.residence_international || ''}
+                                    onChange={(e) => setProfileData(prev => ({ ...prev, residence_international: e.target.value, residence_location_id: undefined }))}
+                                />
+                            </div>
+                        )}
+                        <p className="text-[10px] text-gray-400 italic">
+                            {profileData.is_international
+                                ? "🌍 Te avisaremos si surgen programas de reubicación internacional o vacantes remotas."
+                                : "🔒 Tu ubicación exacta solo se compartirá tras un match mutuo."}
                         </p>
                     </div>
 
-                    <div className="mb-6 flex items-center gap-3">
-                        <div
-                            onClick={() => setProfileData(prev => ({ ...prev, is_willing_to_move: !prev.is_willing_to_move }))}
-                            className={`w-12 h-6 rounded-full p-1 cursor-pointer transition-colors ${profileData.is_willing_to_move ? 'bg-green-500' : 'bg-gray-300'}`}
-                        >
-                            <div className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform ${profileData.is_willing_to_move ? 'translate-x-6' : 'translate-x-0'}`}></div>
-                        </div>
-                        <span className="font-bold text-gray-700 cursor-pointer" onClick={() => setProfileData(prev => ({ ...prev, is_willing_to_move: !prev.is_willing_to_move }))}>
-                            Estoy dispuesto a mudarme a otro municipio rural
-                        </span>
-                    </div>
-
-                    <div className="mb-6 flex items-center gap-3">
-                        <div
-                            onClick={() => setProfileData(prev => ({
-                                ...prev,
-                                preferences: { ...prev.preferences, needs_housing: !prev.preferences.needs_housing }
-                            }))}
-                            className={`w-12 h-6 rounded-full p-1 cursor-pointer transition-colors ${profileData.preferences.needs_housing ? 'bg-orange-500' : 'bg-gray-300'}`}
-                        >
-                            <div className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform ${profileData.preferences.needs_housing ? 'translate-x-6' : 'translate-x-0'}`}></div>
-                        </div>
-                        <span className="font-bold text-gray-700 cursor-pointer" onClick={() => setProfileData(prev => ({
-                            ...prev,
-                            preferences: { ...prev.preferences, needs_housing: !prev.preferences.needs_housing }
-                        }))}>
-                            Necesito ayuda para encontrar vivienda 🏠❗
-                        </span>
-                    </div>
-
-                    {profileData.is_willing_to_move && (
-                        <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                            <label className="block font-bold mb-2">Municipios de Interés (Opcional)</label>
-                            <LocationSelector
-                                label=""
-                                placeholder="Añadir municipio de interés..."
-                                onChange={(id, name) => {
-                                    if (!profileData.target_locations.includes(id)) {
-                                        setProfileData(prev => ({ ...prev, target_locations: [...prev.target_locations, id] }));
-                                        if (name) showToast(name);
+                    {/* Bloque 2: El Interruptor de Cambio (Condicional) */}
+                    <div className="bg-p2/5 p-6 rounded-2xl border border-p2/10">
+                        <div className="flex items-center justify-between gap-4">
+                            <div className="flex-1">
+                                <h4 className="font-bold text-gray-800 text-sm mb-1">¿Estás abierto a mudarte?</h4>
+                                <p className="text-xs text-gray-500">Activa esto para recibir alertas de municipios que buscan talento como tú.</p>
+                            </div>
+                            <button
+                                type="button"
+                                aria-expanded={profileData.is_willing_to_move}
+                                aria-controls="relocation-preferences"
+                                onClick={() => {
+                                    const nextValue = !profileData.is_willing_to_move;
+                                    setProfileData(prev => ({
+                                        ...prev,
+                                        is_willing_to_move: nextValue,
+                                        // Reset logic: Clear targets if turning off
+                                        target_locations: nextValue ? prev.target_locations : []
+                                    }));
+                                    if (nextValue && profileData.residence_location_id) {
+                                        logInteraction(profileData.residence_location_id, 'commitment');
                                     }
+                                }}
+                                className={`relative inline-flex h-7 w-14 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-p2 focus:ring-offset-2 ${profileData.is_willing_to_move ? 'bg-p2' : 'bg-gray-200'}`}
+                            >
+                                <span className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${profileData.is_willing_to_move ? 'translate-x-8' : 'translate-x-1'}`} />
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Bloque 3: Preferencias de Destino (Solo si el Check es "SÍ") */}
+                    <div
+                        id="relocation-preferences"
+                        role="region"
+                        aria-labelledby="relocation-title"
+                        className={`overflow-hidden transition-all duration-500 ease-in-out ${profileData.is_willing_to_move ? 'max-h-[600px] opacity-100 visible' : 'max-h-0 opacity-0 invisible'}`}
+                    >
+                        <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-6">
+                            <div className="flex items-center gap-2 mb-2">
+                                <span className="text-lg">🏘️</span>
+                                <h4 id="relocation-title" className="font-bold text-primary">¿A dónde te gustaría ir?</h4>
+                            </div>
+
+                            <p className="text-xs text-gray-600 leading-relaxed mb-4">
+                                Selecciona el destino donde te gustaría iniciar tu nueva etapa rural. El algoritmo te dará prioridad en los procesos de estas zonas.
+                            </p>
+
+                            <HierarchicalLocationSelector
+                                label="Destino Preferente"
+                                initialValue={profileData.target_locations[0]} // Simplificando a uno principal por ahora según lógica CCAA
+                                onChange={(id) => {
+                                    setProfileData(prev => ({ ...prev, target_locations: [id] }));
+                                    logInteraction(id, 'favorite');
                                 }}
                             />
 
-                            {/* List of selected target locations */}
-                            {profileData.target_locations.length > 0 && (
-                                <div className="flex flex-wrap gap-2 mt-3">
-                                    {profileData.target_locations.map(locId => (
-                                        <span key={locId} className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm flex items-center gap-2 font-bold">
-                                            Municipio #{locId.substring(0, 4)}...
-                                            {/* Note: In real app we need to fetch label for this ID or store object */}
-                                            <button onClick={() => setProfileData(prev => ({ ...prev, target_locations: prev.target_locations.filter(l => l !== locId) }))}
-                                                className="hover:text-purple-900"
-                                            >
-                                                ×
-                                            </button>
-                                        </span>
-                                    ))}
+                            <div className="flex items-center gap-3 p-4 bg-orange-50 rounded-xl border border-orange-100 mt-4">
+                                <div
+                                    onClick={() => setProfileData(prev => ({
+                                        ...prev,
+                                        preferences: { ...prev.preferences, needs_housing: !prev.preferences.needs_housing }
+                                    }))}
+                                    className={`w-12 h-6 rounded-full p-1 cursor-pointer transition-colors flex-shrink-0 ${profileData.preferences.needs_housing ? 'bg-orange-500' : 'bg-gray-300'}`}
+                                >
+                                    <div className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform ${profileData.preferences.needs_housing ? 'translate-x-6' : 'translate-x-0'}`}></div>
                                 </div>
-                            )}
+                                <div>
+                                    <span className="font-bold text-sm text-orange-900 block">Necesito ayuda para encontrar vivienda</span>
+                                    <span className="text-[10px] text-orange-700">Muchos ayuntamientos ofrecen alquileres sociales o casas gratuitas.</span>
+                                </div>
+                            </div>
                         </div>
-                    )}
+                    </div>
                 </div>
             </div>
 
@@ -479,7 +548,7 @@ const TalentProfileWizard: React.FC = () => {
         </div>
     );
 
-    // Step 4: Generated Checklist (Aha Moment!)
+    // Step 4: Generated Checklist
     const renderChecklist = () => (
         <div className="py-8 text-center">
             <div className="mb-6">
@@ -493,7 +562,7 @@ const TalentProfileWizard: React.FC = () => {
             <div className="bg-white card-radius shadow-lg p-6 text-left max-w-lg mx-auto border-l-4 border-accent">
                 <h3 className="font-bold text-lg mb-4 text-gray-800">📋 Ajustes Recomendados</h3>
                 <ul className="space-y-3">
-                    {checklist.map((item, i) => (
+                    {checklist.map((item: string, i: number) => (
                         <li key={i} className="flex items-start gap-2 text-gray-700">
                             <span className="text-accent">•</span>
                             <span>{item}</span>
@@ -504,7 +573,7 @@ const TalentProfileWizard: React.FC = () => {
 
             {/* Error Message */}
             {error && (
-                <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded text-sm">
+                <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded text-sm mt-4">
                     {error}
                 </div>
             )}

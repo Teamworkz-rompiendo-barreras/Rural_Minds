@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from '../config/api';
 import { useAuth } from '../context/AuthContext';
 import DeleteAccountModal from '../components/DeleteAccountModal';
+import HierarchicalLocationSelector from '../components/HierarchicalLocationSelector';
 
 interface User {
     id: string;
@@ -30,8 +31,7 @@ const OrganizationSettings: React.FC = () => {
     const [hqAddress, setHqAddress] = useState({
         street: '',
         postal_code: '',
-        city: '',
-        province: ''
+        municipality_id: ''
     });
     const [savingHq, setSavingHq] = useState(false);
 
@@ -48,7 +48,8 @@ const OrganizationSettings: React.FC = () => {
                 setHqAddress(prev => ({
                     ...prev,
                     street: user.organization?.street_address || '',
-                    postal_code: user.organization?.postal_code || ''
+                    postal_code: user.organization?.postal_code || '',
+                    municipality_id: user.organization?.location_id || ''
                 }));
             }
         }
@@ -74,7 +75,8 @@ const OrganizationSettings: React.FC = () => {
         try {
             await axios.put('/org/details', {
                 street_address: hqAddress.street,
-                postal_code: hqAddress.postal_code
+                postal_code: hqAddress.postal_code,
+                location_id: hqAddress.municipality_id // Backwards compatibility with column name
             });
             alert("Ubicación de sede actualizada. El match por geolocalización ahora es más preciso.");
         } catch (err) {
@@ -83,14 +85,6 @@ const OrganizationSettings: React.FC = () => {
         } finally {
             setSavingHq(false);
         }
-    };
-
-    const handleCPChange = (cp: string) => {
-        setHqAddress({ ...hqAddress, postal_code: cp });
-        // Mock Autocomplete
-        if (cp === '28001') setHqAddress(prev => ({ ...prev, postal_code: cp, city: 'Madrid', province: 'Madrid' }));
-        if (cp === '08001') setHqAddress(prev => ({ ...prev, postal_code: cp, city: 'Barcelona', province: 'Barcelona' }));
-        if (cp === '19250') setHqAddress(prev => ({ ...prev, postal_code: cp, city: 'Sigüenza', province: 'Guadalajara' }));
     };
 
     const fetchUsers = async () => {
@@ -222,8 +216,8 @@ const OrganizationSettings: React.FC = () => {
                         <div className="md:col-span-2 space-y-4">
                             <p className="text-gray-600 text-sm">Esta es la ubicación donde el talento desempeñará sus funciones. Es vital para diferenciar entre **Arraigo** y **Atracción**.</p>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="md:col-span-2">
+                            <div className="space-y-6">
+                                <div>
                                     <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Calle y Número</label>
                                     <input
                                         type="text"
@@ -233,6 +227,13 @@ const OrganizationSettings: React.FC = () => {
                                         onChange={e => setHqAddress({ ...hqAddress, street: e.target.value })}
                                     />
                                 </div>
+
+                                <HierarchicalLocationSelector
+                                    label="Municipio de la Sede"
+                                    initialValue={user?.organization?.location_id}
+                                    onChange={(id) => setHqAddress(prev => ({ ...prev, municipality_id: id }))}
+                                />
+
                                 <div>
                                     <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Código Postal</label>
                                     <input
@@ -240,14 +241,8 @@ const OrganizationSettings: React.FC = () => {
                                         className="w-full p-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-p2/20 font-mono"
                                         placeholder="28001"
                                         value={hqAddress.postal_code}
-                                        onChange={e => handleCPChange(e.target.value)}
+                                        onChange={e => setHqAddress({ ...hqAddress, postal_code: e.target.value })}
                                     />
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Municipio / Provincia</label>
-                                    <div className="p-3 bg-gray-100 border border-gray-100 rounded-xl text-gray-500 font-medium">
-                                        {hqAddress.city ? `${hqAddress.city} (${hqAddress.province})` : 'Introduce CP para detectar...'}
-                                    </div>
                                 </div>
                             </div>
 

@@ -10,13 +10,15 @@ interface SimpleLocation {
 
 interface HierarchicalLocationSelectorProps {
     value?: string;
-    onChange: (locationId: string, municipalityName?: string) => void;
+    onChange: (locationId: string, municipalityName?: string, hierarchy?: { region: string, province: string }) => void;
     label?: string;
+    initialValue?: string; // Location ID to pre-populate
 }
 
 const HierarchicalLocationSelector: React.FC<HierarchicalLocationSelectorProps> = ({
     onChange,
-    label = "Ubicación"
+    label = "Ubicación",
+    initialValue
 }) => {
     const [regions, setRegions] = useState<string[]>([]);
     const [provinces, setProvinces] = useState<string[]>([]);
@@ -28,6 +30,27 @@ const HierarchicalLocationSelector: React.FC<HierarchicalLocationSelectorProps> 
 
     const [loading, setLoading] = useState(false);
     const [muniSearch, setMuniSearch] = useState('');
+
+    // Handle initial value
+    useEffect(() => {
+        if (initialValue && initialValue !== selectedMuni) {
+            const fetchInitial = async () => {
+                try {
+                    const res = await axios.get(`/locations/${initialValue}/details`);
+                    if (res.data && res.data.location) {
+                        const loc = res.data.location;
+                        setSelectedRegion(loc.autonomous_community);
+                        setSelectedProvince(loc.province);
+                        setSelectedMuni(loc.id);
+                        setMuniSearch(loc.municipality);
+                    }
+                } catch (err) {
+                    console.error("Error fetching initial location details", err);
+                }
+            };
+            fetchInitial();
+        }
+    }, [initialValue]);
 
     // Fetch regions on mount
     useEffect(() => {
@@ -52,6 +75,8 @@ const HierarchicalLocationSelector: React.FC<HierarchicalLocationSelectorProps> 
                     setSelectedProvince('');
                     setMunicipalities([]);
                     setSelectedMuni('');
+                    // Trigger onChange with empty ID but hierarchy for validation
+                    onChange('', '', { region: selectedRegion, province: '' });
                 } catch (err) {
                     console.error("Error fetching provinces", err);
                 }
@@ -59,6 +84,7 @@ const HierarchicalLocationSelector: React.FC<HierarchicalLocationSelectorProps> 
             fetchProvinces();
         } else {
             setProvinces([]);
+            onChange('', '', { region: '', province: '' });
         }
     }, [selectedRegion]);
 
@@ -86,7 +112,15 @@ const HierarchicalLocationSelector: React.FC<HierarchicalLocationSelectorProps> 
     const handleMuniSelect = (muni: SimpleLocation) => {
         setSelectedMuni(muni.id);
         setMuniSearch(muni.municipality);
-        onChange(muni.id, muni.municipality);
+        onChange(muni.id, muni.municipality, { region: selectedRegion, province: selectedProvince });
+    };
+
+    const handleProvinceChange = (province: string) => {
+        setSelectedProvince(province);
+        setSelectedMuni('');
+        setMuniSearch('');
+        // Trigger onChange for validation
+        onChange('', '', { region: selectedRegion, province });
     };
 
     return (
@@ -114,7 +148,7 @@ const HierarchicalLocationSelector: React.FC<HierarchicalLocationSelectorProps> 
                         className={`w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-p2 outline-none appearance-none bg-white cursor-pointer ${!selectedRegion ? 'opacity-50 cursor-not-allowed' : ''}`}
                         disabled={!selectedRegion}
                         value={selectedProvince}
-                        onChange={(e) => setSelectedProvince(e.target.value)}
+                        onChange={(e) => handleProvinceChange(e.target.value)}
                     >
                         <option value="">Seleccionar...</option>
                         {provinces.map(p => <option key={p} value={p}>{p}</option>)}

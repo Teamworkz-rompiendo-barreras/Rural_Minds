@@ -171,6 +171,7 @@ class TalentProfileBase(BaseModel):
     
     # Location Module
     residence_location_id: Optional[uuid.UUID] = None
+    residence_international: Optional[str] = None
     is_willing_to_move: Optional[bool] = False
     relocation_commitment: Optional[bool] = False
     target_locations: Optional[List[str]] = []

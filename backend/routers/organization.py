@@ -176,6 +176,12 @@ def update_org_details(
         org.subscription_plan = org_update.subscription_plan
     if org_update.sensory_commitment is not None:
         org.sensory_commitment = org_update.sensory_commitment
+    if org_update.street_address is not None:
+        org.street_address = org_update.street_address
+    if org_update.postal_code is not None:
+        org.postal_code = org_update.postal_code
+    if org_update.location_id is not None:
+        org.location_id = org_update.location_id
         
     db.commit()
     db.refresh(org)

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import axios from '../config/api';
+import HierarchicalLocationSelector from '../components/HierarchicalLocationSelector';
 
 const Register: React.FC = () => {
     const [searchParams] = useSearchParams();
@@ -12,6 +13,7 @@ const Register: React.FC = () => {
     const [showPassword, setShowPassword] = useState(false);
     const [role, setRole] = useState(refParam ? 'enterprise' : 'enterprise'); // Defaulting
     const [orgName, setOrgName] = useState('');
+    const [regMuniId, setRegMuniId] = useState<string | undefined>(refParam || undefined);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -25,7 +27,7 @@ const Register: React.FC = () => {
             org_data: {
                 name: role === 'enterprise' ? orgName : `Freelance - ${email}`,
                 subscription_plan: 'starter',
-                municipality_id: role === 'enterprise' ? refParam : undefined
+                municipality_id: role === 'enterprise' ? regMuniId : undefined
             },
             user_data: {
                 email: email,
@@ -187,16 +189,25 @@ const Register: React.FC = () => {
                     </div>
 
                     {role === 'enterprise' && (
-                        <div>
-                            <label className="block text-sm font-bold mb-1">Nombre de la Organización</label>
-                            <input
-                                type="text"
-                                value={orgName}
-                                onChange={(e) => setOrgName(e.target.value)}
-                                className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-focus-ring outline-none"
-                                required
-                                placeholder="Tu empresa o ayuntamiento"
-                            />
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-bold mb-1">Nombre de la Organización</label>
+                                <input
+                                    type="text"
+                                    value={orgName}
+                                    onChange={(e) => setOrgName(e.target.value)}
+                                    className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-focus-ring outline-none"
+                                    required
+                                    placeholder="Tu empresa o ayuntamiento"
+                                />
+                            </div>
+
+                            {!refParam && (
+                                <HierarchicalLocationSelector
+                                    label="Sede o Ubicación Principal"
+                                    onChange={(id) => setRegMuniId(id)}
+                                />
+                            )}
                         </div>
                     )}
 
