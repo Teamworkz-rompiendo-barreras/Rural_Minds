@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from '../config/api';
 import { useAuth } from '../context/AuthContext';
-import SpainHeatmap from '../components/charts/SpainHeatmap';
 import ImpactMap from '../components/admin/ImpactMap';
 import IncidentAlerts from '../components/IncidentAlerts';
 import SmartInsights from '../components/admin/SmartInsights';
@@ -15,12 +14,6 @@ interface KPI {
     kindness_counter: number;
 }
 
-interface HeatmapData {
-    id: string;
-    name: string;
-    value: number;
-    activity: 'high' | 'medium' | 'low';
-}
 
 interface Invitation {
     id: string;
@@ -67,7 +60,6 @@ const SuperAdminDashboard: React.FC = () => {
 
     // Data State
     const [kpis, setKPIs] = useState<KPI | null>(null);
-    const [heatmapData, setHeatmapData] = useState<HeatmapData[]>([]);
     const [invitations, setInvitations] = useState<Invitation[]>([]);
     const [auditItems, setAuditItems] = useState<AuditItem[]>([]);
     const [successStories, setSuccessStories] = useState<SuccessStory[]>([]);
@@ -85,9 +77,8 @@ const SuperAdminDashboard: React.FC = () => {
     const fetchAllData = async () => {
         setLoading(true);
         try {
-            const [statsRes, heatmapRes, auditRes, matchesRes, invitesRes, rankingRes] = await Promise.all([
+            const [statsRes, auditRes, matchesRes, invitesRes, rankingRes] = await Promise.all([
                 axios.get('/admin/stats/global'),
-                axios.get('/admin/heatmap'),
                 axios.get('/admin/quality-audit'),
                 axios.get('/admin/latest-matches'),
                 axios.get('/admin/invitations'),
@@ -95,7 +86,6 @@ const SuperAdminDashboard: React.FC = () => {
             ]);
 
             setKPIs(statsRes.data.kpis);
-            setHeatmapData(heatmapRes.data);
             setAuditItems(auditRes.data);
             setSuccessStories(matchesRes.data);
             setInvitations(invitesRes.data);
