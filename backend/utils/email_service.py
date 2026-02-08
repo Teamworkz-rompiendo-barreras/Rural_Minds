@@ -59,7 +59,7 @@ def generate_verification_token() -> str:
     return secrets.token_urlsafe(32)
 
 
-def _send_email(to: str, subject: str, html: str) -> bool:
+def _send_email(to: str, subject: str, html: str, attachments: Optional[list] = None) -> bool:
     """
     Internal function to send email via Resend.
     Falls back to console logging if no API key is configured.
@@ -72,6 +72,9 @@ def _send_email(to: str, subject: str, html: str) -> bool:
                 "subject": subject,
                 "html": html,
             }
+            if attachments:
+                params["attachments"] = attachments
+                
             response = resend.Emails.send(params)
             print(f"✅ Email sent to {to} | ID: {response.get('id', 'N/A')}")
             return True
@@ -534,4 +537,70 @@ def send_company_invitation_email(to_email: str, company_name: str, municipality
         to=to_email,
         subject=subject,
         html=html_content
+    )
+
+
+def send_monthly_report_email(to_email: str, municipality_name: str, month_name: str, pdf_content: bytes) -> bool:
+    """
+    Sends the Monthly Impact Report as a PDF attachment.
+    """
+    import base64
+    
+    encoded_content = base64.b64encode(pdf_content).decode()
+    
+    attachments = [{
+        "filename": f"Impacto_Rural_{municipality_name}_{month_name}.pdf",
+        "content": encoded_content
+    }]
+    
+    default_html = """
+    <!DOCTYPE html>
+    <html lang="es">
+    <head><meta charset="UTF-8"></head>
+    <body style="font-family: 'Atkinson Hyperlegible', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f5f5f5;">
+        <div style="background: #374BA6; color: white; padding: 40px 30px; border-radius: 16px 16px 0 0;">
+            <h1 style="margin: 0;">📊 Resultados de Impacto Rural Minds</h1>
+            <p style="margin: 5px 0 0 0; opacity: 0.9;">{{municipality_name}} | {{month_name}} 2026</p>
+        </div>
+        <div style="background: white; padding: 40px 30px; border-radius: 0 0 16px 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            <p style="font-size: 16px; color: #111;">Estimados/as responsables del Ayuntamiento de <strong>{{municipality_name}}</strong>,</p>
+            <p style="font-size: 16px; color: #333; line-height: 1.6;">
+                Adjuntamos el <strong>Informe de Impacto Mensual</strong> correspondiente a {{month_name}}. Este documento recopila el éxito de nuestra apuesta conjunta por la atracción de talento y el fortalecimiento del arraigo local.
+            </p>
+            
+            <div style="background: #F3F4F6; padding: 20px; border-radius: 12px; margin: 25px 0; border-left: 4px solid #F2D680;">
+                <p style="margin: 0; color: #374BA6; font-weight: bold;">Resumen del Periodo:</p>
+                <p style="margin: 10px 0 0 0; font-size: 14px; color: #555;">
+                    El informe detalla los nuevos residentes potenciales, las empresas colaboradoras más activas y el diagnóstico sensorial del municipio basado en las preferencias de los candidatos.
+                </p>
+            </div>
+            
+            <p style="font-size: 14px; color: #555;">
+                Este reporte es una herramienta estratégica enviada automáticamente por el sistema para facilitar la justificación de impacto social en el pleno municipal.
+            </p>
+            
+            <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
+            <p style="font-size: 12px; color: #888; text-align: center;">
+                Rural Minds & Teamworkz | Innovación con Denominación de Origen
+            </p>
+        </div>
+    </body>
+    </html>
+    """
+    
+    subject, html_content = get_filled_template(
+        key="monthly_report",
+        default_subject=f"Resultados de Impacto Rural Minds - {month_name}",
+        default_html=default_html,
+        context={
+            "municipality_name": municipality_name,
+            "month_name": month_name
+        }
+    )
+    
+    return _send_email(
+        to=to_email,
+        subject=subject,
+        html=html_content,
+        attachments=attachments
     )
