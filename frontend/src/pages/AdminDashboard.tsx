@@ -173,14 +173,14 @@ const SuperAdminDashboard: React.FC = () => {
             <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <KpiCard
                     title="Índice de Arraigo"
-                    value={`${kpis?.rooting_index}%`}
+                    value={`${kpis?.rooting_index || 0}%`}
                     subtitle="Empleo local conseguido"
                     icon="🌱"
                     color="green"
                 />
                 <KpiCard
                     title="Tasa de Atracción"
-                    value={`${kpis?.attraction_rate}%`}
+                    value={`${kpis?.attraction_rate || 0}%`}
                     subtitle="Nuevos residentes captados"
                     icon="🧳"
                     color="blue"
@@ -228,7 +228,7 @@ const SuperAdminDashboard: React.FC = () => {
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex flex-col max-h-[500px]">
                     <h3 className="font-heading font-bold text-xl text-n900 mb-4 flex items-center gap-2">
                         <span>🛡️</span> Auditoría de Calidad
-                        <span className="text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded-full ml-auto">Revisión pendiente</span>
+                        <span className="text-xs bg-red-600 text-white px-3 py-1 rounded-full ml-auto font-bold flex items-center justify-center">Revisión pendiente</span>
                     </h3>
                     <div className="flex-grow overflow-y-auto space-y-4 pr-2 custom-scrollbar">
                         {auditItems.length === 0 ? (

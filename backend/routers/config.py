@@ -43,9 +43,9 @@ def get_system_config(
     configs = db.query(models.SystemConfig).all()
     # Ensure defaults exist if empty
     defaults = {
-        "token_expiry_hours": {"value": "24", "description": "Hours before invitation/verification tokens expire", "type": "number"},
-        "match_threshold": {"value": "75", "description": "Minimum score for ideal match", "type": "number"},
-        "support_email": {"value": "soporte@ruralminds.es", "description": "Contact email for help", "type": "string"}
+        "token_expiry_hours": {"value": "24", "description": "Horas antes de que expiren los tokens de invitación/verificación", "type": "number"},
+        "match_threshold": {"value": "75", "description": "Puntuación mínima para un match ideal", "type": "number"},
+        "support_email": {"value": "soporte@ruralminds.es", "description": "Email de contacto para soporte", "type": "string"}
     }
     
     # Simple logic: if DB is missing keys, return defaults combined with DB

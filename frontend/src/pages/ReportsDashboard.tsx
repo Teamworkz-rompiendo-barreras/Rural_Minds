@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import axios from '../config/api';
 import { useAuth } from '../context/AuthContext';
 
 const ReportsDashboard: React.FC = () => {
@@ -13,7 +13,7 @@ const ReportsDashboard: React.FC = () => {
 
     const fetchStats = async () => {
         try {
-            const res = await axios.get('http://127.0.0.1:8000/stats/impact');
+            const res = await axios.get('/stats/impact');
             setStats(res.data);
             setLoading(false);
         } catch (err) {
@@ -91,7 +91,7 @@ const ReportsDashboard: React.FC = () => {
                 {/* 4. ROI (Teal) */}
                 <div className="bg-white p-6 rounded-xl shadow-sm border-t-4 border-teal-600">
                     <div className="text-gray-500 text-xs font-bold uppercase mb-1 font-heading">ROI Anual</div>
-                    <div className="text-4xl font-bold text-gray-900 font-heading">{stats?.roi_estimated}</div>
+                    <div className="text-4xl font-bold text-gray-900 font-heading">{stats?.roi_estimated || "0€"}</div>
                     <div className="text-teal-600 text-xs mt-2 font-bold">Ahorros en Productividad</div>
                 </div>
             </div>

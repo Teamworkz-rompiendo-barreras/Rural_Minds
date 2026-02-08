@@ -126,7 +126,7 @@ def get_impact_report(
         "adequacy_index": f"{adequacy_index}%",
         "wellbeing_level": round(avg_wellbeing, 1),
         "activation_rate": f"{activation_rate}%",
-        "roi_estimated": f"{roi:,}€",
+        "roi_estimated": f"{roi:,}€".replace(",", "."),
         "neurodivergent_hires": 2, 
         "retention_rate": "94%",
         "hiring_velocity": "14 días",
