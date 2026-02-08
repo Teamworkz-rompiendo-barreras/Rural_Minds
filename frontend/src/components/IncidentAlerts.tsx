@@ -24,9 +24,10 @@ const IncidentAlerts: React.FC = () => {
 
     const fetchIncidents = async () => {
         try {
-            const res = await axios.get('/api/certification/verify/incidents');
+            const res = await axios.get('/certification/verify/incidents');
             // Filter to show only open ones
-            setIncidents(res.data.filter((i: any) => i.status !== 'resolved'));
+            const data = Array.isArray(res.data) ? res.data : [];
+            setIncidents(data.filter((i: any) => i.status !== 'resolved'));
         } catch (error) {
             console.error("Error fetching incidents", error);
         }

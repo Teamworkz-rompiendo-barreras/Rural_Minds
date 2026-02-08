@@ -29,9 +29,15 @@ const SmartInsights: React.FC = () => {
         setLoading(true);
         try {
             const res = await axios.get('/stats/smart-insights');
-            setInsights(res.data);
+            if (Array.isArray(res.data)) {
+                setInsights(res.data);
+            } else {
+                console.error("Invalid insights data:", res.data);
+                setInsights([]);
+            }
         } catch (err) {
             console.error("Error fetching smart insights", err);
+            setInsights([]);
         } finally {
             setLoading(false);
         }
@@ -63,8 +69,8 @@ const SmartInsights: React.FC = () => {
                 <div
                     key={insight.id}
                     className={`p-6 rounded-2xl border-l-8 transition-all hover:shadow-md ${insight.severity === 'red' ? 'bg-red-50 border-red-500' :
-                            insight.severity === 'orange' ? 'bg-orange-50 border-orange-400' :
-                                'bg-blue-50 border-blue-400'
+                        insight.severity === 'orange' ? 'bg-orange-50 border-orange-400' :
+                            'bg-blue-50 border-blue-400'
                         }`}
                 >
                     <div className="flex justify-between items-start mb-3">
@@ -77,8 +83,8 @@ const SmartInsights: React.FC = () => {
                             </h4>
                         </div>
                         <span className={`px-2 py-1 rounded text-[10px] font-black uppercase ${insight.severity === 'red' ? 'bg-red-500 text-white' :
-                                insight.severity === 'orange' ? 'bg-orange-400 text-white' :
-                                    'bg-blue-400 text-white'
+                            insight.severity === 'orange' ? 'bg-orange-400 text-white' :
+                                'bg-blue-400 text-white'
                             }`}>
                             TR: +{insight.tr_score}%
                         </span>

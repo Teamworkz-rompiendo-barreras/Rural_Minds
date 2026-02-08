@@ -133,8 +133,16 @@ const ImpactMap: React.FC = () => {
             if (skill) params.skill = skill;
 
             const res = await axios.get('/stats/impact-map', { params });
-            setData(res.data);
-            setError(null);
+
+            // Validation: Vercel might return index.html (string) on 404
+            if (res.data && typeof res.data === 'object' && Array.isArray(res.data.points)) {
+                setData(res.data);
+                setError(null);
+            } else {
+                console.error("Invalid data format received:", res.data);
+                setError("Error de formato en datos del mapa.");
+                setData(null);
+            }
         } catch (err) {
             console.error("Error fetching map data", err);
             setError("No se pudo cargar el mapa de impacto.");
