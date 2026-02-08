@@ -228,7 +228,7 @@ const SuperAdminDashboard: React.FC = () => {
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex flex-col max-h-[500px]">
                     <h3 className="font-heading font-bold text-xl text-n900 mb-4 flex items-center gap-2">
                         <span>🛡️</span> Auditoría de Calidad
-                        <span className="text-xs bg-red-600 text-white px-3 py-1 rounded-full ml-auto font-bold flex items-center justify-center">Revisión pendiente</span>
+                        <span className="text-xs bg-red-700 text-white px-3 py-1 rounded-full ml-auto font-bold flex items-center justify-center text-center leading-tight">Revisión pendiente</span>
                     </h3>
                     <div className="flex-grow overflow-y-auto space-y-4 pr-2 custom-scrollbar">
                         {auditItems.length === 0 ? (
