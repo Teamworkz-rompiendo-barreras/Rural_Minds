@@ -46,7 +46,14 @@ const SensoryPassport: React.FC = () => {
     };
 
     if (loading) return <Typography>Cargando pasaporte...</Typography>;
-
+    //Añadido por Andrés Barcenilla para arreglar error en el Pasaporte Sensorial (start)
+    if (!profile) return (
+        <Box sx={{ p: 3, textAlign: 'center' }}>
+            <Typography color="error">No se pudo cargar el perfil sensorial.</Typography>
+            <Button onClick={() => window.location.reload()}>Reintentar</Button>
+        </Box>
+    );
+    //Añadido por Andrés Barcenilla (end)
     return (
         <Box sx={{ maxWidth: 800, mx: 'auto' }}>
             <Stack spacing={4}>
