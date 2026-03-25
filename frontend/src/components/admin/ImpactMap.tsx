@@ -250,25 +250,25 @@ const ImpactMap: React.FC = () => {
                                     onChange={(e) => setCcaa(e.target.value)}
                                 >
                                     <option value="">Todas las regiones</option>
-                                    <option value="Castilla-La Mancha">Castilla-La Mancha</option>
-                                    <option value="Castilla y León">Castilla y León</option>
-                                    <option value="Aragón">Aragón</option>
-                                    <option value="Extremadura">Extremadura</option>
                                     <option value="Andalucía">Andalucía</option>
-                                    <option value="Madrid">Madrid</option>
-                                    <option value="Pais Vasco">Pais Vasco</option>
+                                    <option value="Aragón">Aragón</option>
+                                    <option value="Cantabria">Cantabria</option>
+                                    <option value="Castilla y León">Castilla y León</option>
+                                    <option value="Castilla-La Mancha">Castilla-La Mancha</option>
                                     <option value="Cataluña">Cataluña</option>
+                                    <option value="Ceuta">Ceuta</option>
                                     <option value="Comunidad Valenciana">Comunidad Valenciana</option>
-                                    <option value="Murcia">Murcia</option>
+                                    <option value="Extremadura">Extremadura</option>
+                                    <option value="Galicia">Galicia</option>
                                     <option value="Islas Baleares">Islas Baleares</option>
                                     <option value="Islas Canarias">Islas Canarias</option>
-                                    <option value="Galicia">Galicia</option>
-                                    <option value="Principado de Asturias">Principado de Asturias</option>
-                                    <option value="Cantabria">Cantabria</option>
-                                    <option value="Navarra">Navarra</option>
                                     <option value="La Rioja">La Rioja</option>
-                                    <option value="Ceuta">Ceuta</option>
+                                    <option value="Madrid">Madrid</option>
                                     <option value="Melilla">Melilla</option>
+                                    <option value="Murcia">Murcia</option>
+                                    <option value="Navarra">Navarra</option>
+                                    <option value="Pais Vasco">Pais Vasco</option>
+                                    <option value="Principado de Asturias">Principado de Asturias</option>
                                 </select>
                             </div>
 
@@ -280,10 +280,15 @@ const ImpactMap: React.FC = () => {
                                     onChange={(e) => setSkill(e.target.value)}
                                 >
                                     <option value="">Todos los sectores</option>
-                                    <option value="IT">Tecnología (IT)</option>
+                                    <option value="Agricultura">Agricultura</option>
                                     <option value="Artesanía">Artesanía</option>
-                                    <option value="Turismo">Turismo Rural</option>
+                                    <option value="Construcción">Construcción</option>
+                                    <option value="Educación">Educación</option>
+                                    <option value="Electricidad">Electricidad</option>
+                                    <option value="Medicina">Medicina</option>
                                     <option value="Sostenibilidad">Sostenibilidad</option>
+                                    <option value="IT">Tecnología (IT)</option>
+                                    <option value="Turismo">Turismo Rural</option>
                                 </select>
                             </div>
 
