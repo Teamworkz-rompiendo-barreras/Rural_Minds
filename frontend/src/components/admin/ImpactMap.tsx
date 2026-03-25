@@ -255,6 +255,20 @@ const ImpactMap: React.FC = () => {
                                     <option value="Aragón">Aragón</option>
                                     <option value="Extremadura">Extremadura</option>
                                     <option value="Andalucía">Andalucía</option>
+                                    <option value="Madrid">Madrid</option>
+                                    <option value="Pais Vasco">Pais Vasco</option>
+                                    <option value="Cataluña">Cataluña</option>
+                                    <option value="Comunidad Valenciana">Comunidad Valenciana</option>
+                                    <option value="Murcia">Murcia</option>
+                                    <option value="Islas Baleares">Islas Baleares</option>
+                                    <option value="Islas Canarias">Islas Canarias</option>
+                                    <option value="Galicia">Galicia</option>
+                                    <option value="Principado de Asturias">Principado de Asturias</option>
+                                    <option value="Cantabria">Cantabria</option>
+                                    <option value="Navarra">Navarra</option>
+                                    <option value="La Rioja">La Rioja</option>
+                                    <option value="Ceuta">Ceuta</option>
+                                    <option value="Melilla">Melilla</option>
                                 </select>
                             </div>
 
