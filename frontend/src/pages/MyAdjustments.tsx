@@ -21,9 +21,13 @@ const MyAdjustments: React.FC = () => {
     const fetchLogs = async () => {
         try {
             const res = await axios.get('/accessibility/adjustments/mine');
+            // Creación de un array vacío si hay un error en res.data; Se crea una variable data, aunque nunca se usa
+            const data = Array.isArray(res.data) ? res.data : [];
             setLogs(res.data);
         } catch (err) {
             console.error(err);
+            // Si hay un error, para que esté disponible un array, aunque sea vacío
+            setLogs([]);
         } finally {
             setLoading(false);
         }
