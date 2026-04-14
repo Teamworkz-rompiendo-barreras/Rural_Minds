@@ -193,8 +193,20 @@ const TalentProfileWizard: React.FC = () => {
                 prefers_reduced_motion: accessibilityPrefs.reduced_motion,
                 high_contrast_enabled: accessibilityPrefs.high_contrast
             });
+            //Código añadido por Andrés Barcenilla 14-04-2026
+            const dataToSave={
+                bio: profileData.bio,
+                skills: profileData.skills,
+                is_willing_to_move: profileData.is_willing_to_move,
+                target_locations: profileData.target_locations,
+                preferences: profileData.preferences,
+                // Conversion de strings vacíos en null para que el backend no explote
+                residence_location_id: profileData.residence_location_id || null,
+                residence_international: profileData.residence_international || null
+                //is_international tiene un funcionamiento totalmente diferente a otros atributos y por eso no se incluye aquí
+            };
             // Save talent profile
-            await axios.put('/api/profiles/me', profileData);
+            await axios.put('/api/profiles/me', dataToSave);
             navigate('/talent-dashboard');
         } catch (err: any) {
             console.error(err);
