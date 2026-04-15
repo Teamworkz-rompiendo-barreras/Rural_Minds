@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, Query, HTTPException
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 from typing import Dict, Any, List, Optional
 import datetime
 
@@ -299,14 +300,14 @@ def get_smart_insights(
     # 1. Total interactions in last 30 days grouped by location
     interactions_30d = db.query(
         models.TownInteraction.location_id,
-        models.sqlalchemy.func.count(models.TownInteraction.id)
+        func.count(models.TownInteraction.id)
     ).filter(models.TownInteraction.timestamp >= last_30d)\
      .group_by(models.TownInteraction.location_id).all()
     
     # 2. Total interactions in last 24h grouped by location
     interactions_24h = db.query(
         models.TownInteraction.location_id,
-        models.sqlalchemy.func.count(models.TownInteraction.id)
+        func.count(models.TownInteraction.id)
     ).filter(models.TownInteraction.timestamp >= last_24h)\
      .group_by(models.TownInteraction.location_id).all()
     
@@ -331,12 +332,12 @@ def get_smart_insights(
             # Find origin pattern
             origin_counts = db.query(
                 models.TownInteraction.origin_province,
-                models.sqlalchemy.func.count(models.TownInteraction.id)
+                func.count(models.TownInteraction.id)
             ).filter(
                 models.TownInteraction.location_id == loc_id_str,
                 models.TownInteraction.timestamp >= last_24h
             ).group_by(models.TownInteraction.origin_province)\
-             .order_by(models.sqlalchemy.func.count(models.TownInteraction.id).desc()).first()
+             .order_by(func.count(models.TownInteraction.id).desc()).first()
             
             origin_name = origin_counts[0] if origin_counts else "Desconocido"
             
