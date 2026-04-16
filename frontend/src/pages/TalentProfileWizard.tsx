@@ -189,9 +189,19 @@ const TalentProfileWizard: React.FC = () => {
         try {
             // Save accessibility profile
             await axios.put('/user/profile/accessibility', {
+                /*Código previo
                 sensory_needs: sensoryPrefs,
                 prefers_reduced_motion: accessibilityPrefs.reduced_motion,
                 high_contrast_enabled: accessibilityPrefs.high_contrast
+                */
+                //Código nuevo en caso de mal recopilación de datos
+                sensory_needs: {
+                    light: sensoryPrefs.light || 'medium',
+                    sound: sensoryPrefs.sound || 'medium',
+                    communication: sensoryPrefs.communication || 'minimal'
+                },
+                prefers_reduced_motion: Boolean(accessibilityPrefs.reduced_motion),
+                high_contrast_enabled: Boolean(accessibilityPrefs.high_contrast)
             });
             //Código añadido por Andrés Barcenilla 14-04-2026
             const dataToSave={
