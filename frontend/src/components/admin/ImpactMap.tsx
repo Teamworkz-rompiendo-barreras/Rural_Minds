@@ -3,7 +3,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { MapContainer, TileLayer, CircleMarker, Popup, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import axios from '../../config/api';
-
+import { useMapEvents } from 'react-leaflet';
 // --- Types ---
 interface Point {
     id: string;
@@ -32,7 +32,13 @@ interface ImpactMapData {
 // Leaflet doesn't have native arcs in core. We'll use SVG paths for subtle curves.
 const FlowArcs: React.FC<{ flows: Flow[], points: Point[] }> = ({ flows, points }) => {
     const map = useMap();
+    //Código añadido por Andrés Barcenilla 20-04-2026
+    const [, setTick] = useState(0);
 
+    useMapEvents({
+        move() { setTick(t => t + 1); },
+        zoom() { setTick(t => t + 1); },
+    });
     // Convert points array to a map for easy lookup
     const pointsMap = useMemo(() => {
         const m = new Map<string, Point>();
@@ -92,7 +98,8 @@ const FlowArcs: React.FC<{ flows: Flow[], points: Point[] }> = ({ flows, points 
 
     return (
         <svg
-            className="leaflet-zoom-animated"
+            //leaflet-zoom-animated puede provocar pequeños problemas
+            //className="leaflet-zoom-animated"
             style={{
                 position: 'absolute',
                 top: 0,
