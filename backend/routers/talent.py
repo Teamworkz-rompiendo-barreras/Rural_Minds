@@ -54,11 +54,30 @@ def get_talent_dashboard(
                 })
         except:
             pass
-    
+    #Código añadido por Andrés Barcenilla 21-04-2026
+    profile_data = None
+    if profile:
+        profile_data = {
+            "id": str(profile.id),
+            "bio": profile.bio,
+            "skills": profile.skills or [],
+            "preferences": profile.preferences or {},
+            "neurodivergent_traits": profile.neurodivergent_traits or [],
+            "work_style": profile.work_style,
+            "communication_preferences": profile.communication_preferences or {},
+            "residence_location_id": str(profile.residence_location_id) if profile.residence_location_id else None,
+            "residence_international": profile.residence_international,
+            "is_willing_to_move": profile.is_willing_to_move,
+            "target_locations": profile.target_locations or [],
+            "relocation_commitment": profile.relocation_commitment,
+            "visibility_settings": profile.visibility_settings or {},
+            "achievements": profile.achievements or [],
+        }
     return {
         "applications": enriched_apps,
         "favorites": favorites,
-        "profile": profile,
+        #profile_data es un diccionario creado manualmente para evitar errores
+        "profile": profile_data,
         "achievements": profile.achievements if profile else [],
         "notification_settings": current_user.notification_settings
     }
