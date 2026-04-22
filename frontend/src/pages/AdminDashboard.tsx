@@ -212,8 +212,10 @@ const SuperAdminDashboard: React.FC = () => {
                             <h3 className="font-heading font-bold text-2xl text-n900">🗺️ Mapa de Impacto: "De la Ciudad al Campo"</h3>
                             <p className="text-sm text-gray-500 mt-1">Visualiza los flujos de talento y el éxito de la repoblación rural en tiempo real.</p>
                         </div>
+                        <div className="mt-6 h-[500px] w-full rounded-lg overflow-hidden border border-gray-100">
+                            <ImpactMap />
+                        </div>
                     </div>
-                    <ImpactMap />
                 </div>
             </div>
 
