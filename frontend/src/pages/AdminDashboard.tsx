@@ -215,7 +215,7 @@ const SuperAdminDashboard: React.FC = () => {
                     </div>
                     <div className="mt-6 h-[500px] w-full rounded-lg overflow-hidden border border-gray-100">
                             <ImpactMap />
-                        </div>
+                    </div>
                 </div>
             </div>
 
