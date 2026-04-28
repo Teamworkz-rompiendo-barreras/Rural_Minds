@@ -1,6 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List
+from utils import email_service
+from models_location import Location, MunicipalityResource
 import uuid
 
 import models, schemas, auth, database
@@ -79,8 +81,6 @@ def update_my_profile(profile_update: schemas.TalentProfileCreate, current_user:
         notify_locations = new_target_locations
     
     if notify_locations:
-        from utils import email_service
-        from models_location import Location, MunicipalityResource
         
         for loc_id in notify_locations:
             # Fetch Municipality Name
