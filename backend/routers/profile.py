@@ -1,8 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List
-from utils import email_service
-from models_location import Location, MunicipalityResource
+from fastapi import BackgroundTasks
 import uuid
 
 import models, schemas, auth, database
@@ -27,7 +26,7 @@ def get_my_profile(current_user: models.User = Depends(auth.get_current_user), d
     return profile
 
 @router.put("/me", response_model=schemas.TalentProfile)
-def update_my_profile(profile_update: schemas.TalentProfileCreate, current_user: models.User = Depends(auth.get_current_user), db: Session = Depends(database.get_db)):
+def update_my_profile(profile_update: schemas.TalentProfileCreate, background_tasks: BackgroundTasks, current_user: models.User = Depends(auth.get_current_user), db: Session = Depends(database.get_db)):
     if current_user.role != "talent":
         raise HTTPException(status_code=403, detail="Only talent users have profiles")
     
@@ -81,6 +80,8 @@ def update_my_profile(profile_update: schemas.TalentProfileCreate, current_user:
         notify_locations = new_target_locations
     
     if notify_locations:
+        from utils import email_service
+        from models_location import Location, MunicipalityResource
         
         for loc_id in notify_locations:
             # Fetch Municipality Name
@@ -91,13 +92,23 @@ def update_my_profile(profile_update: schemas.TalentProfileCreate, current_user:
                 guide_url = resource.landing_guide_url if resource else "#"
                 contact_email = resource.adl_contact_email if resource else "info@ruralminds.com"
                 
-                email_service.send_municipality_welcome_email(
+                #Código añadido por Andrés Barcenilla 28-04-2026
+                background_tasks.add_task(
+                    email_service.send_municipality_welcome_email,
                     to_email=current_user.email,
                     talent_name=current_user.full_name,
                     municipality_name=location.municipality,
                     guide_url=guide_url,
                     contact_email=contact_email
                 )
+                #Código anterior
+                #email_service.send_municipality_welcome_email(
+                #    to_email=current_user.email,
+                #    talent_name=current_user.full_name,
+                #    municipality_name=location.municipality,
+                #    guide_url=guide_url,
+                #    contact_email=contact_email
+                #)
                 
                 # 2. Notify Municipality (Audit Log / Notification)
                 # Find the organization representing this municipality
