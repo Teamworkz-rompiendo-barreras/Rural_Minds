@@ -114,7 +114,7 @@ def update_my_profile(profile_update: schemas.TalentProfileCreate, background_ta
                 # Find the organization representing this municipality
                 muni_org = db.query(models.Organization).filter(
                     models.Organization.location_id == loc_id,
-                    models.Organization.role == 'municipality'
+                    models.Organization.org_type == 'municipality'
                 ).first()
                 
                 if muni_org:
