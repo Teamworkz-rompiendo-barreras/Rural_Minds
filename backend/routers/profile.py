@@ -3,8 +3,11 @@ from sqlalchemy.orm import Session
 from typing import List
 from fastapi import BackgroundTasks
 import uuid
+import datetime
 
 import models, schemas, auth, database
+from utils import email_service
+from models_location import Location, MunicipalityResource
 
 router = APIRouter(
     prefix="/api/profiles",
@@ -70,68 +73,67 @@ def update_my_profile(profile_update: schemas.TalentProfileCreate, background_ta
     db.refresh(profile)
 
     # Post-update: Check for new target locations and trigger welcome emails
-    new_target_locations = set(profile.target_locations or [])
-    added_locations = new_target_locations - old_target_locations
-    
-    # If relocation commitment was just triggered, we treat all current target locations as "new" for notification purposes
-    # or at least send a special notification.
-    notify_locations = added_locations
-    if relocation_triggered:
-        notify_locations = new_target_locations
-    
-    if notify_locations:
-        from utils import email_service
-        from models_location import Location, MunicipalityResource
+    try:
+        new_target_locations = set(profile.target_locations or [])
+        added_locations = new_target_locations - old_target_locations
         
-        for loc_id in notify_locations:
-            # Fetch Municipality Name
-            location = db.query(Location).filter(Location.id == loc_id).first()
-            if location:
-                # 1. Email to Talent (Welcome Guide)
-                resource = db.query(MunicipalityResource).filter(MunicipalityResource.location_id == loc_id).first()
-                guide_url = resource.landing_guide_url if resource else "#"
-                contact_email = resource.adl_contact_email if resource else "info@ruralminds.com"
+        # If relocation commitment was just triggered, we treat all current target locations as "new" for notification purposes
+        # or at least send a special notification.
+        notify_locations = added_locations
+        if relocation_triggered:
+            notify_locations = new_target_locations
+        
+        if notify_locations:
+            for loc_id in notify_locations:
+                # 1. Convertir a UUID de forma segura
+                try:
+                    loc_uuid = uuid.UUID(loc_id) if isinstance(loc_id, str) else loc_id
+                except ValueError:
+                    continue # Si el ID no es válido, saltamos esta ubicación y no rompemos la app
                 
-                #Código añadido por Andrés Barcenilla 28-04-2026
-                background_tasks.add_task(
-                    email_service.send_municipality_welcome_email,
-                    to_email=current_user.email,
-                    talent_name=current_user.full_name,
-                    municipality_name=location.municipality,
-                    guide_url=guide_url,
-                    contact_email=contact_email
-                )
-                #Código anterior
-                #email_service.send_municipality_welcome_email(
-                #    to_email=current_user.email,
-                #    talent_name=current_user.full_name,
-                #    municipality_name=location.municipality,
-                #    guide_url=guide_url,
-                #    contact_email=contact_email
-                #)
-                
-                # 2. Notify Municipality (Audit Log / Notification)
-                # Find the organization representing this municipality
-                muni_org = db.query(models.Organization).filter(
-                    models.Organization.location_id == loc_id,
-                    models.Organization.org_type == 'municipality'
-                ).first()
-                
-                if muni_org:
-                    pseudonym = f"RM-{str(profile.id)[:4].upper()}"
-                    event_msg = f"¡Nuevo Compromiso de Mudanza! El candidato {pseudonym} ha confirmado su intención de mudarse a {location.municipality}."
+                # Fetch Municipality Name
+                location = db.query(Location).filter(Location.id == loc_uuid).first()
+                if location:
+                    # 1. Email to Talent (Welcome Guide)
+                    resource = db.query(MunicipalityResource).filter(MunicipalityResource.location_id == loc_uuid).first()
+                    guide_url = resource.landing_guide_url if resource else "#"
+                    contact_email = resource.adl_contact_email if resource else "info@ruralminds.com"
                     
-                    db.add(models.AuditLog(
-                        organization_id=muni_org.id,
-                        event_type="info",
-                        message=event_msg,
-                        details={
-                            "talent_id": str(profile.id),
-                            "type": "relocation_commitment",
-                            "municipality": location.municipality
-                        }
-                    ))
-        db.commit()
+                    #Código añadido por Andrés Barcenilla 28-04-2026
+                    background_tasks.add_task(
+                        email_service.send_municipality_welcome_email,
+                        to_email=current_user.email,
+                        talent_name=current_user.full_name,
+                        municipality_name=location.municipality,
+                        guide_url=guide_url,
+                        contact_email=contact_email
+                    )
+                    
+                    # 2. Notify Municipality (Audit Log / Notification)
+                    # Find the organization representing this municipality
+                    muni_org = db.query(models.Organization).filter(
+                        models.Organization.location_id == loc_uuid,
+                        models.Organization.org_type == 'municipality'
+                    ).first()
+                    
+                    if muni_org:
+                        pseudonym = f"RM-{str(profile.id)[:4].upper()}"
+                        event_msg = f"¡Nuevo Compromiso de Mudanza! El candidato {pseudonym} ha confirmado su intención de mudarse a {location.municipality}."
+                        
+                        db.add(models.AuditLog(
+                            organization_id=muni_org.id,
+                            event_type="info",
+                            message=event_msg,
+                            details={
+                                "talent_id": str(profile.id),
+                                "type": "relocation_commitment",
+                                "municipality": location.municipality
+                            }
+                        ))
+            db.commit()
+    except Exception as e:
+        print(f"Error procesando notificaciones de perfil: {e}")
+        # Silenciamos el error para que el frontend reciba un 200 OK y el perfil se guarde correctamente
 
     return profile
 
@@ -183,7 +185,6 @@ def respond_to_support_message(
     if response_type not in ["A", "B", "C"]:
         raise HTTPException(status_code=400, detail="Invalid response type")
         
-    import datetime
     msg.response_type = response_type
     msg.privacy_consent_shared = payload.get("privacy_consent", False)
     msg.response_notes = payload.get("notes")
