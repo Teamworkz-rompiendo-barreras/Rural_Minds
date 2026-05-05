@@ -209,50 +209,56 @@ const TalentProfileWizard: React.FC = () => {
         </div>
     );
 
-    const renderSensory = () => (
-        <div className="py-8">
-            <h1 className="text-2xl font-bold text-primary mb-8">Perfil Sensorial</h1>
-            <div className="space-y-6">
-                <div>
-                    <label className="block font-bold mb-3">Sensibilidad a la Luz</label>
-                    <div className="flex gap-3">
-                        {(['low', 'medium', 'high'] as const).map(l => (
-                            <button key={l} onClick={() => setSensoryPrefs(p => ({ ...p, light: l }))}
-                                className={`flex-1 p-4 border-2 rounded-xl ${sensoryPrefs.light === l ? 'bg-accent/20 border-accent' : ''}`}>{l}</button>
-                        ))}
+    const renderSensory = () => {
+        const translate: Record<string, string> = {
+            low: 'Baja', medium: 'Media', high: 'Alta',
+            async: 'Escrita (Asíncrona)', minimal: 'Reuniones Mínimas', collaborative: 'Colaboración Abierta'
+        };
+        return(
+            <div className="py-8">
+                <h1 className="text-2xl font-bold text-primary mb-8">Perfil Sensorial</h1>
+                <div className="space-y-6">
+                    <div>
+                        <label className="block font-bold mb-3">Sensibilidad a la Luz</label>
+                        <div className="flex gap-3">
+                            {(['low', 'medium', 'high'] as const).map(l => (
+                                <button key={l} onClick={() => setSensoryPrefs(p => ({ ...p, light: l }))}
+                                    className={`flex-1 p-4 border-2 rounded-xl ${sensoryPrefs.light === l ? 'bg-accent/20 border-accent' : ''}`}>{translate[l]}</button>
+                            ))}
+                        </div>
+                    </div>
+                    <div>
+                        <label className="block font-bold mb-3">Sensibilidad al Sonido</label>
+                        <div className="flex gap-3">
+                            {(['low', 'medium', 'high'] as const).map(s => (
+                                <button key={s} onClick={() => setSensoryPrefs(p => ({ ...p, sound: s }))}
+                                    className={`flex-1 p-4 border-2 rounded-xl ${sensoryPrefs.sound === s ? 'bg-accent/20 border-accent' : ''}`}>{translate[s]}</button>
+                            ))}
+                        </div>
+                    </div>
+                    <div>
+                        <label className="block font-bold mb-3">Canal de Comunicación</label>
+                        <div className="flex gap-3 flex-wrap">
+                            {(['async', 'minimal', 'collaborative'] as const).map(c => (
+                                <button key={c} onClick={() => setSensoryPrefs(p => ({ ...p, communication: c }))}
+                                    className={`flex-1 min-w-[120px] p-4 border-2 rounded-xl ${sensoryPrefs.communication === c ? 'bg-accent/20 border-accent' : ''}`}>{translate[c]}</button>
+                            ))}
+                        </div>
                     </div>
                 </div>
-                <div>
-                    <label className="block font-bold mb-3">Sensibilidad al Sonido</label>
-                    <div className="flex gap-3">
-                        {(['low', 'medium', 'high'] as const).map(s => (
-                            <button key={s} onClick={() => setSensoryPrefs(p => ({ ...p, sound: s }))}
-                                className={`flex-1 p-4 border-2 rounded-xl ${sensoryPrefs.sound === s ? 'bg-accent/20 border-accent' : ''}`}>{s}</button>
-                        ))}
-                    </div>
-                </div>
-                <div>
-                    <label className="block font-bold mb-3">Canal de Comunicación</label>
-                    <div className="flex gap-3 flex-wrap">
-                        {(['async', 'minimal', 'collaborative'] as const).map(c => (
-                            <button key={c} onClick={() => setSensoryPrefs(p => ({ ...p, communication: c }))}
-                                className={`flex-1 min-w-[120px] p-4 border-2 rounded-xl ${sensoryPrefs.communication === c ? 'bg-accent/20 border-accent' : ''}`}>{c}</button>
-                        ))}
-                    </div>
-                </div>
+                <div className="mt-8 flex justify-between"><button onClick={handleSkip}>Saltar</button><button onClick={handleNext} className="btn-secondary">Siguiente</button></div>
             </div>
-            <div className="mt-8 flex justify-between"><button onClick={handleSkip}>Saltar</button><button onClick={handleNext} className="btn-secondary">Siguiente</button></div>
-        </div>
-    );
+        );
+    };
 
     const renderProfile = () => (
         <div className="py-8">
             <h1 className="text-2xl font-bold text-primary mb-8">Tu Perfil</h1>
             <div className="space-y-6">
-                <textarea className="w-full p-3 border rounded-xl h-28" placeholder="Bio..." value={profileData.bio} onChange={e => setProfileData({...profileData, bio: e.target.value})} />
+                <textarea className="w-full p-3 border rounded-xl h-28" placeholder="Cuéntanos un poco sobre ti" value={profileData.bio} onChange={e => setProfileData({...profileData, bio: e.target.value})} />
                 <div className="p-3 border rounded-xl bg-white">
                     {profileData.skills.map(s => <span key={s} className="bg-accent px-2 py-1 rounded-full mr-2">{s}</span>)}
-                    <input type="text" value={skillInput} onChange={e => setSkillInput(e.target.value)} onKeyDown={addSkill} placeholder="Habilidades..." className="outline-none" />
+                    <input type="text" value={skillInput} onChange={e => setSkillInput(e.target.value)} onKeyDown={addSkill} placeholder="Añadir habilidad..." className="outline-none" />
                 </div>
                 <div className="pt-6 border-t space-y-8">
                     <h3 className="font-bold">📍 Ubicación y Movilidad</h3>
