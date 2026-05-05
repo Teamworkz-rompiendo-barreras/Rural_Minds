@@ -23,7 +23,7 @@ interface ProfileData {
     residence_international?: string;
     is_international?: boolean;
     is_willing_to_move: boolean;
-    target_locations: string[]; // List of location IDs
+    target_locations: string[]; 
     preferences: {
         needs_housing?: boolean;
         [key: string]: any;
@@ -172,7 +172,7 @@ const TalentProfileWizard: React.FC = () => {
             navigate('/talent-dashboard');
         } catch (err: any) {
             console.error(err);
-            setError(err.response?.data?.detail || 'Error al guardar.');
+            setError(err.response?.data?.detail || 'Error al guardar el perfil.');
         } finally { setSaving(false); }
     };
 
@@ -188,7 +188,7 @@ const TalentProfileWizard: React.FC = () => {
 
     const renderWelcome = () => (
         <div className="text-center py-12">
-            <h1 className="text-4xl font-bold text-primary mb-4">Bienvenido a Teamworkz</h1>
+            <h1 className="text-4xl font-bold text-primary mb-4">Bienvenido a Teamworkz (v1.1)</h1>
             <button onClick={handleNext} className="btn-secondary px-8 py-3">Comenzar →</button>
         </div>
     );
@@ -215,7 +215,7 @@ const TalentProfileWizard: React.FC = () => {
             <h1 className="text-2xl font-bold text-primary mb-8">Perfil Sensorial</h1>
             <div className="space-y-6">
                 <div>
-                    <label className="block font-bold mb-3">Luz</label>
+                    <label className="block font-bold mb-3">Sensibilidad a la Luz</label>
                     <div className="flex gap-3">
                         {(['low', 'medium', 'high'] as const).map(l => (
                             <button key={l} onClick={() => setSensoryPrefs(p => ({ ...p, light: l }))}
@@ -224,7 +224,7 @@ const TalentProfileWizard: React.FC = () => {
                     </div>
                 </div>
                 <div>
-                    <label className="block font-bold mb-3">Sonido</label>
+                    <label className="block font-bold mb-3">Sensibilidad al Sonido</label>
                     <div className="flex gap-3">
                         {(['low', 'medium', 'high'] as const).map(s => (
                             <button key={s} onClick={() => setSensoryPrefs(p => ({ ...p, sound: s }))}
@@ -233,11 +233,11 @@ const TalentProfileWizard: React.FC = () => {
                     </div>
                 </div>
                 <div>
-                    <label className="block font-bold mb-3">Comunicación</label>
-                    <div className="flex gap-3">
+                    <label className="block font-bold mb-3">Canal de Comunicación</label>
+                    <div className="flex gap-3 flex-wrap">
                         {(['async', 'minimal', 'collaborative'] as const).map(c => (
                             <button key={c} onClick={() => setSensoryPrefs(p => ({ ...p, communication: c }))}
-                                className={`flex-1 p-4 border-2 rounded-xl ${sensoryPrefs.communication === c ? 'bg-accent/20 border-accent' : ''}`}>{c}</button>
+                                className={`flex-1 min-w-[120px] p-4 border-2 rounded-xl ${sensoryPrefs.communication === c ? 'bg-accent/20 border-accent' : ''}`}>{c}</button>
                         ))}
                     </div>
                 </div>
@@ -255,8 +255,8 @@ const TalentProfileWizard: React.FC = () => {
                     {profileData.skills.map(s => <span key={s} className="bg-accent px-2 py-1 rounded-full mr-2">{s}</span>)}
                     <input type="text" value={skillInput} onChange={e => setSkillInput(e.target.value)} onKeyDown={addSkill} placeholder="Habilidades..." className="outline-none" />
                 </div>
-                <div className="space-y-4">
-                    <h3 className="font-bold">📍 Ubicación</h3>
+                <div className="pt-6 border-t space-y-8">
+                    <h3 className="font-bold">📍 Ubicación y Movilidad</h3>
                     <HierarchicalLocationSelector initialValue={profileData.residence_location_id} onChange={id => setProfileData({...profileData, residence_location_id: id})} />
                     <div className="flex justify-between items-center p-4 bg-gray-50 rounded-xl">
                         <span>¿Abierto a mudarte?</span>
@@ -286,11 +286,35 @@ const TalentProfileWizard: React.FC = () => {
     );
 
     const steps = [renderWelcome, renderAccessibility, renderSensory, renderProfile, renderChecklist];
+    const stepLabels = ['Bienvenida', 'Interfaz', 'Sensorial', 'Perfil', 'Checklist'];
+
     return (
         <div className="flex justify-center p-4">
             <div className="bg-white p-8 rounded-2xl shadow-xl max-w-2xl w-full border-t-4 border-accent">
+                {step > 0 && step < 4 && (
+                    <div className="mb-8">
+                        <div className="flex justify-between text-xs font-bold text-gray-400 mb-2">
+                            {stepLabels.map((label, i) => (
+                                <span key={i} className={step === i ? 'text-primary' : ''}>{label}</span>
+                            ))}
+                        </div>
+                        <div className="w-full bg-gray-200 h-2 rounded-full">
+                            <div className="bg-primary h-2 rounded-full transition-all duration-300" style={{ width: `${(step / 4) * 100}%` }} />
+                        </div>
+                    </div>
+                )}
                 {steps[step]()}
             </div>
+            {toast.visible && (
+                <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 bg-n900 text-white px-6 py-4 rounded-xl shadow-2xl z-50 flex items-center gap-4 animate-fade-in-up max-w-md w-full border-l-4 border-p2">
+                    <span className="text-2xl">🌱</span>
+                    <div>
+                        <h4 className="font-bold text-lg">¡Buena elección!</h4>
+                        <p className="text-sm opacity-90">El Ayuntamiento de <span className="font-bold text-p2">{toast.message}</span> ha sido notificado.</p>
+                    </div>
+                    <button onClick={() => setToast({ ...toast, visible: false })} className="ml-auto text-white/50 hover:text-white">×</button>
+                </div>
+            )}
         </div>
     );
 };
