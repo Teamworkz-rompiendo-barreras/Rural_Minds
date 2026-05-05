@@ -48,12 +48,27 @@ def register(
     if existing_user:
         raise HTTPException(status_code=400, detail="Este email ya está registrado")
     
+    # Determine safe Role
+    target_role = user_data.get("role", "talent")
+    if target_role not in ["enterprise", "talent"]:
+        target_role = "enterprise"
+
+    # Safely handle location ID (Convert empty strings to None, or valid string to UUID)
+    raw_loc_id = org_data.get("location_id") or org_data.get("municipality_id")
+    safe_loc_id = None
+    if raw_loc_id and str(raw_loc_id).strip() != "":
+        try:
+            safe_loc_id = uuid.UUID(str(raw_loc_id))
+        except ValueError:
+            safe_loc_id = None # Si falla la conversión, lo dejamos nulo para no romper la app
+
     # 3. Create Organization
     new_org = models.Organization(
         id=uuid.uuid4(),
         name=org_data.get("name", f"Org-{user_data['email'].split('@')[0]}"),
         subscription_plan=org_data.get("subscription_plan", "starter"),
-        municipality_id=org_data.get("municipality_id")
+        location_id=safe_loc_id, # CORREGIDO: Usamos location_id de forma segura
+        org_type="enterprise" if target_role == "enterprise" else "personal" # CORREGIDO: Asignamos el tipo de org
     )
     db.add(new_org)
     db.commit()
@@ -65,11 +80,6 @@ def register(
     
     # 5. Hash password and create user
     hashed_pwd = auth.get_password_hash(user_data["password"])
-    
-    # Secure Role Assignment: Never allow super_admin via public registration
-    target_role = user_data.get("role", "talent")
-    if target_role not in ["enterprise", "talent"]:
-        target_role = "enterprise"
     
     new_user = models.User(
         id=uuid.uuid4(),
@@ -339,12 +349,6 @@ def register_invitation(
             location_id=new_org.id, # Mapping org Key for now, ideally Location table key
             slogan="Tu slogan aquí"
         )
-        # We need a Location record for this to work fully with the LocationSelector?
-        # Actually, in the current model, Location is a separate table seeded with real data.
-        # The Organization represents the "Account" managing that Location.
-        # Ideally, we should link Organization -> Location.
-        # For now, let's create the Organization. The wizard will likely ask them to "Claim" a location or create one.
-        # Based on user request: "Paso 1: Identidad Local... Fotos... Slogan". This populates MunicipalityDetails.
         
         db.add(details)
         
