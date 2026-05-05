@@ -19,7 +19,9 @@ def get_my_profile(current_user: models.User = Depends(auth.get_current_user), d
     if current_user.role != "talent":
         raise HTTPException(status_code=403, detail="Only talent users have profiles")
     
-    profile = current_user.talent_profile
+    # SOLUCIÓN: Búsqueda directa y segura para evitar el error de la lista (InstrumentedList)
+    profile = db.query(models.TalentProfile).filter(models.TalentProfile.user_id == current_user.id).first()
+    
     if not profile:
         # Auto-create empty profile if not exists
         profile = models.TalentProfile(user_id=current_user.id)
@@ -33,7 +35,9 @@ def update_my_profile(profile_update: schemas.TalentProfileCreate, background_ta
     if current_user.role != "talent":
         raise HTTPException(status_code=403, detail="Only talent users have profiles")
     
-    profile = current_user.talent_profile
+    # SOLUCIÓN: Búsqueda directa y segura
+    profile = db.query(models.TalentProfile).filter(models.TalentProfile.user_id == current_user.id).first()
+    
     if not profile:
         profile = models.TalentProfile(user_id=current_user.id)
         db.add(profile)
@@ -145,7 +149,9 @@ def get_my_support_messages(
     if current_user.role != "talent":
         raise HTTPException(status_code=403, detail="Only talent users can access these messages")
     
-    profile = current_user.talent_profile
+    # SOLUCIÓN: Búsqueda segura
+    profile = db.query(models.TalentProfile).filter(models.TalentProfile.user_id == current_user.id).first()
+    
     if not profile:
         return []
         
@@ -163,9 +169,14 @@ def respond_to_support_message(
     if current_user.role != "talent":
         raise HTTPException(status_code=403, detail="Permission denied")
         
+    # SOLUCIÓN: Obtener el profile_id con búsqueda segura
+    profile = db.query(models.TalentProfile).filter(models.TalentProfile.user_id == current_user.id).first()
+    if not profile:
+        raise HTTPException(status_code=404, detail="Profile not found")
+
     msg = db.query(models.MunicipalSupportMessage).filter(
         models.MunicipalSupportMessage.id == message_id,
-        models.MunicipalSupportMessage.talent_profile_id == current_user.talent_profile.id
+        models.MunicipalSupportMessage.talent_profile_id == profile.id
     ).first()
     
     if not msg:
