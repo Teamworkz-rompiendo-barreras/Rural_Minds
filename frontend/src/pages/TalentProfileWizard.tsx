@@ -4,7 +4,6 @@ import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import HierarchicalLocationSelector from '../components/HierarchicalLocationSelector';
 
-// Types
 interface AccessibilityPrefs {
     high_contrast: boolean;
     reduced_motion: boolean;
@@ -260,13 +259,23 @@ const TalentProfileWizard: React.FC = () => {
                     <HierarchicalLocationSelector initialValue={profileData.residence_location_id} onChange={id => setProfileData({...profileData, residence_location_id: id})} />
                     <div className="flex justify-between items-center p-4 bg-gray-50 rounded-xl">
                         <span>¿Abierto a mudarte?</span>
-                        <button onClick={() => setProfileData(p => ({...p, is_willing_to_move: !p.is_willing_to_move}))}
+                        <button 
+                            onClick={() => {
+                                const nextValue = !profileData.is_willing_to_move;
+                                setProfileData(p => ({...p, is_willing_to_move: nextValue, target_locations: nextValue ? p.target_locations : []}));
+                                if (nextValue && profileData.residence_location_id) {
+                                    logInteraction(profileData.residence_location_id, 'commitment');
+                                }
+                            }}
                             className={`w-12 h-6 rounded-full ${profileData.is_willing_to_move ? 'bg-p2' : 'bg-gray-300'}`}>
                             <div className={`w-4 h-4 bg-white rounded-full transition-transform ${profileData.is_willing_to_move ? 'translate-x-7' : 'translate-x-1'}`} />
                         </button>
                     </div>
                     {profileData.is_willing_to_move && (
-                        <HierarchicalLocationSelector label="Destino" onChange={id => setProfileData({...profileData, target_locations: [id]})} />
+                        <HierarchicalLocationSelector label="Destino" onChange={id => {
+                            setProfileData({...profileData, target_locations: [id]});
+                            logInteraction(id, 'favorite');
+                        }} />
                     )}
                 </div>
             </div>
