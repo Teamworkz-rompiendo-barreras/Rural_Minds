@@ -164,8 +164,8 @@ const TalentProfileWizard: React.FC = () => {
                 is_willing_to_move: profileData.is_willing_to_move,
                 target_locations: profileData.target_locations.filter(id => id && id.trim() !== ""),
                 preferences: profileData.preferences,
-                residence_location_id: profileData.residence_location_id || null,
-                residence_international: profileData.residence_international || null
+                residence_location_id: profileData.is_international ? null : profileData.residence_location_id,
+                residence_international: profileData.is_international ? profileData.residence_international : null
             };
             await axios.put('/api/profiles/me', dataToSave);
             navigate('/talent-dashboard');
@@ -183,6 +183,14 @@ const TalentProfileWizard: React.FC = () => {
             }
             setSkillInput('');
         }
+    };
+
+    // NUEVA FUNCIÓN: Permite eliminar habilidades del perfil
+    const removeSkill = (skillToRemove: string) => {
+        setProfileData(prev => ({
+            ...prev,
+            skills: prev.skills.filter(skill => skill !== skillToRemove)
+        }));
     };
 
     const renderWelcome = () => (
@@ -256,14 +264,59 @@ const TalentProfileWizard: React.FC = () => {
             <h1 className="text-2xl font-bold text-primary mb-8">Tu Perfil</h1>
             <div className="space-y-6">
                 <textarea className="w-full p-3 border rounded-xl h-28" placeholder="Cuéntanos un poco sobre ti" value={profileData.bio} onChange={e => setProfileData({...profileData, bio: e.target.value})} />
-                <div className="p-3 border rounded-xl bg-white">
-                    {profileData.skills.map(s => <span key={s} className="bg-accent px-2 py-1 rounded-full mr-2">{s}</span>)}
-                    <input type="text" value={skillInput} onChange={e => setSkillInput(e.target.value)} onKeyDown={addSkill} placeholder="Añadir habilidad..." className="outline-none" />
+                
+                <div className="p-3 border rounded-xl bg-white flex flex-wrap gap-2 items-center">
+                    {/* MODIFICADO: Ahora las habilidades incluyen un botón para eliminarlas */}
+                    {profileData.skills.map(s => (
+                        <span key={s} className="bg-accent px-3 py-1 rounded-full flex items-center gap-2">
+                            {s}
+                            <button 
+                                onClick={() => removeSkill(s)} 
+                                className="text-gray-600 hover:text-red-500 font-bold focus:outline-none"
+                                aria-label={`Eliminar habilidad ${s}`}
+                            >
+                                ×
+                            </button>
+                        </span>
+                    ))}
+                    <input type="text" value={skillInput} onChange={e => setSkillInput(e.target.value)} onKeyDown={addSkill} placeholder="Añadir habilidad..." className="outline-none flex-grow" />
                 </div>
+
                 <div className="pt-6 border-t space-y-8">
                     <h3 className="font-bold">📍 Ubicación y Movilidad</h3>
-                    <HierarchicalLocationSelector initialValue={profileData.residence_location_id} onChange={id => setProfileData({...profileData, residence_location_id: id})} />
-                    <div className="flex justify-between items-center p-4 bg-gray-50 rounded-xl">
+                    
+                    {/* MODIFICADO: Nuevo botón para alternar entre ubicación local e internacional */}
+                    <div className="flex justify-between items-center p-4 bg-gray-50 rounded-xl mb-4">
+                        <span>¿Resides fuera de España? (Internacional)</span>
+                        <button 
+                            onClick={() => setProfileData(p => ({
+                                ...p, 
+                                is_international: !p.is_international, 
+                                residence_location_id: '', 
+                                residence_international: ''
+                            }))}
+                            className={`w-12 h-6 rounded-full ${profileData.is_international ? 'bg-p2' : 'bg-gray-300'}`}>
+                            <div className={`w-4 h-4 bg-white rounded-full transition-transform ${profileData.is_international ? 'translate-x-7' : 'translate-x-1'}`} />
+                        </button>
+                    </div>
+
+                    {/* MODIFICADO: Muestra el input de texto libre o el selector según el toggle */}
+                    {profileData.is_international ? (
+                        <input 
+                            type="text" 
+                            placeholder="Ej. Francia, México, Colombia..." 
+                            className="w-full p-3 border rounded-xl"
+                            value={profileData.residence_international || ''}
+                            onChange={e => setProfileData({...profileData, residence_international: e.target.value})}
+                        />
+                    ) : (
+                        <HierarchicalLocationSelector 
+                            initialValue={profileData.residence_location_id} 
+                            onChange={id => setProfileData({...profileData, residence_location_id: id})} 
+                        />
+                    )}
+
+                    <div className="flex justify-between items-center p-4 bg-gray-50 rounded-xl mt-8">
                         <span>¿Abierto a mudarte?</span>
                         <button 
                             onClick={() => {
