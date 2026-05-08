@@ -56,11 +56,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 Saltar al contenido principal
             </a>
 
-            {/* Menu: Removed sticky for better zoom behavior (or keep sticky but handle resize) 
-                Prompt said "Eliminar el menú fijo (position: fixed)" to avoid covering content at high zoom. 
-                Using relative/static flow.
-            */}
-            <header className="bg-white shadow-sm p-4 z-50 relative">
+            {/* Menu: Fixed superimposition bug with z-[9999] */}
+            <header className="bg-white shadow-sm p-4 z-[9999] relative">
                 <div className="container mx-auto flex items-center justify-between flex-wrap">
                     {/* Logo */}
                     <Link to="/" className="flex items-center gap-3">
