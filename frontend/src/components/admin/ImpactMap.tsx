@@ -107,7 +107,7 @@ const FlowArcs: React.FC<{ flows: Flow[], points: Point[] }> = ({ flows, points 
                 width: '100%',
                 height: '100%',
                 pointerEvents: 'none',
-                zIndex: 400,
+                zIndex: 1,
             }}
         >
             <g style={{ pointerEvents: 'auto' }}>
