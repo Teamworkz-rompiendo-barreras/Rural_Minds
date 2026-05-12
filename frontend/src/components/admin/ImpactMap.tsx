@@ -187,7 +187,7 @@ const ImpactMap: React.FC = () => {
         <div className="flex flex-col gap-6">
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
                 {/* Map View (Left 3/4) */}
-                <div className="lg:col-span-3 bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden min-h-[500px] relative">
+                <div className="lg:col-span-3 bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden min-h-[500px] relative z-0">
                     {loading && (
                         <div className="absolute inset-0 bg-white/50 backdrop-blur-[1px] z-[1000] flex items-center justify-center">
                             <div className="flex flex-col items-center gap-2">
