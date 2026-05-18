@@ -141,7 +141,7 @@ def read_org_details(
         
     return org
 
-@router.put("/details", response_model=schemas.Organization, id=uuid.uuid4)
+@router.put("/details", response_model=schemas.Organization)
 def update_org_details(
     org_update: schemas.OrganizationUpdate,
     db: Session = Depends(database.get_db), 
