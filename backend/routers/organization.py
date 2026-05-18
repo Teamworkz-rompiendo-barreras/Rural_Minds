@@ -141,19 +141,12 @@ def read_org_details(
         
     return org
 
-@router.put("/details")
+@router.put("/details", response_model=schemas.Organization, id=uuid.uuid4)
 def update_org_details(
     org_update: schemas.OrganizationUpdate,
     db: Session = Depends(database.get_db), 
     current_user: models.User = Depends(auth.get_current_user)
 ):
-#Código anterior
-#@router.put("/details", response_model=schemas.Organization)
-#def update_org_details(
-#    org_update: schemas.OrganizationUpdate,
-#    db: Session = Depends(database.get_db), 
-#    current_user: models.User = Depends(auth.get_current_user)
-#):
     if not current_user.organization_id:
         raise HTTPException(status_code=400, detail="User is not associated with any organization")
         
