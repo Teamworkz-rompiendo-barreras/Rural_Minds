@@ -27,6 +27,7 @@ const OrganizationSettings: React.FC = () => {
         flexibleHours: false,
         mentorshipProgram: false
     });
+    
     const [savingSensory, setSavingSensory] = useState(false);
     const [hqAddress, setHqAddress] = useState({
         street: '',
@@ -34,15 +35,16 @@ const OrganizationSettings: React.FC = () => {
         municipality_id: ''
     });
     const [savingHq, setSavingHq] = useState(false);
+    const [savingAll, setSavingAll] = useState(false); // Nuevo estado para el botón global
 
     useEffect(() => {
         if (token) {
             fetchUsers();
             if (user?.organization?.sensory_commitment) {
-                setSensoryCommitment({
-                    ...sensoryCommitment,
+                setSensoryCommitment((prev: any) => ({
+                    ...prev,
                     ...user.organization.sensory_commitment
-                });
+                }));
             }
             if (user?.organization?.street_address) {
                 setHqAddress(prev => ({
@@ -76,7 +78,7 @@ const OrganizationSettings: React.FC = () => {
             await axios.put('/org/details', {
                 street_address: hqAddress.street,
                 postal_code: hqAddress.postal_code,
-                location_id: hqAddress.municipality_id // Backwards compatibility with column name
+                location_id: hqAddress.municipality_id 
             });
             alert("Ubicación de sede actualizada. El match por geolocalización ahora es más preciso.");
         } catch (err) {
@@ -87,22 +89,22 @@ const OrganizationSettings: React.FC = () => {
         }
     };
 
-    //Añadido por Andrés Barcenilla 19-05-2026
+    // Función arreglada e integrada
     const handleSaveAll = async () => {
-        setSavingHq(true);
+        setSavingAll(true);
         try {
             await axios.put('/org/details', {
                 sensory_commitment: sensoryCommitment,
                 street_address: hqAddress.street,
                 postal_code: hqAddress.postal_code,
-                municipality_id: hqAddress.municipality_id
+                location_id: hqAddress.municipality_id // Corregido: el backend espera location_id
             });
-            alert("Ubicación de sede actualizada. El match por geolocalización ahora es más preciso.");
+            alert("Todos los datos de la organización han sido actualizados exitosamente.");
         } catch (err) {
             console.error(err);
-            alert("Error al guardar la ubicación.");
+            alert("Error al guardar los datos de la organización.");
         } finally {
-            setSavingHq(false);
+            setSavingAll(false);
         }
     };
     
@@ -129,7 +131,7 @@ const OrganizationSettings: React.FC = () => {
             });
             setInviteSuccess(`Invitación enviada a ${inviteEmail}`);
             setInviteEmail('');
-            fetchUsers(); // Refresh list
+            fetchUsers(); 
         } catch (err: any) {
             let msg = 'Error al invitar usuario';
             if (err.response) {
@@ -155,11 +157,7 @@ const OrganizationSettings: React.FC = () => {
 
     const handleAccountDeletion = async (reason: string) => {
         try {
-            // Optional: Send reason to backend if supported, otherwise just log or ignore
-            console.log("Deletion reason:", reason);
             await axios.delete('/user/me');
-
-            // Redirect happens after successful deletion logic
             window.location.href = '/login?deleted=true';
         } catch (e: any) {
             console.error(e);
@@ -177,7 +175,24 @@ const OrganizationSettings: React.FC = () => {
                 <p className="text-n900 text-lg">{user?.organization?.name || 'Mi Perfil Corporativo'}</p>
             </header>
 
-            {/* Sensory Commitment Profile - Case insensitive check for robustness */}
+            {/* SECCIÓN GLOBAL DE GUARDADO RÁPIDO */}
+            {(user?.role?.toLowerCase().includes('enterprise')) && (
+                 <div className="bg-p2/10 p-4 rounded-xl flex justify-between items-center border border-p2/20">
+                     <div>
+                         <h3 className="font-bold text-n900">Guardado Global</h3>
+                         <p className="text-sm text-gray-600">Puedes guardar el perfil sensorial y la sede de una sola vez.</p>
+                     </div>
+                     <button
+                         onClick={handleSaveAll}
+                         disabled={savingAll}
+                         className="bg-p2 text-white font-bold py-2 px-6 rounded-lg hover:bg-p2/90 transition-all shadow-md disabled:opacity-50"
+                     >
+                         {savingAll ? 'Guardando...' : 'Guardar Todo'}
+                     </button>
+                 </div>
+            )}
+
+            {/* Sensory Commitment Profile */}
             {(user?.role?.toLowerCase().includes('enterprise')) && (
                 <section className="bg-white p-8 rounded-xl shadow-sm border border-gray-200">
                     <div className="flex items-center gap-3 mb-6 border-b pb-4">
@@ -215,7 +230,7 @@ const OrganizationSettings: React.FC = () => {
                         <button
                             onClick={handleSaveSensory}
                             disabled={savingSensory}
-                            className="bg-p2 text-white font-bold py-3 px-8 rounded-lg hover:bg-p2/90 transition-all shadow-md disabled:opacity-50"
+                            className="bg-gray-200 text-gray-800 font-bold py-2 px-6 rounded-lg hover:bg-gray-300 transition-all disabled:opacity-50"
                         >
                             {savingSensory ? 'Guardando...' : 'Guardar Compromiso'}
                         </button>
@@ -269,7 +284,7 @@ const OrganizationSettings: React.FC = () => {
                                 <button
                                     onClick={handleSaveHq}
                                     disabled={savingHq}
-                                    className="bg-n900 text-white font-bold py-3 px-8 rounded-lg hover:bg-black transition-all shadow-md disabled:opacity-50"
+                                    className="bg-gray-200 text-gray-800 font-bold py-2 px-6 rounded-lg hover:bg-gray-300 transition-all disabled:opacity-50"
                                 >
                                     {savingHq ? 'Guardando...' : 'Actualizar Sede'}
                                 </button>
@@ -280,13 +295,11 @@ const OrganizationSettings: React.FC = () => {
                         <div className="bg-gray-50 rounded-2xl border border-gray-100 p-6 flex flex-col items-center justify-center text-center">
                             <h3 className="text-xs font-bold text-gray-400 mb-4 uppercase">Vista de Mapa</h3>
                             <div className="w-full aspect-square bg-white rounded-xl shadow-inner border border-gray-100 relative overflow-hidden flex items-center justify-center">
-                                {/* Conceptual Map Background (SVG) */}
                                 <svg viewBox="0 0 100 100" className="absolute inset-0 opacity-10">
                                     <path d="M0,20 Q50,0 100,20 L100,80 Q50,100 0,80 Z" fill="none" stroke="#000" strokeWidth="0.5" />
                                     <line x1="0" y1="50" x2="100" y2="50" stroke="#000" strokeWidth="0.5" />
                                     <line x1="50" y1="0" x2="50" y2="100" stroke="#000" strokeWidth="0.5" />
                                 </svg>
-
                                 {hqAddress.street ? (
                                     <div className="relative animate-bounce">
                                         <span className="text-4xl">📍</span>
@@ -318,7 +331,6 @@ const OrganizationSettings: React.FC = () => {
                             onChange={(e) => setInviteEmail(e.target.value)}
                             required
                             className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-primary outline-none"
-                            aria-label="Email del nuevo miembro"
                         />
                         {inviteError && <p className="text-red-500 text-sm mt-1">{inviteError}</p>}
                         {inviteSuccess && <p className="text-green-600 text-sm mt-1">{inviteSuccess}</p>}
@@ -357,7 +369,6 @@ const OrganizationSettings: React.FC = () => {
                                         <button
                                             onClick={() => handleRemove(u.id)}
                                             className="text-red-500 hover:text-red-700 font-bold text-sm"
-                                            aria-label={`Eliminar al usuario ${u.email}`}
                                         >
                                             Eliminar
                                         </button>
