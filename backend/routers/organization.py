@@ -11,7 +11,19 @@ router = APIRouter(
     tags=["organization"],
 )
 
-# ... (Helpers match) ...
+# ... (Helpers match si los hubiera) ...
+
+def generate_random_password(length: int = 12) -> str:
+    """Genera una contraseña aleatoria segura para los nuevos usuarios invitados."""
+    alphabet = string.ascii_letters + string.digits + string.punctuation
+    return ''.join(secrets.choice(alphabet) for i in range(length))
+
+def validate_branding_contrast(logo_url: str, primary_color: str):
+    # Mock Validation Logic
+    # In production, this would use Pillow to analyze image contrast against the color.
+    if "low-contrast" in logo_url:
+         raise HTTPException(status_code=400, detail="Branding Error: Logo has insufficient contrast (WCAG AA violation).")
+    return True
 
 @router.get("/settings", response_model=schemas.Organization)
 def read_org_settings(
@@ -27,15 +39,6 @@ def patch_org_settings(
     current_user: models.User = Depends(auth.get_current_user)
 ):
     return update_org_details(org_update, db, current_user)
-    alphabet = string.ascii_letters + string.digits + string.punctuation
-    return ''.join(secrets.choice(alphabet) for i in range(length))
-
-def validate_branding_contrast(logo_url: str, primary_color: str):
-    # Mock Validation Logic
-    # In production, this would use Pillow to analyze image contrast against the color.
-    if "low-contrast" in logo_url:
-         raise HTTPException(status_code=400, detail="Branding Error: Logo has insufficient contrast (WCAG AA violation).")
-    return True
 
 @router.get("/users", response_model=List[schemas.UserPublic])
 def read_org_users(
@@ -105,7 +108,7 @@ def invite_user(
 
 @router.delete("/users/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
 def remove_user(
-    user_id: uuid.UUID, # UUID type
+    user_id: uuid.UUID,
     db: Session = Depends(database.get_db), 
     current_user: models.User = Depends(auth.get_current_user)
 ):
@@ -157,11 +160,10 @@ def update_org_details(
     if not org:
         raise HTTPException(status_code=404, detail="Organization not found")
         
-    # Validation Logic
     if org_update.branding_logo_url:
         validate_branding_contrast(org_update.branding_logo_url, org_update.primary_color_override or org.primary_color_override)
 
-    # Update fields
+    # Actualización de campos de la organización
     if org_update.name is not None:
         org.name = org_update.name
     if org_update.branding_logo_url is not None:
@@ -193,15 +195,11 @@ def update_my_municipality_details(
     db: Session = Depends(database.get_db),
     current_user: models.User = Depends(auth.get_current_user)
 ):
-    """
-    Update details for the logged-in municipality admin.
-    """
     if current_user.role not in ["territory_admin", "municipality", "super_admin"]:
         raise HTTPException(status_code=403, detail="Permission denied")
     
     org_id = current_user.organization_id
     
-    # 1. Update Details
     details = db.query(models.MunicipalityDetails).filter(
         models.MunicipalityDetails.location_id == org_id
     ).first()
@@ -222,7 +220,6 @@ def update_my_municipality_details(
     if "gallery_urls" in payload: details.gallery_urls = payload["gallery_urls"]
     if "status" in payload: details.status = payload["status"]
     
-    # 2. Update Resources
     resource = db.query(models.MunicipalityResource).filter(
         models.MunicipalityResource.location_id == org_id
     ).first()
@@ -238,5 +235,4 @@ def update_my_municipality_details(
     if "adl_contact_email" in payload: resource.adl_contact_email = payload["adl_contact_email"]
     
     db.commit()
-    
     return {"message": "Details updated successfully"}
