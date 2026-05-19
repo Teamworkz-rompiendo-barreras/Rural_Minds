@@ -87,6 +87,25 @@ const OrganizationSettings: React.FC = () => {
         }
     };
 
+    //Añadido por Andrés Barcenilla 19-05-2026
+    const handleSaveAll = async () => {
+        setSavingHq(true);
+        try {
+            await axios.put('/org/details', {
+                sensory_commitment: sensoryCommitment,
+                street_address: hqAddress.street,
+                postal_code: hqAddress.postal_code,
+                municipality_id: hqAddress.municipality_id
+            });
+            alert("Ubicación de sede actualizada. El match por geolocalización ahora es más preciso.");
+        } catch (err) {
+            console.error(err);
+            alert("Error al guardar la ubicación.");
+        } finally {
+            setSavingHq(false);
+        }
+    };
+    
     const fetchUsers = async () => {
         try {
             const res = await axios.get('/org/users');
