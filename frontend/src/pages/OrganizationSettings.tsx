@@ -38,24 +38,24 @@ const OrganizationSettings: React.FC = () => {
     const [savingAll, setSavingAll] = useState(false); // Nuevo estado para el botón global
 
     useEffect(() => {
-        if (token) {
-            fetchUsers();
-            if (user?.organization?.sensory_commitment) {
-                setSensoryCommitment((prev: any) => ({
-                    ...prev,
-                    ...user.organization.sensory_commitment
-                }));
-            }
-            if (user?.organization?.street_address) {
-                setHqAddress(prev => ({
-                    ...prev,
-                    street: user.organization?.street_address || '',
-                    postal_code: user.organization?.postal_code || '',
-                    municipality_id: user.organization?.location_id || ''
-                }));
-            }
+    if (token && user) {
+        fetchUsers();
+        const org = user.organization;
+        if (org?.sensory_commitment) {
+            setSensoryCommitment((prev: any) => ({
+                ...prev,
+                ...org.sensory_commitment
+            }));
         }
-    }, [token, user]);
+        if (org?.street_address) {
+            setHqAddress({
+                street: org.street_address || '',
+                postal_code: org.postal_code || '',
+                municipality_id: org.location_id || ''
+            });
+        }
+    }
+}, [token, user]);
 
     const handleSaveSensory = async () => {
         setSavingSensory(true);
@@ -155,7 +155,7 @@ const OrganizationSettings: React.FC = () => {
         }
     };
 
-    const handleAccountDeletion = async (reason: string) => {
+    const handleAccountDeletion = async (_reason: string) => {
         try {
             await axios.delete('/user/me');
             window.location.href = '/login?deleted=true';
