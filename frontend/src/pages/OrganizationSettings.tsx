@@ -97,7 +97,7 @@ const OrganizationSettings: React.FC = () => {
                 sensory_commitment: sensoryCommitment,
                 street_address: hqAddress.street,
                 postal_code: hqAddress.postal_code,
-                location_id: hqAddress.municipality_id // Corregido: el backend espera location_id
+                location_id: hqAddress.municipality_id
             });
             alert("Todos los datos de la organización han sido actualizados exitosamente.");
         } catch (err) {
