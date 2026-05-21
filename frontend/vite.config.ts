@@ -2,18 +2,28 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
-// https://vite.dev/config/
 export default defineConfig({
   plugins: [
     react(),
     tailwindcss(),
   ],
   build: {
-    chunkSizeWarningLimit: 1000, // Increase warning limit to 1MB
+    chunkSizeWarningLimit: 1000,
     rollupOptions: {
       output: {
         manualChunks: {
-          vendor: ['react', 'react-dom', 'react-router-dom', '@react-pdf/renderer'],
+          // Core React — cargado siempre
+          vendor: ['react', 'react-dom', 'react-router-dom'],
+          // MUI es muy pesado — chunk propio para caché independiente
+          mui: ['@mui/material', '@mui/icons-material', '@emotion/react', '@emotion/styled'],
+          // PDF — solo se usa en páginas específicas
+          pdf: ['@react-pdf/renderer'],
+          // Mapa — solo se usa en páginas de localización
+          maps: ['leaflet', 'react-leaflet'],
+          // Utilidades de archivo
+          files: ['jszip', 'file-saver'],
+          // HTTP
+          http: ['axios'],
         },
       },
     },
