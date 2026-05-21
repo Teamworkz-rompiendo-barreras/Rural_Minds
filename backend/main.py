@@ -22,31 +22,26 @@ if os.getenv("VERCEL") != "1":
 
 app = FastAPI(title="RuralMinds API")
 
-# Configure CORS
-# Allow both local and production origins
-origins = [
+
+_cors_origins = [
     "http://localhost:5173",
+    "http://localhost:3000",
     "http://127.0.0.1:5173",
     "https://rural-minds.vercel.app",
-    "https://rural-minds-git-main-lerele1s-projects.vercel.app", # Example preview URL
+    "https://rural-minds-git-main-lerele1s-projects.vercel.app",
 ]
-
-# Allow any vercel.app subdomain for flexibility
-extra_origins = os.getenv("ALLOWED_ORIGINS", "")
-if extra_origins:
-    origins.extend(extra_origins.split(","))
+_extra = os.getenv("ALLOWED_ORIGINS", "")
+if _extra:
+    _cors_origins.extend([o.strip() for o in _extra.split(",") if o.strip()])
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-        "https://rural-minds.vercel.app",
-        "https://rural-minds-git-main-lerele1s-projects.vercel.app",
-    ],
+    allow_origins=_cors_origins,
+    allow_origin_regex=r"https://rural-minds-.*\.vercel\.app",
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"],
     allow_headers=["*"],
+    expose_headers=["*"],
 )
 
 app.include_router(profile.router)
