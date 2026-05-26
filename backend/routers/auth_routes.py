@@ -5,6 +5,16 @@ import models, schemas, auth, database
 import uuid
 import datetime
 from utils.email_service import send_verification_email, send_welcome_email, generate_verification_token, send_password_reset_email
+import dns.resolver
+
+
+def _email_domain_has_mx(email: str) -> bool:
+    try:
+        domain = email.split("@")[1]
+        dns.resolver.resolve(domain, "MX")
+        return True
+    except Exception:
+        return False
 
 router = APIRouter(
     prefix="/auth",
@@ -32,7 +42,11 @@ def register(
     # Validate required fields
     if not user_data.get("email") or not user_data.get("password"):
         raise HTTPException(status_code=400, detail="Email y contraseña son obligatorios")
-    
+
+    # Validate email domain has real mail servers
+    if not _email_domain_has_mx(user_data["email"]):
+        raise HTTPException(status_code=400, detail="El email no parece válido. Comprueba que la dirección es correcta.")
+
     # 1. Check if organization name already exists
     if org_data.get("name"):
         existing_org = db.query(models.Organization).filter(
