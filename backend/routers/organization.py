@@ -5,6 +5,7 @@ import secrets
 import string
 import uuid
 import models, schemas, auth, database
+from utils.email_service import send_welcome_email
 
 router = APIRouter(
     prefix="/org",
@@ -85,11 +86,19 @@ def invite_user(
 
     existing_user = db.query(models.User).filter(models.User.email == invite.email).first()
     if existing_user:
-        raise HTTPException(status_code=400, detail="User with this email already exists")
+        if str(existing_user.organization_id) == str(current_user.organization_id):
+            raise HTTPException(status_code=400, detail="Este usuario ya es miembro de tu organización")
+        # User exists but belongs to a different org — add them to this org
+        existing_user.organization_id = current_user.organization_id
+        existing_user.role = invite.role
+        db.commit()
+        db.refresh(existing_user)
+        send_welcome_email(to_email=existing_user.email, user_name=existing_user.full_name or existing_user.email)
+        return existing_user
 
     temp_password = generate_random_password()
     hashed_pwd = auth.get_password_hash(temp_password)
-    
+
     new_user = models.User(
         email=invite.email,
         hashed_password=hashed_pwd,
@@ -100,10 +109,9 @@ def invite_user(
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
-    
-    # In real app: Send email
+
     print(f"INVITE SENT TO {invite.email}. Temp Password: {temp_password}")
-    
+
     return new_user
 
 @router.delete("/users/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
