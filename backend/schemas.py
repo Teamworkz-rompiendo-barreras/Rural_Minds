@@ -56,6 +56,7 @@ class OrganizationUpdate(BaseModel):
     sensory_commitment: Optional[dict] = None
     street_address: Optional[str] = None
     postal_code: Optional[str] = None
+    location_id: Optional[str] = None
 
 class Organization(OrganizationBase):
     id: uuid.UUID
