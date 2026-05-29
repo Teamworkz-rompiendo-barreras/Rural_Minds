@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func
 from typing import List, Optional
 import uuid
+import datetime
 
 import models
 import database
@@ -130,7 +131,7 @@ def get_matching_data(
     candidates_query = db.query(models.User).filter(models.User.role == "talent")
     
     # Get challenges (job offers)
-    challenges_query = db.query(models.Challenge).filter(models.Challenge.status == "published")
+    challenges_query = db.query(models.Challenge).filter(models.Challenge.status == "open")
     
     candidates = []
     for user in candidates_query.limit(50).all():
@@ -152,7 +153,7 @@ def get_matching_data(
     
     offers = []
     for challenge in challenges_query.limit(50).all():
-        org = db.query(models.Organization).filter(models.Organization.id == challenge.organization_id).first()
+        org = db.query(models.Organization).filter(models.Organization.id == challenge.tenant_id).first()
         location = None
         if org and org.location_id:
             loc = db.query(Location).filter(Location.id == org.location_id).first()
@@ -823,6 +824,8 @@ def invite_entity(
         email=invitation.email,
         entity_name=invitation.entity_name,
         role=invitation.role,
+        token=str(uuid.uuid4()),
+        expires_at=datetime.datetime.utcnow() + datetime.timedelta(days=30),
         status="pending"
     )
     db.add(new_invite)

@@ -7,6 +7,29 @@ const ReportsDashboard: React.FC = () => {
     const [stats, setStats] = useState<any>(null);
     const [loading, setLoading] = useState(true);
 
+    const handleDownloadCSV = () => {
+        if (!stats) return;
+        const rows = [
+            ['Métrica', 'Valor'],
+            ['Índice de Inclusión', stats.inclusion_score ?? 0],
+            ['Índice de Adecuación', stats.adequacy_index ?? '0%'],
+            ['Nivel de Bienestar', stats.wellbeing_level ?? 0],
+            ['Tasa de Activación', stats.activation_rate ?? '0%'],
+            ['ROI Anual Estimado', stats.roi_estimated ?? '0€'],
+            ['Tasa de Retención', stats.retention_rate ?? '0%'],
+        ];
+        const csv = rows.map(r => r.join(',')).join('\n');
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `reporte_impacto_${new Date().toISOString().slice(0, 10)}.csv`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    };
+
     useEffect(() => {
         if (token) fetchStats();
     }, [token]);
@@ -63,7 +86,11 @@ const ReportsDashboard: React.FC = () => {
                     <h1 className="text-3xl font-heading font-bold text-primary">Impacto y Evidencias</h1>
                     <p className="text-gray-600">Métricas de inclusión en tiempo real y análisis de retorno.</p>
                 </div>
-                <button className="px-6 py-2 bg-white border border-gray-300 text-gray-700 font-bold rounded-lg hover:bg-gray-50 flex items-center gap-2 shadow-sm">
+                <button
+                    onClick={handleDownloadCSV}
+                    disabled={!stats}
+                    className="px-6 py-2 bg-white border border-gray-300 text-gray-700 font-bold rounded-lg hover:bg-gray-50 flex items-center gap-2 shadow-sm disabled:opacity-50"
+                >
                     <span>⬇</span> Descargar CSV
                 </button>
             </div>

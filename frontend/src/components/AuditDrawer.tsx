@@ -72,16 +72,10 @@ const AuditDrawer: React.FC<AuditDrawerProps> = ({ orgId, isOpen, onClose, onSta
     };
 
     const handleValidate = async () => {
-        // Validation Logic: Check if files are missing
-        const missingFiles = data?.documents.some(d => d.status === 'missing');
-        if (missingFiles) {
-            alert("No se puede validar la excelencia: Faltan archivos obligatorios (Logo, Documentación legal).");
-            return;
-        }
-
+        // Warn if logo missing but don't block — admin can validate without logo
         if (!data?.logo_url) {
-            alert("No se puede validar: Falta el logo de la entidad.");
-            return;
+            const proceed = window.confirm("⚠️ Esta entidad no tiene logo. ¿Deseas validar igualmente?");
+            if (!proceed) return;
         }
 
         try {

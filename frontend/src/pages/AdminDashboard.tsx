@@ -109,8 +109,9 @@ const SuperAdminDashboard: React.FC = () => {
             // Refresh invites
             const res = await axios.get('/admin/invitations');
             setInvitations(res.data);
-        } catch (err) {
-            alert("Error al enviar invitación.");
+        } catch (err: any) {
+            const detail = err?.response?.data?.detail || 'Error al enviar la invitación. Comprueba que el email no esté ya registrado.';
+            alert(detail);
             console.error(err);
         } finally {
             setSendingInvite(false);

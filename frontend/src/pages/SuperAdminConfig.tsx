@@ -279,14 +279,21 @@ const SuperAdminConfig: React.FC = () => {
                 {/* ===================== MATCHING PANEL ===================== */}
                 {!loading && activeTab === 'matching' && (
                     <div className="space-y-6">
-                        {candidates.length === 0 && offers.length === 0 ? (
+                        {candidates.length === 0 ? (
                             <EmptyState
-                                icon="🔗"
-                                title="Sin datos de matching"
-                                description="Aún no hay candidatos o ofertas para cruzar. Los datos aparecerán cuando haya talento y retos publicados."
+                                icon="👤"
+                                title="Sin candidatos registrados"
+                                description="Aún no hay perfiles de talento en el sistema. Los candidatos aparecerán cuando los usuarios completen su registro."
                             />
                         ) : (
                             <>
+                                {/* No-offers notice */}
+                                {offers.length === 0 && (
+                                    <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-amber-800 text-sm font-medium">
+                                        ⚠️ No hay ofertas publicadas aún. Las empresas deben publicar retos en estado <strong>Abierto</strong> para que aparezcan aquí.
+                                    </div>
+                                )}
+
                                 {/* Link Action Area */}
                                 <div className="bg-white p-6 rounded-xl shadow-sm" style={{ border: '1px solid #D1D5DB', borderRadius: '12px' }}>
                                     <h3 className="font-bold text-lg mb-4" style={{ fontFamily: 'Futura, sans-serif' }}>Vincular Candidato a Oferta</h3>
