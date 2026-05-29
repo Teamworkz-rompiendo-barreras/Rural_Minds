@@ -11,9 +11,28 @@ router = APIRouter(
     tags=["solutions"],
 )
 
-@router.get("/adjustments/catalog", response_model=List[schemas.Solution]) 
+DEFAULT_SOLUTIONS = [
+    {"title": "Iluminación Adaptativa", "description": "Ajuste de temperatura de color y nivel de brillo en el puesto de trabajo para reducir la fatiga visual y la hipersensibilidad lumínica.", "category": "environment", "impact_level": "alto", "cost_estimate": "50-200€"},
+    {"title": "Software de Texto a Voz", "description": "Herramientas como NaturalReader o Microsoft Immersive Reader que verbalizan texto en pantalla, facilitando la comprensión para personas con dislexia o procesamiento visual.", "category": "software", "impact_level": "alto", "cost_estimate": "0-15€/mes"},
+    {"title": "Auriculares con Cancelación de Ruido", "description": "Dispositivos que bloquean el ruido ambiental de la oficina, esenciales para personas con hipersensibilidad auditiva o TDAH.", "category": "hardware", "impact_level": "alto", "cost_estimate": "80-350€"},
+    {"title": "Protocolo de Comunicación Asíncrona", "description": "Definición de normas de equipo que priorizan mensajes escritos sobre llamadas imprevistas, reduciendo la ansiedad por comunicación.", "category": "protocol", "impact_level": "medio", "cost_estimate": "0€"},
+    {"title": "Monitor con Filtro de Luz Azul", "description": "Pantallas o filtros físicos que reducen la emisión de luz azul, mejorando el bienestar visual y el ritmo circadiano.", "category": "hardware", "impact_level": "medio", "cost_estimate": "20-150€"},
+    {"title": "Aplicación de Gestión de Tareas Visual", "description": "Herramientas como Trello o Notion con vistas Kanban que externalizan la carga cognitiva y facilitan la planificación para perfiles con TDAH.", "category": "software", "impact_level": "alto", "cost_estimate": "0-10€/mes"},
+    {"title": "Zona de Descanso Sensorial", "description": "Espacio físico tranquilo y con estímulos reducidos donde el empleado puede autorregularse durante la jornada laboral.", "category": "environment", "impact_level": "alto", "cost_estimate": "200-1000€"},
+    {"title": "Agenda de Reuniones Anticipada", "description": "Protocolo que exige enviar el orden del día 24h antes de cualquier reunión, permitiendo la preparación cognitiva y reduciendo la incertidumbre.", "category": "protocol", "impact_level": "medio", "cost_estimate": "0€"},
+]
+
+@router.get("/adjustments/catalog", response_model=List[schemas.Solution])
 def list_adjustments_catalog(db: Session = Depends(database.get_db)):
-    return read_solutions(db=db)
+    solutions = read_solutions(db=db)
+    if not solutions:
+        # Auto-seed default solutions on first access
+        for sol in DEFAULT_SOLUTIONS:
+            db_sol = models.Solution(**sol)
+            db.add(db_sol)
+        db.commit()
+        solutions = read_solutions(db=db)
+    return solutions
 
 # --- Lifecycle Endpoints ---
 

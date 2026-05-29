@@ -1,39 +1,25 @@
 
-import { Page, Text, View, Document, StyleSheet, Font } from '@react-pdf/renderer';
+import { Page, Text, View, Document, StyleSheet } from '@react-pdf/renderer';
 
-// Register fonts
-Font.register({
-    family: 'Atkinson Hyperlegible',
-    fonts: [
-        { src: 'https://fonts.gstatic.com/s/atkinsonhyperlegible/v2/9o8jL7kFpC5q3m6p2E3r6q4o8.ttf', fontWeight: 400 }, // Regular
-        { src: 'https://fonts.gstatic.com/s/atkinsonhyperlegible/v2/9o8iL7kFpC5q3m6p2E3r6q4o8.ttf', fontWeight: 700 }  // Bold
-    ]
-});
-
-Font.register({
-    family: 'Jost', // Using Jost as free alternative to Futura
-    fonts: [
-        { src: 'https://fonts.gstatic.com/s/jost/v14/92zPt88fL6v8jD3t.ttf', fontWeight: 700 } // Bold
-    ]
-});
+// Using built-in PDF fonts (Helvetica) to avoid external URL dependencies
+// that cause PDF generation to fail when network requests are blocked
 
 const styles = StyleSheet.create({
     page: {
         padding: 40,
-        fontFamily: 'Atkinson Hyperlegible',
+        fontFamily: 'Helvetica',
         backgroundColor: '#FFFFFF'
     },
     header: {
         marginBottom: 24,
         borderBottomWidth: 2,
-        borderBottomColor: '#374BA6', // P2
+        borderBottomColor: '#374BA6',
         paddingBottom: 12
     },
     title: {
         fontSize: 24,
-        fontFamily: 'Jost',
-        fontWeight: 'bold',
-        color: '#374BA6', // P2
+        fontFamily: 'Helvetica-Bold',
+        color: '#374BA6',
         marginBottom: 6
     },
     subtitle: {
@@ -46,8 +32,7 @@ const styles = StyleSheet.create({
     },
     sectionTitle: {
         fontSize: 14,
-        fontFamily: 'Jost',
-        fontWeight: 'bold',
+        fontFamily: 'Helvetica-Bold',
         color: '#374BA6', // P2
         marginBottom: 8,
         backgroundColor: '#F3F4F6', // N100
@@ -72,8 +57,7 @@ const styles = StyleSheet.create({
         lineHeight: 1.5
     },
     bold: {
-        fontWeight: 700,
-        fontFamily: 'Atkinson Hyperlegible'
+        fontFamily: 'Helvetica-Bold',
     },
     footer: {
         position: 'absolute',

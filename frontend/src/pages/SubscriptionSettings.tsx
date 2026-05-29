@@ -7,6 +7,7 @@ const SubscriptionSettings: React.FC = () => {
     const [currentPlan, setCurrentPlan] = useState('starter');
     const [loading, setLoading] = useState(true);
     const [updating, setUpdating] = useState(false);
+    const [pendingPlan, setPendingPlan] = useState<string | null>(null);
 
     useEffect(() => {
         if (token) fetchDetails();
@@ -25,18 +26,22 @@ const SubscriptionSettings: React.FC = () => {
         }
     };
 
-    const handlePlanChange = async (plan: string) => {
-        if (confirm(`¿Estás seguro de cambiar al plan ${plan}?`)) {
-            setUpdating(true);
-            try {
-                await axios.patch('/org/settings', {
-                    subscription_plan: plan
-                });
-                setCurrentPlan(plan);
-                alert(`Cambiado exitosamente al plan ${plan}.`);
-            } catch (err) {
-                alert('Fallo al actualizar el plan');
-            }
+    const handlePlanChange = (plan: string) => {
+        if (plan === currentPlan) return;
+        setPendingPlan(plan);
+    };
+
+    const confirmPlanChange = async () => {
+        if (!pendingPlan) return;
+        setUpdating(true);
+        try {
+            await axios.patch('/org/settings', { subscription_plan: pendingPlan });
+            setCurrentPlan(pendingPlan);
+            setPendingPlan(null);
+        } catch (err: any) {
+            const detail = err?.response?.data?.detail || 'Error al actualizar el plan. Inténtalo de nuevo.';
+            alert(detail);
+        } finally {
             setUpdating(false);
         }
     };
@@ -69,6 +74,22 @@ const SubscriptionSettings: React.FC = () => {
 
     return (
         <div className="max-w-6xl mx-auto p-6">
+            {/* Inline confirmation dialog — replaces window.confirm() which can be blocked */}
+            {pendingPlan && (
+                <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                    <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 text-center">
+                        <p className="text-lg font-bold text-gray-900 mb-2">¿Cambiar al plan {plans.find(p => p.id === pendingPlan)?.name}?</p>
+                        <p className="text-sm text-gray-500 mb-6">Este cambio se aplicará de inmediato a tu organización.</p>
+                        <div className="flex gap-3 justify-center">
+                            <button onClick={() => setPendingPlan(null)} className="px-6 py-2 border border-gray-200 rounded-lg font-bold text-gray-600 hover:bg-gray-50">Cancelar</button>
+                            <button onClick={confirmPlanChange} disabled={updating} className="px-6 py-2 bg-primary text-white rounded-lg font-bold hover:bg-opacity-90 disabled:opacity-50">
+                                {updating ? 'Actualizando...' : 'Confirmar'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <div className="flex justify-between items-center mb-8">
                 <div>
                     <h1 className="text-3xl font-heading font-bold text-primary">Gestión de Suscripción</h1>
