@@ -434,7 +434,7 @@ def send_company_invitation_email(to_email: str, company_name: str, municipality
     """
     Sends an invitation email to a local company from a municipality.
     """
-    default_html = f"""
+    default_html = """
     <!DOCTYPE html>
     <html lang="es">
     <head><meta charset="UTF-8"></head>
