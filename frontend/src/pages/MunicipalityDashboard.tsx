@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { PDFDownloadLink, pdf } from '@react-pdf/renderer';
@@ -86,15 +85,6 @@ const MunicipalityDashboard: React.FC = () => {
         if (rawUrl.startsWith('http') || rawUrl.startsWith('data:')) return rawUrl;
         return `${window.location.origin}${rawUrl.startsWith('/') ? '' : '/'}${rawUrl}`;
     }, [(user?.organization as any)?.branding_logo_url]);
-
-    const reportDocument = React.useMemo(() => (
-        <MunicipalityReportPDF
-            municipalityName={user?.organization?.name || 'Municipio'}
-            municipalityLogo={logoUrl}
-            stats={metrics}
-            month={new Date().toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}
-        />
-    ), [user?.organization?.name, logoUrl, metrics]);
 
     useEffect(() => {
         if (user) {
