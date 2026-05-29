@@ -405,7 +405,30 @@ const MunicipalityDashboard: React.FC = () => {
                                 <button
                                     onClick={async () => {
                                         try {
-                                            const blob = await pdf(reportDocument).toBlob();
+                                            // Convert logo to base64 first to avoid CORS errors in @react-pdf/renderer
+                                            let safeLogoUrl: string | undefined = undefined;
+                                            if (logoUrl) {
+                                                try {
+                                                    const res = await fetch(logoUrl, { mode: 'cors' });
+                                                    const blob = await res.blob();
+                                                    safeLogoUrl = await new Promise<string>((resolve, reject) => {
+                                                        const reader = new FileReader();
+                                                        reader.onloadend = () => resolve(reader.result as string);
+                                                        reader.onerror = reject;
+                                                        reader.readAsDataURL(blob);
+                                                    });
+                                                } catch {
+                                                    // Logo fetch failed, generate PDF without logo
+                                                }
+                                            }
+                                            const blob = await pdf(
+                                                <MunicipalityReportPDF
+                                                    municipalityName={user?.organization?.name || 'Municipio'}
+                                                    municipalityLogo={safeLogoUrl}
+                                                    stats={metrics}
+                                                    month={new Date().toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}
+                                                />
+                                            ).toBlob();
                                             const url = URL.createObjectURL(blob);
                                             const link = document.createElement('a');
                                             link.href = url;
@@ -957,7 +980,7 @@ const MunicipalityDashboard: React.FC = () => {
                                         <button
                                             onClick={async () => {
                                                 try {
-                                                    await axios.put('/org/municipalities/me/details', {
+                                                    await axios.put('/api/municipality/profile/details', {
                                                         landing_guide_url: (invitationStatus as any).landing_guide_url
                                                     });
                                                     alert("Guía de aterrizaje actualizada.");
@@ -1173,50 +1196,6 @@ const MunicipalityDashboard: React.FC = () => {
                         )}
                     </div>
 
-                    {/* Contact Talent Modal */}
-                    {showContactModal && (
-                        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-n900/40 backdrop-blur-sm animate-in fade-in duration-300">
-                            <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[80vh] overflow-y-auto shadow-2xl p-8 slide-in-from-bottom-8 animate-in duration-500">
-                                <div className="flex justify-between items-center mb-6">
-                                    <h3 className="text-2xl font-heading font-bold text-n900">🧭 Contactar Talento Entrante</h3>
-                                    <button onClick={() => setShowContactModal(false)} className="text-gray-400 hover:text-n900 text-2xl">✕</button>
-                                </div>
-                                <p className="text-sm text-gray-500 mb-6">Esta lista muestra a las personas interesadas en mudarse a {user?.organization?.name}. Puedes enviarles un mensaje de apoyo y recursos municipales.</p>
-
-                                <div className="space-y-4">
-                                    {attractionTalent.length > 0 ? (
-                                        attractionTalent.map((t, i) => (
-                                            <div key={i} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-200">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="w-10 h-10 bg-emerald-600 text-white rounded-full flex items-center justify-center font-bold">
-                                                        {t.full_name[0]}
-                                                    </div>
-                                                    <div>
-                                                        <p className="font-bold text-n900">{t.full_name}</p>
-                                                        <p className="text-xs text-gray-500">Origen: {t.from_location}</p>
-                                                    </div>
-                                                </div>
-                                                <button
-                                                    onClick={() => handleContactTalent(t.id)}
-                                                    className="px-4 py-2 bg-emerald-600 text-white text-xs font-bold rounded-lg hover:bg-emerald-700 transition-all font-bold"
-                                                >
-                                                    Contactar 📩
-                                                </button>
-                                            </div>
-                                        ))
-                                    ) : (
-                                        <div className="text-center py-12 text-gray-400 italic border-2 border-dashed rounded-xl">
-                                            No hay solicitudes de atracción pendientes en este momento.
-                                        </div>
-                                    )}
-                                </div>
-
-                                <div className="mt-8 flex justify-end">
-                                    <button onClick={() => setShowContactModal(false)} className="btn-secondary px-6">Cerrar</button>
-                                </div>
-                            </div>
-                        </div>
-                    )}
                 </main>
             </div >
 
@@ -1303,12 +1282,14 @@ const MunicipalityDashboard: React.FC = () => {
                             </div>
 
                             <div className="space-y-4 max-h-[50vh] overflow-y-auto pr-2 custom-scrollbar">
-                                {attractionTalent.length > 0 ? (
+                                {loadingTabs ? (
+                                    <div className="text-center py-12 text-gray-400">Cargando talento entrante...</div>
+                                ) : attractionTalent.length > 0 ? (
                                     attractionTalent.map((t, i) => (
                                         <div key={i} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-200">
                                             <div className="flex items-center gap-3">
                                                 <div className="w-10 h-10 bg-emerald-600 text-white rounded-full flex items-center justify-center font-bold">
-                                                    {t.full_name[0]}
+                                                    {(t.full_name || 'T')[0]}
                                                 </div>
                                                 <div>
                                                     <p className="font-bold text-n900">{t.full_name}</p>
