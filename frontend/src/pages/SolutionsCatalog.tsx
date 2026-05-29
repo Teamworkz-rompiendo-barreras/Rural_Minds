@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import axios from '../config/api';
 
 interface Solution {
     id: number;
@@ -22,7 +22,7 @@ const SolutionsCatalog: React.FC = () => {
 
     const fetchSolutions = async () => {
         try {
-            const res = await axios.get('http://127.0.0.1:8000/accessibility/adjustments/catalog');
+            const res = await axios.get('/accessibility/adjustments/catalog');
             setSolutions(res.data);
             setLoading(false);
         } catch (err) {

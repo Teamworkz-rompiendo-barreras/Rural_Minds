@@ -9,10 +9,34 @@ import {
     ChatBubble, Handyman, EmojiEvents
 } from '@mui/icons-material';
 import axios from '../config/api';
+import { MapContainer, TileLayer, CircleMarker, Popup } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
 import ProcessTimeline from '../components/talent/ProcessTimeline';
 import SensoryPassport from '../components/talent/SensoryPassport';
 import TalentInbox from '../components/talent/TalentInbox';
 import MunicipalityMiniCard from '../components/talent/MunicipalityMiniCard';
+
+// Approximate coordinates for Spanish provinces
+const PROVINCE_COORDS: Record<string, [number, number]> = {
+    'A Coruña': [43.37, -8.40], 'Álava': [42.85, -2.68], 'Albacete': [38.99, -1.86],
+    'Alicante': [38.35, -0.48], 'Almería': [36.84, -2.47], 'Asturias': [43.36, -5.84],
+    'Ávila': [40.66, -4.70], 'Badajoz': [38.87, -6.97], 'Barcelona': [41.38, 2.18],
+    'Burgos': [42.34, -3.70], 'Cáceres': [39.47, -6.37], 'Cádiz': [36.53, -6.30],
+    'Cantabria': [43.18, -3.99], 'Castellón': [39.99, -0.05], 'Ciudad Real': [38.99, -3.92],
+    'Córdoba': [37.89, -4.77], 'Cuenca': [40.07, -2.14], 'Girona': [41.98, 2.82],
+    'Granada': [37.18, -3.60], 'Guadalajara': [40.63, -3.16], 'Guipúzcoa': [43.31, -1.98],
+    'Huelva': [37.26, -6.95], 'Huesca': [42.14, -0.41], 'Jaén': [37.77, -3.79],
+    'La Rioja': [42.47, -2.45], 'Las Palmas': [28.12, -15.43], 'León': [42.60, -5.57],
+    'Lleida': [41.62, 0.62], 'Lugo': [43.01, -7.56], 'Madrid': [40.42, -3.70],
+    'Málaga': [36.72, -4.42], 'Murcia': [37.98, -1.13], 'Navarra': [42.82, -1.64],
+    'Ourense': [42.34, -7.86], 'Palencia': [42.01, -4.53], 'Pontevedra': [42.43, -8.65],
+    'Salamanca': [40.97, -5.66], 'Santa Cruz de Tenerife': [28.47, -16.25],
+    'Segovia': [40.95, -4.12], 'Sevilla': [37.39, -5.99], 'Soria': [41.77, -2.47],
+    'Tarragona': [41.12, 1.25], 'Teruel': [40.34, -1.11], 'Toledo': [39.86, -4.02],
+    'Valencia': [39.47, -0.38], 'Valladolid': [41.65, -4.72], 'Vizcaya': [43.26, -2.93],
+    'Zamora': [41.50, -5.75], 'Zaragoza': [41.65, -0.89], 'Baleares': [39.57, 2.65],
+    'Islas Baleares': [39.57, 2.65],
+};
 
 interface DashboardData {
     applications: any[];
@@ -26,6 +50,7 @@ const TalentDashboard: React.FC = () => {
     const [tab, setTab] = useState(0);
     const [data, setData] = useState<DashboardData | null>(null);
     const [loading, setLoading] = useState(true);
+    const [showMap, setShowMap] = useState(false);
 
     useEffect(() => {
         const fetchDashboard = async () => {
@@ -172,8 +197,49 @@ const TalentDashboard: React.FC = () => {
                                 <Typography variant="h5" fontWeight="900" sx={{ color: '#1A202C' }}>Tu Muro de Inspiración</Typography>
                                 <Typography variant="body2" color="text.secondary">Municipios que has guardado para tu futuro proyecto de vida.</Typography>
                             </Box>
-                            <Button variant="outlined" startIcon={<Public />}>Ver Mapa</Button>
+                            <Button
+                                variant={showMap ? 'contained' : 'outlined'}
+                                startIcon={<Public />}
+                                onClick={() => setShowMap(v => !v)}
+                                sx={{ bgcolor: showMap ? '#0F5C2E' : undefined, '&:hover': { bgcolor: showMap ? '#0a4523' : undefined } }}
+                            >
+                                {showMap ? 'Ocultar Mapa' : 'Ver Mapa'}
+                            </Button>
                         </Box>
+
+                        {showMap && (
+                            <Box sx={{ mb: 4, borderRadius: 4, overflow: 'hidden', border: '1px solid #E2E8F0', height: 400 }}>
+                                <MapContainer
+                                    center={[40.4, -3.7]}
+                                    zoom={5}
+                                    style={{ height: '100%', width: '100%' }}
+                                    scrollWheelZoom={false}
+                                >
+                                    <TileLayer
+                                        url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+                                        attribution='&copy; <a href="https://carto.com/">CARTO</a>'
+                                    />
+                                    {data?.favorites?.map((m) => {
+                                        const coords = PROVINCE_COORDS[m.province] ?? PROVINCE_COORDS[m.province?.split('/')[0]?.trim()];
+                                        if (!coords) return null;
+                                        return (
+                                            <CircleMarker
+                                                key={m.id}
+                                                center={coords}
+                                                radius={10}
+                                                pathOptions={{ color: '#0F5C2E', fillColor: '#0F5C2E', fillOpacity: 0.8 }}
+                                            >
+                                                <Popup>
+                                                    <strong>{m.municipality}</strong><br />
+                                                    <span style={{ color: '#666', fontSize: 12 }}>{m.province}</span>
+                                                    {m.internet_speed && <><br /><span style={{ fontSize: 12 }}>📶 {m.internet_speed}</span></>}
+                                                </Popup>
+                                            </CircleMarker>
+                                        );
+                                    })}
+                                </MapContainer>
+                            </Box>
+                        )}
 
                         <Grid container spacing={3}>
                             {data?.favorites?.map((m) => (
