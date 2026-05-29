@@ -6,6 +6,9 @@ from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
 from email import encoders
 from typing import Optional
+from database import SessionLocal
+from models import EmailTemplate
+import base64
 
 # Configuration
 FRONTEND_URL = os.environ.get("FRONTEND_URL", "https://rural-minds.vercel.app")
@@ -17,9 +20,6 @@ SMTP_PASSWORD = os.environ.get("SMTP_PASSWORD", "")
 FROM_EMAIL    = os.environ.get("FROM_EMAIL", SMTP_USER)
 
 IS_PRODUCTION = bool(SMTP_HOST and SMTP_USER and SMTP_PASSWORD)
-
-from database import SessionLocal
-from models import EmailTemplate
 
 def get_filled_template(key: str, default_subject: str, default_html: str, context: dict) -> tuple[str, str]:
     """
@@ -78,7 +78,6 @@ def _send_email(to: str, subject: str, html: str, attachments: Optional[list] = 
             msg.attach(MIMEText(html, "html", "utf-8"))
             for att in attachments:
                 part = MIMEBase("application", "octet-stream")
-                import base64
                 part.set_payload(base64.b64decode(att["content"]))
                 encoders.encode_base64(part)
                 part.add_header("Content-Disposition", f'attachment; filename="{att["filename"]}"')
@@ -435,13 +434,13 @@ def send_company_invitation_email(to_email: str, company_name: str, municipality
     """
     Sends an invitation email to a local company from a municipality.
     """
-    default_html = """
+    default_html = f"""
     <!DOCTYPE html>
     <html lang="es">
     <head><meta charset="UTF-8"></head>
     <body style="font-family: 'Atkinson Hyperlegible', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f5f5f5;">
         <div style="background: linear-gradient(135deg, #0F5C2E 0%, #1a8f46 100%); color: white; padding: 40px 30px; text-align: center; border-radius: 16px 16px 0 0;">
-            <h1 style="margin: 0 0 10px 0; font-size: 24px;">{{municipality_name}} te invita a liderar</h1>
+            <h1 style="margin: 0 0 10px 0; font-size: 24px;">{{municipality_name}} te invita a liderar🌿</h1>
             <p style="margin: 0; opacity: 0.9; font-size: 16px;">Innovación con Denominación de Origen</p>
         </div>
         <div style="background: white; padding: 40px 30px; border-radius: 0 0 16px 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
@@ -451,9 +450,9 @@ def send_company_invitation_email(to_email: str, company_name: str, municipality
             </p>
             <h3 style="color: #0F5C2E; margin-top: 25px;">¿Qué ganáis como empresa local?</h3>
             <ul style="margin: 0; padding-left: 20px; color: #333; line-height: 1.8;">
-                <li><strong>Acceso a Talento Especializado:</strong> Perfiles con alta capacidad y adecuación sensorial.</li>
-                <li><strong>Sello de Excelencia:</strong> Reconocimiento público como empresa socialmente responsable.</li>
-                <li><strong>Métricas de Impacto:</strong> Datos reales sobre vuestra contribución al bienestar local.</li>
+                <li><strong>🎯Acceso a Talento Especializado:</strong> Perfiles con alta capacidad y adecuación sensorial.</li>
+                <li><strong>🎖️Sello de Excelencia:</strong> Reconocimiento público como empresa socialmente responsable.</li>
+                <li><strong>📊Métricas de Impacto:</strong> Datos reales sobre vuestra contribución al bienestar local.</li>
             </ul>
             <div style="text-align: center; margin: 35px 0;">
                 <a href="{{invite_url}}" style="background: #374BA6; color: white; padding: 16px 30px; text-decoration: none; border-radius: 10px; font-weight: bold; font-size: 16px; display: inline-block; box-shadow: 0 4px 12px rgba(55,75,166,0.3);">
