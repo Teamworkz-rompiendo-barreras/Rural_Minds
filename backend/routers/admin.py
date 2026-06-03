@@ -12,6 +12,7 @@ import models
 import database
 import auth
 import schemas
+from utils.email_service import send_invitation_email
 
 router = APIRouter(
     prefix="/admin",
@@ -793,16 +794,19 @@ def list_municipalities(
     return result
 
 # --- Invitation Management ---
+class InviteRequest(schemas.BaseModel):
+    email: str
+    role: str = "enterprise"
+
 @router.post("/invite")
 def invite_entity(
-    invitation: schemas.InvitationCreate,
+    invitation: InviteRequest,
     db: Session = Depends(database.get_db),
     admin_user: models.User = Depends(require_super_admin)
 ):
     """
     Send an invitation to an entity (municipality or enterprise).
     """
-    from utils.email_service import send_invitation_email
     
     # Check if email already invited
     existing_invite = db.query(models.Invitation).filter(
