@@ -796,7 +796,7 @@ def list_municipalities(
 # --- Invitation Management ---
 class InviteRequest(schemas.BaseModel):
     email: str
-    role: str = "enterprise"
+    role: str
 
 @router.post("/invite")
 def invite_entity(
