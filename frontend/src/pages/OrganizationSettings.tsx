@@ -125,7 +125,7 @@ const OrganizationSettings: React.FC = () => {
         setInviteSuccess('');
 
         try {
-            await axios.post('/admin/invite', {
+            await axios.post('/org/invite', {
                 email: inviteEmail,
                 role: 'enterprise'
             });
