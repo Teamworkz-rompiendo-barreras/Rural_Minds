@@ -26,7 +26,7 @@
             "dest": "/backend/api/diag.py"
         },
         {
-            "src": "/(api|auth|user|admin|organization|organizations|org|explorer|talent|certification|profile|profiles|applications|solutions|accessibility|onboarding|reports|debug|messages|legal|status|municipality|locations|learning|analytics|stats|config)($|/.*)",
+            "src": "/(api|auth|user|admin|organization|organizations|org|explorer|talent|certification|profile|profiles|applications|accessibility|onboarding|reports|debug|messages|legal|status|municipality|locations|learning|analytics|stats|config)($|/.*)",
             "methods": ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"],
             "dest": "/backend/api/index.py"
         },

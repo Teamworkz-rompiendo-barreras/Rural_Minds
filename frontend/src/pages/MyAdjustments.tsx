@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import axios from '../config/api';
 
 interface AdjustmentLog {
@@ -65,7 +66,7 @@ const MyAdjustments: React.FC = () => {
             <div className="bg-white rounded-xl shadow-md overflow-hidden">
                 {logs.length === 0 ? (
                     <div className="p-8 text-center text-gray-500">
-                        No has solicitado ajustes todavía. Revisa el <a href="/solutions" className="text-primary font-bold underline">Catálogo</a>.
+                        No has solicitado ajustes todavía. Revisa el <Link to="/solutions" className="text-primary font-bold underline">Catálogo</Link>.
                     </div>
                 ) : (
                     <table className="w-full text-left">
