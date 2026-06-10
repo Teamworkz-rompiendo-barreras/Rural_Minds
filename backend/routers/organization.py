@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from typing import List
 import secrets
 import string
@@ -51,7 +51,14 @@ def read_org_users(
     if not current_user.organization_id:
         raise HTTPException(status_code=400, detail="User is not associated with any organization")
     
-    users = db.query(models.User).filter(models.User.organization_id == current_user.organization_id).offset(skip).limit(limit).all()
+    users = (
+        db.query(models.User)
+        .options(joinedload(models.User.organization))
+        .filter(models.User.organization_id == current_user.organization_id)
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
     return users
 
 class InviteRequest(schemas.BaseModel):
@@ -108,7 +115,13 @@ def invite_user(
     )
     db.add(new_user)
     db.commit()
-    db.refresh(new_user)
+
+    new_user = (
+        db.query(models.User)
+        .options(joinedload(models.User.organization))
+        .filter(models.User.id == new_user.id)
+        .first()
+    )
 
     print(f"INVITE SENT TO {invite.email}. Temp Password: {temp_password}")
 

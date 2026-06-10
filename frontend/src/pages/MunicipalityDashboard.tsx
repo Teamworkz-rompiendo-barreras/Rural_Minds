@@ -274,7 +274,7 @@ const MunicipalityDashboard: React.FC = () => {
     const confirmValidation = async () => {
         if (!selectedCompanyId) return;
         try {
-            await axios.put(`/admin/organizations/${selectedCompanyId}/validate`);
+            await axios.put(`/api/municipality/companies/${selectedCompanyId}/validate`);
             alert("Empresa validada correctamente.");
             setShowValidationModal(false);
             fetchData();

@@ -53,6 +53,7 @@ class OrganizationUpdate(BaseModel):
     subscription_plan: Optional[str] = None
     org_type: Optional[str] = None
     municipality_id: Optional[uuid.UUID] = None
+    location_id: Optional[uuid.UUID] = None
     sensory_commitment: Optional[dict] = None
     street_address: Optional[str] = None
     postal_code: Optional[str] = None

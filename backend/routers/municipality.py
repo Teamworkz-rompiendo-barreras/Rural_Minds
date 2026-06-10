@@ -140,6 +140,37 @@ def get_companies_status(
         ]
     }
 
+@router.put("/companies/{org_id}/validate")
+def validate_company(
+    org_id: uuid.UUID,
+    db: Session = Depends(database.get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    if current_user.role not in ["territory_admin", "municipality"]:
+        raise HTTPException(status_code=403, detail="Permission denied")
+
+    org = db.query(models.Organization).filter(
+        models.Organization.id == org_id,
+        models.Organization.municipality_id == current_user.organization_id
+    ).first()
+    if not org:
+        raise HTTPException(status_code=404, detail="Organización no encontrada")
+
+    org.validation_status = "validated"
+
+    log = models.AuditLog(
+        event_type="seal_approved",
+        message=f"Seal approved for organization {org.name}",
+        organization_id=org_id,
+        user_id=current_user.id,
+        details={"organization_name": org.name}
+    )
+    db.add(log)
+
+    db.commit()
+
+    return {"message": f"Sello aprobado para {org.name}", "organization_id": str(org_id)}
+
 @router.get("/notifications")
 def get_municipality_notifications(
     db: Session = Depends(database.get_db),
