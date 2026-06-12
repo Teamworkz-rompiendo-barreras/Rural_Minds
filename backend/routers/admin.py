@@ -796,6 +796,7 @@ def list_municipalities(
 # --- Invitation Management ---
 class InviteRequest(schemas.BaseModel):
     email: str
+    entity_name: str
     role: str
 
 @router.post("/invite")
@@ -839,7 +840,7 @@ def invite_entity(
     # Send Email
     try:
         # We need a proper link here, e.g. /register?token=...
-        invite_link = f"https://rural-minds.vercel.app/register?token={new_invite.id}"
+        invite_link = f"https://rural-minds.vercel.app/register?token={new_invite.token}"
         send_invitation_email(invitation.email, invitation.entity_name, invite_link)
     except Exception as e:
         print(f"Error sending email: {e}")
