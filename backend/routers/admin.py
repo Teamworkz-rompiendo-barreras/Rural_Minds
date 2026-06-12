@@ -1026,13 +1026,3 @@ def link_organization_to_municipality(
     email_sent = send_invitation_email(invitation.email, invitation.entity_name, token)
     
     return {"message": "Invitation sent successfully", "id": str(new_invitation.id), "email_sent": email_sent}
-
-
-@router.get("/invitations")
-def list_invitations(
-    db: Session = Depends(database.get_db),
-    _: models.User = Depends(require_super_admin)
-):
-    """List all invitations."""
-    invitations = db.query(models.Invitation).order_by(models.Invitation.created_at.desc()).all()
-    return invitations
