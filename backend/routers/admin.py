@@ -814,10 +814,15 @@ def invite_entity(
         models.Invitation.email == invitation.email,
         models.Invitation.status == "pending"
     ).first()
-    
+
     if existing_invite:
-        raise HTTPException(status_code=400, detail="Ya existe una invitación pendiente para este email")
-    
+        # If the previous invitation has expired (or has no expiry date,
+        # e.g. legacy rows), mark it as expired and allow a new one.
+        if existing_invite.expires_at and existing_invite.expires_at > datetime.datetime.utcnow():
+            raise HTTPException(status_code=400, detail="Ya existe una invitación pendiente para este email")
+        existing_invite.status = "expired"
+        db.commit()
+
     # Check if user already exists
     existing_user = db.query(models.User).filter(models.User.email == invitation.email).first()
     if existing_user:
@@ -839,9 +844,7 @@ def invite_entity(
     
     # Send Email
     try:
-        # We need a proper link here, e.g. /register?token=...
-        invite_link = f"https://rural-minds.vercel.app/register?token={new_invite.token}"
-        send_invitation_email(invitation.email, invitation.entity_name, invite_link)
+        send_invitation_email(invitation.email, invitation.entity_name, new_invite.token)
     except Exception as e:
         print(f"Error sending email: {e}")
         # Don't fail the request, but log it
@@ -969,60 +972,3 @@ def link_organization_to_municipality(
     db.commit()
     
     return {"message": "Organización vinculada correctamente", "municipality_name": muni.name}
-
-    """
-    Invite a municipality or organization.
-    Sends an email with a magic link to register.
-    """
-    import datetime
-    from utils.email_service import send_invitation_email, generate_verification_token
-    
-    # Check if email is already used by a user
-    user_exists = db.query(models.User).filter(models.User.email == invitation.email).first()
-    if user_exists:
-        raise HTTPException(status_code=400, detail="Cannot invite: Email already registered as a user")
-        
-    # Check if email has pending invitation
-    pending = db.query(models.Invitation).filter(
-        models.Invitation.email == invitation.email,
-        models.Invitation.status == "pending"
-    ).first()
-    if pending:
-        # Check if expired, if so, we can re-invite
-        if pending.expires_at > datetime.datetime.utcnow():
-            raise HTTPException(status_code=400, detail="Invitation already sent and currently valid")
-        else:
-            # Mark old as expired if not already
-            pending.status = "expired"
-            db.commit()
-
-    token = generate_verification_token()
-    
-    # Create Invitation
-    new_invitation = models.Invitation(
-        id=uuid.uuid4(),
-        email=invitation.email,
-        entity_name=invitation.entity_name,
-        role=invitation.role,
-        token=token,
-        status="pending",
-        expires_at=datetime.datetime.utcnow() + datetime.timedelta(hours=48)
-    )
-    db.add(new_invitation)
-    
-    # Log audit
-    log = models.AuditLog(
-        event_type="invitation_sent",
-        message=f"Invitation sent to {invitation.email} for {invitation.entity_name}",
-        user_id=admin_user.id,
-        details={"email": invitation.email, "role": invitation.role}
-    )
-    db.add(log)
-    
-    db.commit()
-    db.refresh(new_invitation)
-    
-    # Send Email
-    email_sent = send_invitation_email(invitation.email, invitation.entity_name, token)
-    
-    return {"message": "Invitation sent successfully", "id": str(new_invitation.id), "email_sent": email_sent}
