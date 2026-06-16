@@ -95,6 +95,14 @@ def invite_user(
     if existing_user:
         if str(existing_user.organization_id) == str(current_user.organization_id):
             raise HTTPException(status_code=400, detail="Este usuario ya es miembro de tu organización")
+        # Si era usuario talento con perfil sensorial, eliminarlo antes de cambiar el rol
+        # para evitar que un usuario empresa quede con un perfil de talento huérfano
+        if existing_user.role == "talent":
+            talent_profile = db.query(models.TalentProfile).filter(
+                models.TalentProfile.user_id == existing_user.id
+            ).first()
+            if talent_profile:
+                db.delete(talent_profile)
         # User exists but belongs to a different org — add them to this org
         existing_user.organization_id = current_user.organization_id
         existing_user.role = invite.role

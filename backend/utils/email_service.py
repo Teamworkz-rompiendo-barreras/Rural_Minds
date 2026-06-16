@@ -380,7 +380,7 @@ def send_municipality_welcome_email(to_email: str, talent_name: str, municipalit
     return _send_email(to=to_email, subject=subject, html=html_content)
 
 
-def send_invitation_email(to_email: str, entity_name: str, token: str) -> bool:
+def send_invitation_email(to_email: str, entity_name: str, token: str, role: str = "municipality") -> bool:
     """
     Sends an invitation email to a municipality or organization.
     """

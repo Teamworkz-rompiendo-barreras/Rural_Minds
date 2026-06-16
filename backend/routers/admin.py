@@ -799,7 +799,7 @@ class InviteRequest(schemas.BaseModel):
     entity_name: str
     role: str
 
-@router.post("/invite")
+@router.post("/invite", response_model=schemas.Invitation)
 def invite_entity(
     invitation: InviteRequest,
     db: Session = Depends(database.get_db),
@@ -808,7 +808,7 @@ def invite_entity(
     """
     Send an invitation to an entity (municipality or enterprise).
     """
-    
+
     # Check if email already invited
     existing_invite = db.query(models.Invitation).filter(
         models.Invitation.email == invitation.email,
@@ -826,7 +826,7 @@ def invite_entity(
     # Check if user already exists
     existing_user = db.query(models.User).filter(models.User.email == invitation.email).first()
     if existing_user:
-        raise HTTPException(status_code=400, detail="Este usuario ya está registrado")
+        raise HTTPException(status_code=400, detail="Este usuario ya está registrado en la plataforma. Pídele que acceda con su cuenta actual.")
 
     # Create Invitation
     new_invite = models.Invitation(
@@ -841,14 +841,14 @@ def invite_entity(
     db.add(new_invite)
     db.commit()
     db.refresh(new_invite)
-    
-    # Send Email
+
+    # Send Email — link uses /register-invitation so both enterprise and municipality can register
     try:
-        send_invitation_email(invitation.email, invitation.entity_name, new_invite.token)
+        send_invitation_email(invitation.email, invitation.entity_name, new_invite.token, role=invitation.role)
     except Exception as e:
         print(f"Error sending email: {e}")
         # Don't fail the request, but log it
-    
+
     return new_invite
 
 @router.get("/invitations")
