@@ -39,7 +39,7 @@ const OrganizationSettings: React.FC = () => {
 
     useEffect(() => {
     if (token && user) {
-        if (user.role !== 'super_admin') fetchUsers();
+        if (user.role !== 'super_admin') fetchUsers(); else setLoading(false);
         const org = user.organization;
         if (org?.sensory_commitment) {
             setSensoryCommitment((prev: any) => ({
