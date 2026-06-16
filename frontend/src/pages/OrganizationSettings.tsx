@@ -39,7 +39,7 @@ const OrganizationSettings: React.FC = () => {
 
     useEffect(() => {
     if (token && user) {
-        fetchUsers();
+        if (user.role !== 'super_admin') fetchUsers();
         const org = user.organization;
         if (org?.sensory_commitment) {
             setSensoryCommitment((prev: any) => ({
@@ -319,8 +319,8 @@ const OrganizationSettings: React.FC = () => {
                 <h1 className="text-3xl font-heading font-bold text-primary mb-6">Gestión del Equipo</h1>
             </section>
 
-            {/* Invite Section */}
-            <div className="bg-white p-6 rounded-xl shadow-md mb-8 border-t-4 border-accent">
+            {/* Invite Section — hidden for super_admin (uses AdminDashboard instead) */}
+            {user?.role !== 'super_admin' && <div className="bg-white p-6 rounded-xl shadow-md mb-8 border-t-4 border-accent">
                 <h2 className="text-xl font-bold mb-4">Invitar Miembro</h2>
                 <form onSubmit={handleInvite} className="flex gap-4 items-start">
                     <div className="flex-grow">
@@ -342,10 +342,10 @@ const OrganizationSettings: React.FC = () => {
                         Invitar
                     </button>
                 </form>
-            </div>
+            </div>}
 
             {/* Users List */}
-            <div className="bg-white rounded-xl shadow-md overflow-hidden">
+            {user?.role !== 'super_admin' && <div className="bg-white rounded-xl shadow-md overflow-hidden">
                 <table className="w-full text-left border-collapse">
                     <thead className="bg-gray-50 border-b">
                         <tr>
@@ -379,7 +379,7 @@ const OrganizationSettings: React.FC = () => {
                     </tbody>
                 </table>
                 {users.length === 0 && <div className="p-8 text-center text-gray-500">No se encontraron miembros.</div>}
-            </div>
+            </div>}
 
             {/* Danger Zone */}
             <div className="mt-12 pt-8 border-t border-red-200">
