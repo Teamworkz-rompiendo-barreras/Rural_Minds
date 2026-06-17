@@ -119,6 +119,14 @@ const MunicipalityDashboard: React.FC = () => {
         return () => window.removeEventListener('keydown', handleEsc);
     }, [supportModalOpen]);
 
+    //Efecto para mover la barra lateral
+    useEffect(() => {
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
+    }, [activeTab]);
+
     const fetchData = async () => {
         try {
             const [statsRes, statusRes, notifyRes, leadsRes] = await Promise.all([
