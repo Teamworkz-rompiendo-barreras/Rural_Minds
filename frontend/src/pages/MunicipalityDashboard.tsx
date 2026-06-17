@@ -122,7 +122,7 @@ const MunicipalityDashboard: React.FC = () => {
     //Efecto para mover la barra lateral
     useEffect(() => {
         window.scrollTo({
-            top: 20,
+            top: 50%,
             behavior: 'smooth'
         });
     }, [activeTab]);
