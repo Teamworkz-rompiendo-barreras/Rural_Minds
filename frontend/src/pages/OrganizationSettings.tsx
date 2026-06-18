@@ -319,8 +319,8 @@ const OrganizationSettings: React.FC = () => {
                 <h1 className="text-3xl font-heading font-bold text-primary mb-6">Gestión del Equipo</h1>
             </section>
 
-            {/* Invite Section — hidden for super_admin (uses AdminDashboard instead) */}
-            {user?.role !== 'super_admin' && <div className="bg-white p-6 rounded-xl shadow-md mb-8 border-t-4 border-accent">
+            {/* Invite Section*/}
+            <div className="bg-white p-6 rounded-xl shadow-md mb-8 border-t-4 border-accent">
                 <h2 className="text-xl font-bold mb-4">Invitar Miembro</h2>
                 <form onSubmit={handleInvite} className="flex gap-4 items-start">
                     <div className="flex-grow">
@@ -342,7 +342,7 @@ const OrganizationSettings: React.FC = () => {
                         Invitar
                     </button>
                 </form>
-            </div>}
+            </div>
 
             {/* Users List */}
             {user?.role !== 'super_admin' && <div className="bg-white rounded-xl shadow-md overflow-hidden">
