@@ -19,6 +19,11 @@ const OrganizationSettings: React.FC = () => {
     const [inviteSuccess, setInviteSuccess] = useState('');
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
+    // Super Admin invite state (invites new entities via /admin/invite, not /org/invite)
+    const [showSuperAdminInviteModal, setShowSuperAdminInviteModal] = useState(false);
+    const [superAdminInviteForm, setSuperAdminInviteForm] = useState({ email: '', entity_name: '', role: 'municipality' });
+    const [sendingSuperAdminInvite, setSendingSuperAdminInvite] = useState(false);
+
     // Sensory Commitment State
     const [sensoryCommitment, setSensoryCommitment] = useState<any>({
         quietSpaces: false,
@@ -142,6 +147,23 @@ const OrganizationSettings: React.FC = () => {
                 msg = "Error de conexión. Inténtalo más tarde.";
             }
             setInviteError(msg);
+        }
+    };
+
+    const handleSendSuperAdminInvite = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setSendingSuperAdminInvite(true);
+        try {
+            await axios.post('/admin/invite', superAdminInviteForm);
+            alert("Invitación enviada correctamente.");
+            setShowSuperAdminInviteModal(false);
+            setSuperAdminInviteForm({ email: '', entity_name: '', role: 'municipality' });
+        } catch (err: any) {
+            const detail = err?.response?.data?.detail || 'Error al enviar la invitación. Comprueba que el email no esté ya registrado.';
+            alert(detail);
+            console.error(err);
+        } finally {
+            setSendingSuperAdminInvite(false);
         }
     };
 
@@ -319,30 +341,45 @@ const OrganizationSettings: React.FC = () => {
                 <h1 className="text-3xl font-heading font-bold text-primary mb-6">Gestión del Equipo</h1>
             </section>
 
-            {/* Invite Section*/}
-            <div className="bg-white p-6 rounded-xl shadow-md mb-8 border-t-4 border-accent">
-                <h2 className="text-xl font-bold mb-4">Invitar Miembro</h2>
-                <form onSubmit={handleInvite} className="flex gap-4 items-start">
-                    <div className="flex-grow">
-                        <input
-                            type="email"
-                            placeholder="colega@empresa.com"
-                            value={inviteEmail}
-                            onChange={(e) => setInviteEmail(e.target.value)}
-                            required
-                            className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-primary outline-none"
-                        />
-                        {inviteError && <p className="text-red-500 text-sm mt-1">{inviteError}</p>}
-                        {inviteSuccess && <p className="text-green-600 text-sm mt-1">{inviteSuccess}</p>}
+            {/* Invite Section — super_admin invites new entities (no organization_id, so /org/invite is N/A) */}
+            {user?.role === 'super_admin' ? (
+                <div className="bg-white p-6 rounded-xl shadow-md mb-8 border-t-4 border-accent flex justify-between items-center">
+                    <div>
+                        <h2 className="text-xl font-bold mb-1">Invitar Nueva Entidad</h2>
+                        <p className="text-sm text-gray-500">Invita a un nuevo ayuntamiento o empresa a la plataforma.</p>
                     </div>
                     <button
-                        type="submit"
-                        className="px-6 py-3 bg-primary text-white font-bold rounded-lg hover:bg-opacity-90"
+                        onClick={() => setShowSuperAdminInviteModal(true)}
+                        className="px-6 py-3 bg-primary text-white font-bold rounded-lg hover:bg-opacity-90 flex items-center gap-2"
                     >
-                        Invitar
+                        <span>📨</span> Nueva Invitación
                     </button>
-                </form>
-            </div>
+                </div>
+            ) : (
+                <div className="bg-white p-6 rounded-xl shadow-md mb-8 border-t-4 border-accent">
+                    <h2 className="text-xl font-bold mb-4">Invitar Miembro</h2>
+                    <form onSubmit={handleInvite} className="flex gap-4 items-start">
+                        <div className="flex-grow">
+                            <input
+                                type="email"
+                                placeholder="colega@empresa.com"
+                                value={inviteEmail}
+                                onChange={(e) => setInviteEmail(e.target.value)}
+                                required
+                                className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-primary outline-none"
+                            />
+                            {inviteError && <p className="text-red-500 text-sm mt-1">{inviteError}</p>}
+                            {inviteSuccess && <p className="text-green-600 text-sm mt-1">{inviteSuccess}</p>}
+                        </div>
+                        <button
+                            type="submit"
+                            className="px-6 py-3 bg-primary text-white font-bold rounded-lg hover:bg-opacity-90"
+                        >
+                            Invitar
+                        </button>
+                    </form>
+                </div>
+            )}
 
             {/* Users List */}
             {user?.role !== 'super_admin' && <div className="bg-white rounded-xl shadow-md overflow-hidden">
@@ -403,6 +440,53 @@ const OrganizationSettings: React.FC = () => {
                 onClose={() => setIsDeleteModalOpen(false)}
                 onConfirm={handleAccountDeletion}
             />
+
+            {/* Super Admin Invite Modal */}
+            {showSuperAdminInviteModal && (
+                <div className="fixed inset-0 bg-n900/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
+                        <h3 className="text-xl font-bold mb-4">Enviar Invitación</h3>
+                        <form onSubmit={handleSendSuperAdminInvite} className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-bold mb-1">Nombre Entidad</label>
+                                <input
+                                    className="w-full p-2 border rounded"
+                                    required
+                                    value={superAdminInviteForm.entity_name}
+                                    onChange={e => setSuperAdminInviteForm({ ...superAdminInviteForm, entity_name: e.target.value })}
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-bold mb-1">Email Responsable</label>
+                                <input
+                                    type="email"
+                                    className="w-full p-2 border rounded"
+                                    required
+                                    value={superAdminInviteForm.email}
+                                    onChange={e => setSuperAdminInviteForm({ ...superAdminInviteForm, email: e.target.value })}
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-bold mb-1">Rol</label>
+                                <select
+                                    className="w-full p-2 border rounded"
+                                    value={superAdminInviteForm.role}
+                                    onChange={e => setSuperAdminInviteForm({ ...superAdminInviteForm, role: e.target.value })}
+                                >
+                                    <option value="municipality">Ayuntamiento</option>
+                                    <option value="enterprise">Empresa</option>
+                                </select>
+                            </div>
+                            <div className="flex gap-3 pt-2">
+                                <button type="button" onClick={() => setShowSuperAdminInviteModal(false)} className="flex-1 py-2 border rounded hover:bg-gray-50">Cancelar</button>
+                                <button type="submit" disabled={sendingSuperAdminInvite} className="flex-1 py-2 bg-primary text-white rounded font-bold hover:bg-opacity-90">
+                                    {sendingSuperAdminInvite ? 'Enviando...' : 'Enviar'}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
