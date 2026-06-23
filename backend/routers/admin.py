@@ -569,7 +569,7 @@ def delete_organization(
         raise HTTPException(status_code=404, detail="Organization not found")
     
     # Delete related data first (cascade should handle most, but being explicit)
-    db.query(models.User).filter(models.User.organization_id == org_id).delete()
+    db.query(models.User).filter(models.User.organization_id == org_id).update({models.User.organization_id: None})
     db.query(models.AdjustmentsLog).filter(models.AdjustmentsLog.organization_id == org_id).delete()
     db.delete(org)
     db.commit()
