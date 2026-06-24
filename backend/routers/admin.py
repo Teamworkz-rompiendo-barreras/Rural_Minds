@@ -563,17 +563,44 @@ def delete_organization(
     db: Session = Depends(database.get_db),
     _: models.User = Depends(require_super_admin)
 ):
-    """Delete an organization and all its data (DANGEROUS - use with caution)."""
+    """
+    Delete an organization. Never deletes user accounts or their application
+    history — only detaches them from this org and removes data that has no
+    meaning once the org is gone (its own operational/compliance records).
+    """
     org = db.query(models.Organization).filter(models.Organization.id == org_id).first()
     if not org:
         raise HTTPException(status_code=404, detail="Organization not found")
-    
-    # Delete related data first (cascade should handle most, but being explicit)
-    db.query(models.User).filter(models.User.organization_id == org_id).update({models.User.organization_id: None})
+
+    # People keep their accounts — just lose membership in this org
+    db.query(models.User).filter(models.User.organization_id == org_id).update(
+        {models.User.organization_id: None, models.User.role: models.UserRole.TALENT}
+    )
+
+    # Other orgs that point at this one as their municipality lose that link
+    db.query(models.Organization).filter(models.Organization.municipality_id == org_id).update(
+        {models.Organization.municipality_id: None}
+    )
+
+    # Job postings and audit history are preserved, just detached from the deleted org
+    db.query(models.Challenge).filter(models.Challenge.tenant_id == org_id).update(
+        {models.Challenge.tenant_id: None}
+    )
+    db.query(models.AuditLog).filter(models.AuditLog.organization_id == org_id).update(
+        {models.AuditLog.organization_id: None}
+    )
+
+    # Records that only exist in relation to this org (no meaning without it)
+    db.query(models.WorkplaceAdjustmentTask).filter(models.WorkplaceAdjustmentTask.organization_id == org_id).delete()
+    db.query(models.EnterpriseSealStatus).filter(models.EnterpriseSealStatus.organization_id == org_id).delete()
+    db.query(models.CertificationIncident).filter(models.CertificationIncident.organization_id == org_id).delete()
     db.query(models.AdjustmentsLog).filter(models.AdjustmentsLog.organization_id == org_id).delete()
+    db.query(models.MunicipalSupportMessage).filter(models.MunicipalSupportMessage.municipality_id == org_id).delete()
+    db.query(models.RelocationLead).filter(models.RelocationLead.municipality_id == org_id).delete()
+
     db.delete(org)
     db.commit()
-    
+
     return {"message": f"Organization {org.name} deleted"}
 
 
@@ -856,8 +883,29 @@ def list_invitations(
     db: Session = Depends(database.get_db),
     _: models.User = Depends(require_super_admin)
 ):
-    """List all invitations."""
-    return db.query(models.Invitation).order_by(models.Invitation.created_at.desc()).all()
+    """List all invitations. Resolves organization_id for accepted invitations
+    so the admin panel can offer org management actions (e.g. delete)."""
+    invites = db.query(models.Invitation).order_by(models.Invitation.created_at.desc()).all()
+
+    result = []
+    for inv in invites:
+        org_id = None
+        if inv.status == "accepted":
+            member = db.query(models.User).filter(models.User.email == inv.email).first()
+            if member and member.organization_id:
+                org_id = member.organization_id
+        result.append({
+            "id": inv.id,
+            "email": inv.email,
+            "entity_name": inv.entity_name,
+            "role": inv.role,
+            "status": inv.status,
+            "created_at": inv.created_at,
+            "expires_at": inv.expires_at,
+            "accepted_at": inv.accepted_at,
+            "organization_id": org_id,
+        })
+    return result
 
 
 # --- CEREBRO OPERATIVO: Detailed Audit (The Drawer) ---

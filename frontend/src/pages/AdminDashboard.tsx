@@ -20,9 +20,10 @@ interface Invitation {
     email: string;
     entity_name: string;
     role: string;
-    status: 'pending' | 'active' | 'expired';
+    status: 'pending' | 'accepted' | 'expired';
     created_at: string;
     expires_at: string;
+    organization_id: string | null;
 }
 
 interface AuditItem {
@@ -122,6 +123,17 @@ const SuperAdminDashboard: React.FC = () => {
         // Logic to resend (reuse invite endpoint logic potentially)
         // For now, simpler to explain.
         alert(`Reenviando invitación a ${email}... (Simulación)`);
+    };
+
+    const handleDeleteOrganization = async (orgId: string, entityName: string) => {
+        if (!window.confirm(`¿Eliminar la organización "${entityName}"? Se borrarán sus datos operativos (ofertas, sello, incidencias), pero las cuentas de usuario asociadas NO se eliminarán, solo dejarán de pertenecer a esta organización.`)) return;
+        try {
+            await axios.delete(`/admin/organizations/${orgId}`);
+            const res = await axios.get('/admin/invitations');
+            setInvitations(res.data);
+        } catch (err: any) {
+            alert(err?.response?.data?.detail || 'Error al eliminar la organización.');
+        }
     };
 
     if (loading) return <div className="p-10 text-center">Cargando Centro de Mando...</div>;
@@ -306,7 +318,19 @@ const SuperAdminDashboard: React.FC = () => {
                                             </button>
                                         )}
                                         {inv.status === 'pending' && <span className="text-gray-400 text-xs italic">Esperando...</span>}
-                                        {inv.status === 'active' && <span className="text-green-600 text-xs font-bold">✔ Completado</span>}
+                                        {inv.status === 'accepted' && (
+                                            <div className="flex items-center justify-end gap-3">
+                                                <span className="text-green-600 text-xs font-bold">✔ Completado</span>
+                                                {inv.organization_id && (
+                                                    <button
+                                                        onClick={() => handleDeleteOrganization(inv.organization_id!, inv.entity_name)}
+                                                        className="text-red-500 hover:text-red-700 font-bold text-xs"
+                                                    >
+                                                        Eliminar empresa
+                                                    </button>
+                                                )}
+                                            </div>
+                                        )}
                                     </td>
                                 </tr>
                             ))}
