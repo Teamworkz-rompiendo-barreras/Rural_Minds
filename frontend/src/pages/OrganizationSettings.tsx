@@ -168,7 +168,7 @@ const OrganizationSettings: React.FC = () => {
     };
 
     const handleRemove = async (userId: string) => {
-        if (!window.confirm("¿Seguro que deseas eliminar a este usuario?")) return;
+        if (!window.confirm("¿Seguro que deseas quitar a este usuario del equipo? Su cuenta no se eliminará.")) return;
         try {
             await axios.delete(`/org/users/${userId}`);
             fetchUsers();
@@ -407,7 +407,7 @@ const OrganizationSettings: React.FC = () => {
                                             onClick={() => handleRemove(u.id)}
                                             className="text-red-500 hover:text-red-700 font-bold text-sm"
                                         >
-                                            Eliminar
+                                            Quitar del equipo
                                         </button>
                                     )}
                                 </td>

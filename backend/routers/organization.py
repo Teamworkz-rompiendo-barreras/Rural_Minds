@@ -155,7 +155,11 @@ def remove_user(
     if user_to_remove.id == current_user.id:
         raise HTTPException(status_code=400, detail="Cannot remove yourself")
 
-    db.delete(user_to_remove)
+    # Solo desvincular de la organización, no borrar la cuenta del usuario
+    # (db.delete() aquí borraba en cascada accessibility_profile, talent_profile,
+    # applications y legal_consents — equivalente a "Eliminar mi cuenta")
+    user_to_remove.organization_id = None
+    user_to_remove.role = models.UserRole.TALENT
     db.commit()
     return
 
