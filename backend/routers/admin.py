@@ -878,6 +878,26 @@ def invite_entity(
 
     return new_invite
 
+@router.delete("/invitations/{invitation_id}")
+def delete_invitation(
+    invitation_id: uuid.UUID,
+    db: Session = Depends(database.get_db),
+    _: models.User = Depends(require_super_admin)
+):
+    """Cancel/remove an invitation. Only deletes the Invitation row itself —
+    it has no FK to User/Organization, so this never touches accounts or data.
+    Accepted invitations must go through /admin/organizations/{id} instead,
+    to keep the funnel's completed history intact."""
+    invite = db.query(models.Invitation).filter(models.Invitation.id == invitation_id).first()
+    if not invite:
+        raise HTTPException(status_code=404, detail="Invitación no encontrada")
+    if invite.status == "accepted":
+        raise HTTPException(status_code=400, detail="Esta invitación ya fue aceptada. Usa 'Eliminar empresa' para gestionarla.")
+
+    db.delete(invite)
+    db.commit()
+    return {"detail": "Invitación eliminada"}
+
 @router.get("/invitations")
 def list_invitations(
     db: Session = Depends(database.get_db),

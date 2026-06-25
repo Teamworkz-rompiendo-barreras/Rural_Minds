@@ -125,6 +125,16 @@ const SuperAdminDashboard: React.FC = () => {
         alert(`Reenviando invitación a ${email}... (Simulación)`);
     };
 
+    const handleDeleteInvitation = async (invitationId: string, entityName: string) => {
+        if (!window.confirm(`¿Eliminar la invitación a "${entityName}"? Solo se retira la invitación, no afecta a ninguna cuenta ni a la base de datos.`)) return;
+        try {
+            await axios.delete(`/admin/invitations/${invitationId}`);
+            setInvitations(prev => prev.filter(inv => inv.id !== invitationId));
+        } catch (err: any) {
+            alert(err?.response?.data?.detail || 'Error al eliminar la invitación.');
+        }
+    };
+
     const handleDeleteOrganization = async (orgId: string, entityName: string) => {
         if (!window.confirm(`¿Eliminar la organización "${entityName}"? Se borrarán sus datos operativos (ofertas, sello, incidencias), pero las cuentas de usuario asociadas NO se eliminarán, solo dejarán de pertenecer a esta organización.`)) return;
         try {
@@ -310,14 +320,32 @@ const SuperAdminDashboard: React.FC = () => {
                                     </td>
                                     <td className="px-6 py-4 text-right">
                                         {inv.status === 'expired' && (
-                                            <button
-                                                onClick={() => handleResend(inv.email)}
-                                                className="text-p2 font-bold hover:underline"
-                                            >
-                                                ↻ Reenviar
-                                            </button>
+                                            <div className="flex items-center justify-end gap-3">
+                                                <button
+                                                    onClick={() => handleResend(inv.email)}
+                                                    className="text-p2 font-bold hover:underline"
+                                                >
+                                                    ↻ Reenviar
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDeleteInvitation(inv.id, inv.entity_name)}
+                                                    className="text-red-500 hover:text-red-700 font-bold text-xs"
+                                                >
+                                                    Eliminar
+                                                </button>
+                                            </div>
                                         )}
-                                        {inv.status === 'pending' && <span className="text-gray-400 text-xs italic">Esperando...</span>}
+                                        {inv.status === 'pending' && (
+                                            <div className="flex items-center justify-end gap-3">
+                                                <span className="text-gray-400 text-xs italic">Esperando...</span>
+                                                <button
+                                                    onClick={() => handleDeleteInvitation(inv.id, inv.entity_name)}
+                                                    className="text-red-500 hover:text-red-700 font-bold text-xs"
+                                                >
+                                                    Eliminar
+                                                </button>
+                                            </div>
+                                        )}
                                         {inv.status === 'accepted' && (
                                             <div className="flex items-center justify-end gap-3">
                                                 <span className="text-green-600 text-xs font-bold">✔ Completado</span>
