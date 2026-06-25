@@ -56,22 +56,31 @@ def get_global_stats(
     attraction_count = 0
     
     if matches_count > 0:
+        # Logic: If candidate was from same province as challenge -> Rooting
+        # If from different -> Attraction
+        # This requires complex joins, for now we will infer from User Profile
+        # Simple Heuristic:
+        # If user.is_willing_to_move = True -> likely moved -> Attraction
+        # Else -> Rooting
+        # Batched below (was 1 query per app, now 2 total) to avoid N+1 as matches grow.
+        applicant_ids = [app.user_id for app in accepted_apps]
+        existing_user_ids = {
+            uid for (uid,) in db.query(models.User.id).filter(models.User.id.in_(applicant_ids)).all()
+        }
+        willing_to_move_user_ids = {
+            uid for (uid,) in db.query(models.TalentProfile.user_id).filter(
+                models.TalentProfile.user_id.in_(applicant_ids),
+                models.TalentProfile.is_willing_to_move == True
+            ).all()
+        }
+
         for app in accepted_apps:
-            # Logic: If candidate was from same province as challenge -> Rooting
-            # If from different -> Attraction
-            # This requires complex joins, for now we will infer from User Profile
-            # Simple Heuristic: 
-            # If user.is_willing_to_move = True -> likely moved -> Attraction
-            # Else -> Rooting
-            user = db.query(models.User).get(app.user_id)
-            if user:
-                # We need to check TalentProfile ideally
-                profile = db.query(models.TalentProfile).filter(models.TalentProfile.user_id == user.id).first()
-                if profile and profile.is_willing_to_move:
-                     attraction_count += 1
+            if app.user_id in existing_user_ids:
+                if app.user_id in willing_to_move_user_ids:
+                    attraction_count += 1
                 else:
-                     rooting_count += 1
-                     
+                    rooting_count += 1
+
         rooting_index = int((rooting_count / matches_count) * 100)
         attraction_rate = int((attraction_count / matches_count) * 100)
     else:
@@ -907,13 +916,16 @@ def list_invitations(
     so the admin panel can offer org management actions (e.g. delete)."""
     invites = db.query(models.Invitation).order_by(models.Invitation.created_at.desc()).all()
 
+    accepted_emails = [inv.email for inv in invites if inv.status == "accepted"]
+    org_id_by_email = dict(
+        db.query(models.User.email, models.User.organization_id)
+        .filter(models.User.email.in_(accepted_emails), models.User.organization_id.isnot(None))
+        .all()
+    ) if accepted_emails else {}
+
     result = []
     for inv in invites:
-        org_id = None
-        if inv.status == "accepted":
-            member = db.query(models.User).filter(models.User.email == inv.email).first()
-            if member and member.organization_id:
-                org_id = member.organization_id
+        org_id = org_id_by_email.get(inv.email) if inv.status == "accepted" else None
         result.append({
             "id": inv.id,
             "email": inv.email,

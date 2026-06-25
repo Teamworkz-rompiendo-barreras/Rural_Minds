@@ -194,24 +194,30 @@ def get_municipality_ranking(
     municipalities = db.query(models.Organization).filter(models.Organization.org_type == "municipality").all()
     ranking = []
 
+    # Aggregate once for all municipalities instead of 3 queries per municipality (N+1).
+    msgs_sent_by_muni = dict(
+        db.query(models.MunicipalSupportMessage.municipality_id, func.count(models.MunicipalSupportMessage.id))
+        .group_by(models.MunicipalSupportMessage.municipality_id)
+        .all()
+    )
+    support_matches_by_muni = dict(
+        db.query(models.MunicipalSupportMessage.municipality_id, func.count(models.MunicipalSupportMessage.id))
+        .filter(models.MunicipalSupportMessage.privacy_consent_shared == True)
+        .group_by(models.MunicipalSupportMessage.municipality_id)
+        .all()
+    )
+    challenge_matches_by_muni = dict(
+        db.query(models.Challenge.tenant_id, func.count(models.Application.id))
+        .join(models.Application, models.Application.challenge_id == models.Challenge.id)
+        .filter(models.Application.status == "accepted")
+        .group_by(models.Challenge.tenant_id)
+        .all()
+    )
+
     for muni in municipalities:
-        # Messages Sent
-        msgs_sent = db.query(models.MunicipalSupportMessage).filter(
-            models.MunicipalSupportMessage.municipality_id == muni.id
-        ).count()
-
-        # Matches (Accepted applications for challenges created by this municipality)
-        # OR Consent shared in support messages
-        support_matches = db.query(models.MunicipalSupportMessage).filter(
-            models.MunicipalSupportMessage.municipality_id == muni.id,
-            models.MunicipalSupportMessage.privacy_consent_shared == True
-        ).count()
-
-        # Challenge matches
-        challenge_matches = db.query(models.Application).join(models.Challenge).filter(
-            models.Challenge.tenant_id == muni.id,
-            models.Application.status == "accepted"
-        ).count()
+        msgs_sent = msgs_sent_by_muni.get(muni.id, 0)
+        support_matches = support_matches_by_muni.get(muni.id, 0)
+        challenge_matches = challenge_matches_by_muni.get(muni.id, 0)
 
         total_matches = support_matches + challenge_matches
         score = (msgs_sent * 2) + (total_matches * 5)
